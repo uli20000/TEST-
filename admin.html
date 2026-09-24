@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f4f0e8">
-<title>KFC｜桃園-T995 巡檢後台</title>
+<title>KFC｜KFC-T995 巡檢後台</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -304,6 +304,22 @@ button{cursor:pointer}
   margin-top:3px;
   color:var(--black);
   font-size:14px
+}
+
+.claim-info{
+  grid-column:1 / -1;
+  padding:7px 3px 2px;
+  border-top:1px solid var(--line);
+  color:var(--gray);
+  font-size:12px;
+  line-height:1.6
+}
+
+.claim-info strong{
+  display:inline;
+  margin:0 12px 0 4px;
+  color:var(--black);
+  font-size:13px
 }
 
 .empty,
@@ -830,12 +846,12 @@ button{cursor:pointer}
       <div id="totalCount" class="summary-number">—</div>
     </div>
 
-    <div class="summary-card done">
+    <div id="claimedCard" class="summary-card done clickable">
       <div class="summary-label">已領車</div>
       <div id="claimedCount" class="summary-number">—</div>
     </div>
 
-    <div class="summary-card done">
+    <div id="returnedCard" class="summary-card done clickable">
       <div class="summary-label">已還車</div>
       <div id="returnedCount" class="summary-number">—</div>
     </div>
@@ -1014,8 +1030,14 @@ const totalCount =
 const claimedCount =
   $("claimedCount");
 
+const claimedCard =
+  $("claimedCard");
+
 const returnedCount =
   $("returnedCount");
+
+const returnedCard =
+  $("returnedCard");
 
 const unresolvedCount =
   $("unresolvedCount");
@@ -1558,7 +1580,8 @@ function updateSummary(){
   );
 
   totalCount.textContent = vehicles.length;
-  claimedCount.textContent = vehicles.filter(isClaimedToday).length;
+  // 已領車只計算「今天已領、目前尚未還車」的車輛
+  claimedCount.textContent = vehicles.filter(isClaimPending).length;
   returnedCount.textContent = vehicles.filter(isReturnedToday).length;
   unresolvedCount.textContent = unresolvedVehicleIds.size;
 }
@@ -1628,6 +1651,9 @@ function renderVehicles(){
 
     const u =
       unresolvedForVehicle(v);
+
+    const claim =
+      latestClaim(v);
 
     let sc =
       t
@@ -1736,6 +1762,13 @@ function renderVehicles(){
           </strong>
         </div>
 
+        <div class="claim-info">
+          最新領車人
+          <strong>${esc(claim?.claimant_name || "尚無紀錄")}</strong>
+          領車時間
+          <strong>${esc(claim ? fmt(claim.claimed_at) : "尚無紀錄")}</strong>
+        </div>
+
       </div>
 
       `;
@@ -1757,7 +1790,25 @@ function openQuickList(type){
 
   let list = [];
 
-  if(type === "pending"){
+  if(type === "claimed"){
+
+    list =
+      vehicles.filter(isClaimPending);
+
+    quickModalTitle.textContent =
+      "已領車｜尚未還車";
+
+  }
+  else if(type === "returned"){
+
+    list =
+      vehicles.filter(isReturnedToday);
+
+    quickModalTitle.textContent =
+      "已領車｜已還車";
+
+  }
+  else if(type === "pending"){
 
     list =
       vehicles.filter(
@@ -1816,6 +1867,9 @@ function openQuickList(type){
       const o =
         oilStatus(v);
 
+      const claim =
+        latestClaim(v);
+
       let detail;
 
       if(type === "unresolved" && u){
@@ -1850,6 +1904,14 @@ function openQuickList(type){
           <br>
 
           ${esc(o.text)}
+
+          <br>
+
+          最新領車人：${esc(claim?.claimant_name || "尚無紀錄")}
+
+          <br>
+
+          領車時間：${esc(claim ? fmt(claim.claimed_at) : "尚無紀錄")}
           `;
 
       }
@@ -3217,6 +3279,12 @@ batteryReportList.onclick =
 
 batteryExportBtn.onclick =
   exportBatteryReports;
+
+claimedCard.onclick =
+  () => openQuickList("claimed");
+
+returnedCard.onclick =
+  () => openQuickList("returned");
 
 unresolvedCard.onclick =
   () => openQuickList("unresolved");
