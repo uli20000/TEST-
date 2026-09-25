@@ -776,6 +776,10 @@
 .training-video-box .video-link{background:var(--red);box-shadow:0 6px 14px rgba(200,16,46,.18)}
 .training-pdf-box{margin-top:12px;padding:13px;border-radius:14px;background:#faf9f6;border:1px solid var(--line)}
 .training-pdf-box .optional-link{display:flex;align-items:center;justify-content:center;margin-top:0;min-height:42px;padding:8px;border-radius:10px;background:#fff;color:var(--black);font-weight:800;text-decoration:none}
+.training-pdf-box.mandatory-pdf{background:#fff7e6;border:2px solid #d99a16;box-shadow:0 5px 14px rgba(170,110,0,.12)}
+.training-pdf-box.mandatory-pdf .training-card-subtitle{color:#9a5c00;font-weight:900}
+.training-pdf-box .mandatory-pdf-link{min-height:52px;background:#f59e0b;color:#fff;border:2px solid #c87800;font-size:16px;box-shadow:0 4px 10px rgba(190,115,0,.2)}
+.training-pdf-box .mandatory-pdf-link.opened{background:var(--green);border-color:#28563c}
 .training-question-header{font-size:20px;font-weight:900;margin:0 0 12px}
 .training-question-note{color:var(--gray);font-size:14px;line-height:1.6;margin-bottom:12px}
 @media(max-width:700px){.training-steps{grid-template-columns:repeat(2,1fr)}}
@@ -1457,9 +1461,9 @@
           <a id="defensiveVideoLink" class="video-link" href="#" target="_blank" rel="noopener">▶ 開啟當月防禦駕駛影片</a>
           <div id="defensiveVideoStatus" class="training-message">影片開啟後，選擇題會出現。</div>
         </div>
-        <div class="training-pdf-box">
-          <div class="training-card-subtitle" style="margin-bottom:8px;">03・安全月曆 PDF（選用）</div>
-          <a id="defensivePdfLink" class="optional-link" href="#" target="_blank" rel="noopener" style="display:none;">📖 開啟安全月曆 PDF</a>
+        <div class="training-pdf-box mandatory-pdf">
+          <div class="training-card-subtitle" style="margin-bottom:8px;">03・安全月曆 PDF（必看）</div>
+          <a id="defensivePdfLink" class="optional-link mandatory-pdf-link" href="#" target="_blank" rel="noopener" style="display:none;">📖 開啟安全月曆 PDF（必須點選）</a>
         </div>
       </section>
 
@@ -2497,6 +2501,7 @@ const defensiveSubmitBtn = document.getElementById("defensiveSubmitBtn");
 const defensiveSuccessData = document.getElementById("defensiveSuccessData");
 let defensiveLesson = null;
 let defensiveVideoOpenedAt = null;
+let defensivePdfOpenedAt = null;
 let defensiveExistingResponse = null;
 let defensiveTargetNames = [];
 let defensiveTargetNamesLoaded = false;
@@ -3442,6 +3447,9 @@ function renderDefensiveQuestion(container, number, question, optionA, optionB){
 function resetDefensiveForm(){
   defensiveLesson = null;
   defensiveVideoOpenedAt = null;
+  defensivePdfOpenedAt = null;
+  defensivePdfLink.classList.remove("opened");
+  defensivePdfLink.textContent = "📖 開啟安全月曆 PDF（必須點選）";
   defensiveExistingResponse = null;
   defensiveNameInput.value = "";
   defensiveNameSuggestions.classList.remove("show");
@@ -3502,6 +3510,9 @@ async function loadDefensiveLesson(){
       defensivePdfLink.style.display = "none";
     }
     defensiveVideoOpenedAt = null;
+    defensivePdfOpenedAt = null;
+    defensivePdfLink.classList.remove("opened");
+    defensivePdfLink.textContent = "📖 開啟安全月曆 PDF（必須點選）";
     defensiveVideoStatus.className = "training-message";
     defensiveVideoStatus.textContent = "請先開啟影片，完成後再開始答題。";
     defensiveQuestions.style.display = "none";
@@ -3524,7 +3535,13 @@ defensiveVideoLink.addEventListener("click", () => {
   defensiveVideoOpenedAt = new Date().toISOString();
   defensiveQuestions.style.display = "block";
   defensiveVideoStatus.className = "training-message success";
-  defensiveVideoStatus.textContent = "影片已開啟，請完成兩題後送出。";
+  defensiveVideoStatus.textContent = "影片已開啟，請先點選安全月曆 PDF，再完成兩題後送出。";
+});
+
+defensivePdfLink.addEventListener("click", () => {
+  defensivePdfOpenedAt = new Date().toISOString();
+  defensivePdfLink.classList.add("opened");
+  defensivePdfLink.textContent = "✅ 已開啟安全月曆 PDF";
 });
 
 defensiveSubmitBtn.addEventListener("click", async () => {
@@ -3533,6 +3550,7 @@ defensiveSubmitBtn.addEventListener("click", async () => {
   const a2 = document.querySelector('.answer-option[data-question="2"].selected')?.dataset.value;
   if(!defensiveLesson || !name){ alert("請先載入當月課程。"); return; }
   if(!defensiveVideoOpenedAt){ alert("請先開啟並觀看當月影片。"); return; }
+  if(!defensivePdfOpenedAt){ alert("請先開啟安全月曆 PDF。"); return; }
   if(!a1 || !a2){ alert("兩題都必須作答。"); return; }
   defensiveSubmitBtn.disabled = true;
   defensiveSubmitBtn.textContent = "判定中…";
@@ -3558,6 +3576,9 @@ defensiveSubmitBtn.addEventListener("click", async () => {
       alert("本次答題未通過，請重新觀看影片後再回答兩題。\n目前仍未完成本月課程。");
       defensiveExistingResponse = {...payload};
       defensiveVideoOpenedAt = null;
+      defensivePdfOpenedAt = null;
+      defensivePdfLink.classList.remove("opened");
+      defensivePdfLink.textContent = "📖 開啟安全月曆 PDF（必須點選）";
       defensiveQuestions.style.display = "none";
       defensiveVideoStatus.className = "training-message";
       defensiveVideoStatus.textContent = "答題未通過，請重新開啟影片後再作答。";
