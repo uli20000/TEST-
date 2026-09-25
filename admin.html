@@ -765,6 +765,17 @@ button{cursor:pointer}
 .survey-result-pass{color:var(--green)!important}
 .survey-result-fail{color:var(--danger)!important}
 .survey-detail{margin-top:10px;color:var(--gray);font-size:13px;line-height:1.6}
+.survey-status-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.survey-status-heading{grid-column:1/-1;text-align:left;color:var(--gray);font-size:13px}
+.survey-status-card{width:100%;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;text-align:left;font:inherit;color:var(--black);cursor:pointer}
+.survey-status-card:hover{border-color:#c9a99e}
+.survey-status-card .status-name{font-size:16px;font-weight:800}
+.survey-status-card .status-meta{margin-top:5px;color:var(--gray);font-size:12px;line-height:1.55}
+.survey-status-card .status-result{margin-top:5px;font-size:13px;font-weight:800}
+.survey-status-card .status-pass{color:var(--green)}
+.survey-status-card .status-fail{color:var(--danger)}
+.survey-summary .summary-card.active{border:2px solid var(--red);background:#fff8f8}
+.summary-card{font:inherit;color:var(--black)}
 .record-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .record-actions .action-btn{width:auto;min-width:104px;padding:9px 12px;font-size:13px}
 .record-actions .delete-btn{background:var(--danger-bg);border:1px solid #e2aaa4;color:var(--danger);cursor:pointer;border-radius:10px;font:inherit;font-weight:800;padding:9px 12px;min-width:104px}
@@ -798,6 +809,11 @@ button{cursor:pointer}
 .date{margin-top:4px;font-size:14px}
 @media(max-width:700px){.title{font-size:26px}}
 
+/* 後台入口：長條形按鈕與日期 */
+.admin-menu{grid-template-columns:1fr;gap:10px;padding:16px}
+.admin-mode-btn{min-height:72px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:18px}
+.admin-mode-btn .icon{display:inline-block;font-size:28px;margin:0}
+.date{display:block;min-height:20px}
 
 /* 車輛新增、問卷名單與防禦駕駛 */
 .vehicle-add-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -813,6 +829,12 @@ button{cursor:pointer}
 .defensive-admin-card .status-line{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .defensive-admin-card .answer-line{color:var(--gray);font-size:13px;line-height:1.6;margin-top:8px}
 @media(max-width:700px){.vehicle-add-grid,.survey-admin-tools{grid-template-columns:1fr}}
+@media(max-width:700px){.survey-status-list{grid-template-columns:1fr}}
+/* 新人名單：批次、姓名、新增同一列 */
+.survey-admin-tools{max-width:620px;margin:10px auto 0;grid-template-columns:112px minmax(0,1fr) auto;align-items:center}
+.survey-admin-tools .search-input{height:42px;padding:8px 10px;font-size:14px}
+.survey-admin-tools .action-btn{width:auto;min-height:42px;padding:8px 12px;white-space:nowrap;font-size:14px}
+@media(max-width:700px){.survey-admin-tools{grid-template-columns:1fr}.survey-admin-tools .action-btn{width:100%}}
 </style>
 </head>
 
@@ -950,6 +972,7 @@ button{cursor:pointer}
   <section class="section">
     <div class="section-title">駕駛意向調查</div>
     <div id="surveySummary" class="survey-summary"></div>
+    <div id="surveyStatusList" class="survey-status-list"></div>
     <div class="search-box">
       <input id="surveySearchInput" class="search-input" type="text" placeholder="搜尋填寫人姓名">
       <div class="mode-tools">
@@ -972,7 +995,7 @@ button{cursor:pointer}
     <div id="surveyIncompleteList" class="roster-panel"></div>
   </section>
 
-  <section class="section">
+  <section class="section" style="display:none;">
     <div class="section-title">不合格名單</div>
     <div id="surveyFailedList" class="roster-list"></div>
   </section>
@@ -1184,6 +1207,7 @@ const surveyBackBtn = $("surveyBackBtn");
 const surveySearchInput = $("surveySearchInput");
 const surveyExportBtn = $("surveyExportBtn");
 const surveySummary = $("surveySummary");
+const surveyStatusList = $("surveyStatusList");
 const surveyResponseList = $("surveyResponseList");
 const batteryModePage = $("batteryModePage");
 const batteryModeBtn = $("batteryModeBtn");
@@ -1213,6 +1237,7 @@ const surveyIncompleteList = $("surveyIncompleteList");
 const surveyFailedList = $("surveyFailedList");
 let surveyResponses = [];
 let surveyTargets = [];
+let activeSurveyStatus = "required";
 let batteryReports = [];
 let defensiveResponses = [];
 let defensiveTargets = [];
@@ -3085,23 +3110,88 @@ function surveyResultClass(value){
   return value === "合格" ? "survey-result-pass" : "survey-result-fail";
 }
 
+function renderSurveyEmptySummary(message){
+  surveySummary.innerHTML = `
+    <button type="button" class="summary-card clickable" data-survey-status="required"><div class="summary-label">應完成</div><div class="summary-number">0</div></button>
+    <button type="button" class="summary-card abnormal clickable" data-survey-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">0</div></button>
+    <button type="button" class="summary-card done clickable" data-survey-status="completed"><div class="summary-label">已完成</div><div class="summary-number">0</div></button>
+    <button type="button" class="summary-card abnormal clickable" data-survey-status="failed"><div class="summary-label">不合格</div><div class="summary-number">0</div></button>
+  `;
+  surveyStatusList.innerHTML = `<div class="empty" style="grid-column:1/-1;">${esc(message || "目前沒有資料")}</div>`;
+}
+
+function renderDefensiveEmptySummary(message){
+  defensiveSummary.innerHTML = `
+    <div class="summary-card"><div class="summary-label">應完成</div><div class="summary-number">0</div></div>
+    <div class="summary-card done"><div class="summary-label">已完成</div><div class="summary-number">0</div></div>
+    <div class="summary-card abnormal"><div class="summary-label">未完成</div><div class="summary-number">0</div></div>
+  `;
+  defensiveAdminList.innerHTML = `<div class="empty">${esc(message || "目前沒有資料")}</div>`;
+}
+
 function renderSurveySummary(){
-  const part1Fail = surveyResponses.filter(x => x.part1_result === "不合格").length;
-  const part2Fail = surveyResponses.filter(x => x.part2_result === "不合格").length;
-  const accident = surveyResponses.filter(x => x.accident_within_one_year === true).length;
-  const targetNameSet = new Set(surveyTargets.map(x => String(x.respondent_name || "").trim()));
+  const targetNameSet = new Set(surveyTargets.map(x => String(x.respondent_name || "").trim()).filter(Boolean));
   const completedNames = new Set(surveyResponses.map(x => String(x.respondent_name || "").trim()).filter(name => targetNameSet.has(name)));
   const incomplete = surveyTargets.filter(x => !completedNames.has(String(x.respondent_name || "").trim())).length;
   const failed = surveyResponses.filter(x => x.part1_result === "不合格" || x.part2_result === "不合格").length;
   surveySummary.innerHTML = `
-    <div class="summary-card"><div class="summary-label">應完成總數</div><div class="summary-number">${surveyTargets.length}</div></div>
-    <div class="summary-card done"><div class="summary-label">已完成</div><div class="summary-number">${completedNames.size}</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">未完成</div><div class="summary-number">${incomplete}</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">不合格</div><div class="summary-number">${failed}</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">第一部分不合格</div><div class="summary-number">${part1Fail}</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">第二部分不合格</div><div class="summary-number">${part2Fail}</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">一年內有肇事</div><div class="summary-number">${accident}</div></div>
+    <button type="button" class="summary-card clickable" data-survey-status="required"><div class="summary-label">應完成</div><div class="summary-number">${surveyTargets.length}</div></button>
+    <button type="button" class="summary-card abnormal clickable" data-survey-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">${incomplete}</div></button>
+    <button type="button" class="summary-card done clickable" data-survey-status="completed"><div class="summary-label">已完成</div><div class="summary-number">${completedNames.size}</div></button>
+    <button type="button" class="summary-card abnormal clickable" data-survey-status="failed"><div class="summary-label">不合格</div><div class="summary-number">${failed}</div></button>
   `;
+  surveySummary.querySelectorAll("[data-survey-status]").forEach(card => {
+    card.classList.toggle("active", card.dataset.surveyStatus === activeSurveyStatus);
+  });
+  renderSurveyStatusList(activeSurveyStatus);
+}
+
+function latestSurveyResponseByName(){
+  const map = new Map();
+  surveyResponses.forEach(row => {
+    const name = String(row.respondent_name || "").trim();
+    if(!name) return;
+    if(!map.has(name)) map.set(name, row);
+  });
+  return map;
+}
+
+function renderSurveyStatusList(status){
+  activeSurveyStatus = status || "required";
+  const responseMap = latestSurveyResponseByName();
+  const targetRows = surveyTargets.map(row => {
+    const name = String(row.respondent_name || "").trim();
+    return {name, round: row.survey_round || surveyRoundSelect.value, response: responseMap.get(name) || null};
+  }).filter(row => row.name);
+  let rows = targetRows;
+  let title = "應完成名單";
+  if(activeSurveyStatus === "incomplete"){
+    rows = targetRows.filter(row => !row.response);
+    title = "未完成名單";
+  }else if(activeSurveyStatus === "completed"){
+    rows = targetRows.filter(row => row.response);
+    title = "已完成名單";
+  }else if(activeSurveyStatus === "failed"){
+    rows = targetRows.filter(row => row.response && (row.response.part1_result === "不合格" || row.response.part2_result === "不合格"));
+    title = "不合格名單";
+  }
+  if(!rows.length){
+    surveyStatusList.innerHTML = `<div class="survey-status-heading">${title}（0 人）</div><div class="empty" style="grid-column:1/-1;">目前沒有資料</div>`;
+    return;
+  }
+  surveyStatusList.innerHTML = `<div class="survey-status-heading">${title}（${rows.length} 人）</div>` + rows.map(row => {
+    const response = row.response;
+    const pass = response && response.part1_result === "合格" && response.part2_result === "合格";
+    const resultText = !response ? "尚未提交問卷" : `第一部分：${response.part1_result || "未判定"}｜第二部分：${response.part2_result || "未判定"}`;
+    const meta = !response ? `${esc(row.round)}｜尚未完成` : `${esc(fmt(response.submitted_at))}｜${esc(response.part1_total ?? "-")} 分／${esc(response.part2_total ?? "-")} 分`;
+    const tag = !response ? "未完成" : (pass ? "已完成" : "不合格");
+    const tagClass = !response || !pass ? "status-fail" : "status-pass";
+    return `<button type="button" class="survey-status-card" data-survey-detail-name="${esc(row.name)}" ${response ? "" : "disabled"}>
+      <div class="status-name">${esc(row.name)}</div>
+      <div class="status-meta">${meta}</div>
+      <div class="status-result ${tagClass}">${tag}｜${esc(resultText)}</div>
+    </button>`;
+  }).join("");
 }
 
 function renderSurveyResponses(){
@@ -3297,7 +3387,7 @@ async function loadDefensiveAdminData(){
     const completed = new Set(defensiveResponses.filter(row => row.status === "completed").map(row => row.respondent_name));
     const incomplete = uniqueNames.filter(name => !completed.has(name));
     defensiveSummary.innerHTML = `
-      <div class="summary-card"><div class="summary-label">總人數</div><div class="summary-number">${uniqueNames.length}</div></div>
+      <div class="summary-card"><div class="summary-label">應完成</div><div class="summary-number">${uniqueNames.length}</div></div>
       <div class="summary-card done"><div class="summary-label">已完成</div><div class="summary-number">${completed.size}</div></div>
       <div class="summary-card abnormal"><div class="summary-label">未完成</div><div class="summary-number">${incomplete.length}</div></div>`;
     defensiveAdminList.innerHTML = incomplete.length ? `
@@ -3307,8 +3397,7 @@ async function loadDefensiveAdminData(){
       defensiveAdminList.innerHTML += `<div class="section-title" style="margin:18px 0 10px;">已完成名單</div>` + [...completed].map(name => { const row = defensiveResponses.find(item => item.respondent_name === name); return `<div class="defensive-admin-card"><div class="status-line"><strong>${esc(name)}</strong><span class="survey-result-pass">已完成</span></div><div class="answer-line">第1題：${esc(row?.question_1_answer || "-")}｜第2題：${esc(row?.question_2_answer || "-")}<br>完成時間：${esc(fmt(row?.completed_at))}</div></div>`; }).join("");
     }
   }catch(e){
-    defensiveSummary.innerHTML = "";
-    defensiveAdminList.innerHTML = `<div class="empty">防禦駕駛資料讀取失敗：${esc(e.message || "請確認資料表與權限")}</div>`;
+    renderDefensiveEmptySummary(`防禦駕駛資料讀取失敗：${e.message || "請確認資料表與權限"}`);
   }
 }
 
@@ -3328,9 +3417,9 @@ async function loadSurveyData(){
     renderSurveyRoster();
     renderSurveyResponses();
   }catch(e){
-    surveySummary.innerHTML = "";
     surveyIncompleteList.innerHTML = "";
     surveyFailedList.innerHTML = "";
+    renderSurveyEmptySummary(`問卷資料讀取失敗：${e.message || "請確認 anon SELECT 權限"}`);
     surveyResponseList.innerHTML = `<div class="empty">問卷資料讀取失敗：${esc(e.message || "請確認 anon SELECT 權限")}</div>`;
   }
 }
@@ -3399,6 +3488,43 @@ async function loadBatteryData(){
   }
 }
 
+function exportBatteryReports(){
+  if(!batteryReports.length){
+    alert("目前沒有可匯出的電池異常資料。");
+    return;
+  }
+  const rows = batteryReports.map(row => ({
+    id: row.id || "",
+    電池編號: row.battery_number || "",
+    所在餐廳: row.restaurant_no || "",
+    異常內容: row.issue_description || "",
+    回報時間: row.reported_at || "",
+    處理狀態: row.resolution_status || "",
+    處理完成時間: row.resolved_at || "",
+    處理備註: row.resolution_note || ""
+  }));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "電池異常回報");
+  XLSX.writeFile(wb, `KFC_電池異常回報_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function deleteBatteryReport(id){
+  const row = batteryReports.find(item => String(item.id || "") === String(id || ""));
+  if(!row) return;
+  if(!confirm(`確定要刪除電池「${row.battery_number || "未填編號"}」的這筆異常回報嗎？\n\n刪除後無法復原。`)) return;
+  try{
+    const result = await db.from("battery_issue_reports").delete().eq("id", id);
+    if(result.error) throw result.error;
+    batteryReports = batteryReports.filter(item => String(item.id || "") !== String(id || ""));
+    renderBatterySummary();
+    renderBatteryReports();
+    alert("✅ 電池異常回報已刪除。");
+  }catch(e){
+    alert(`刪除電池異常回報失敗：${e.message || "請確認 Supabase DELETE 權限"}`);
+  }
+}
+
 function showAdminMode(mode){
   adminModeMenu.style.display = mode === "home" ? "grid" : "none";
   vehicleModePage.style.display = mode === "vehicle" ? "block" : "none";
@@ -3442,6 +3568,18 @@ batteryRefreshBtn.onclick =
 
 batterySearchInput.oninput =
   renderBatteryReports;
+
+surveySummary.onclick = e => {
+  const card = e.target.closest("[data-survey-status]");
+  if(!card) return;
+  activeSurveyStatus = card.dataset.surveyStatus;
+  surveySummary.querySelectorAll("[data-survey-status]").forEach(item => item.classList.toggle("active", item === card));
+  renderSurveyStatusList(activeSurveyStatus);
+};
+surveyStatusList.onclick = e => {
+  const card = e.target.closest("[data-survey-detail-name]");
+  if(card && !card.disabled) focusSurveyResponse(card.dataset.surveyDetailName);
+};
 
 surveySearchInput.oninput =
   renderSurveyResponses;
