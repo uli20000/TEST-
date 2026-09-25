@@ -1509,6 +1509,22 @@ const db =
 
 const CURRENT_SURVEY_ROUND = "2027M1";
 
+// 桃園 T995 安全月曆：與 index.html 同層的 pdf 資料夾
+const SAFETY_CALENDAR_PDFS = {
+  1: "pdf/safety-calendar-01.pdf",
+  2: "pdf/safety-calendar-02.pdf",
+  3: "pdf/safety-calendar-03.pdf",
+  4: "pdf/safety-calendar-04.pdf",
+  5: "pdf/safety-calendar-05.pdf",
+  6: "pdf/safety-calendar-06.pdf",
+  7: "pdf/safety-calendar-07.pdf",
+  8: "pdf/safety-calendar-08.pdf",
+  9: "pdf/safety-calendar-09.pdf",
+  10: "pdf/safety-calendar-10.pdf",
+  11: "pdf/safety-calendar-11.pdf",
+  12: "pdf/safety-calendar-12.pdf"
+};
+
 
 /* =====================================================
    CHECK ITEMS
@@ -3503,9 +3519,10 @@ async function loadDefensiveLesson(){
     }
     defensiveLessonTitle.textContent = `${monthNo} 月防禦駕駛影片與考題`;
     defensiveVideoLink.href = defensiveLesson.video_url;
-    if(defensiveLesson.safety_calendar_pdf_url){
-      defensivePdfLink.href = defensiveLesson.safety_calendar_pdf_url;
-      defensivePdfLink.style.display = "block";
+    const safetyCalendarPdf = SAFETY_CALENDAR_PDFS[monthNo] || defensiveLesson.safety_calendar_pdf_url;
+    if(safetyCalendarPdf){
+      defensivePdfLink.href = safetyCalendarPdf;
+      defensivePdfLink.style.display = "flex";
     }else{
       defensivePdfLink.style.display = "none";
     }
