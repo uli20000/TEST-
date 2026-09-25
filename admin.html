@@ -1034,6 +1034,11 @@ button{cursor:pointer}
     <div id="defensiveSummary" class="survey-summary" style="margin-top:14px;"></div>
   </section>
   <section class="section">
+    <div id="defensiveAdminList" class="vehicle-list">
+      <div class="loading">尚未載入防禦駕駛資料</div>
+    </div>
+  </section>
+  <section class="section">
     <div class="section-title">應完成人員名單（意向調查／防禦駕駛共用）</div>
     <div class="survey-admin-tools">
       <select id="surveyRoundSelect" class="search-input">
@@ -1044,14 +1049,9 @@ button{cursor:pointer}
       <button id="surveyTargetAddBtn" class="action-btn" type="button">＋ 新增應完成人員</button>
     </div>
     <div id="surveyTargetMessage" class="hint" style="margin-top:8px;"></div>
-    <div id="surveyIncompleteList" class="roster-panel"></div>
+    <div id="surveyIncompleteList" class="roster-panel" style="display:none;"></div>
   </section>
 
-  <section class="section">
-    <div id="defensiveAdminList" class="vehicle-list">
-      <div class="loading">尚未載入防禦駕駛資料</div>
-    </div>
-  </section>
 </section>
 </div>
 
@@ -3129,11 +3129,13 @@ function renderSurveyEmptySummary(message){
 
 function renderDefensiveEmptySummary(message){
   defensiveSummary.innerHTML = `
-    <div class="summary-card"><div class="summary-label">應完成</div><div class="summary-number">0</div></div>
-    <div class="summary-card done"><div class="summary-label">已完成</div><div class="summary-number">0</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">未完成</div><div class="summary-number">0</div></div>
+    <button type="button" class="summary-card clickable" data-defensive-status="required"><div class="summary-label">應完成</div><div class="summary-number">0</div></button>
+    <button type="button" class="summary-card abnormal clickable" data-defensive-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">0</div></button>
+    <button type="button" class="summary-card done clickable" data-defensive-status="completed"><div class="summary-label">已完成</div><div class="summary-number">0</div></button>
+    <button type="button" class="summary-card clickable" data-defensive-status="active"><div class="summary-label">在職名單</div></button>
   `;
-  defensiveAdminList.innerHTML = `<div class="empty">${esc(message || "目前沒有資料")}</div>`;
+  defensiveAdminList.className = "survey-status-list";
+  defensiveAdminList.innerHTML = `<div class="empty" style="grid-column:1/-1;">${esc(message || "目前沒有資料")}</div>`;
 }
 
 function renderSurveySummary(){
@@ -3394,8 +3396,9 @@ function latestDefensiveResponseByName(){
 function renderDefensiveSummary(uniqueNames, completed, incomplete){
   defensiveSummary.innerHTML = `
     <button type="button" class="summary-card clickable" data-defensive-status="required"><div class="summary-label">應完成</div><div class="summary-number">${uniqueNames.length}</div></button>
-    <button type="button" class="summary-card done clickable" data-defensive-status="completed"><div class="summary-label">已完成</div><div class="summary-number">${completed.size}</div></button>
     <button type="button" class="summary-card abnormal clickable" data-defensive-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">${incomplete.length}</div></button>
+    <button type="button" class="summary-card done clickable" data-defensive-status="completed"><div class="summary-label">已完成</div><div class="summary-number">${completed.size}</div></button>
+    <button type="button" class="summary-card clickable" data-defensive-status="active"><div class="summary-label">在職名單</div></button>
   `;
   defensiveSummary.querySelectorAll("[data-defensive-status]").forEach(card => {
     card.classList.toggle("active", card.dataset.defensiveStatus === activeDefensiveStatus);
@@ -3415,8 +3418,10 @@ function renderDefensiveStatusList(status){
   }else if(activeDefensiveStatus === "incomplete"){
     rows = allRows.filter(row => row.response?.status !== "completed");
     title = "未完成名單";
+  }else if(activeDefensiveStatus === "active"){
+    title = "在職名單";
   }
-  defensiveAdminList.className = "defensive-status-list";
+  defensiveAdminList.className = "survey-status-list";
   if(!rows.length){
     defensiveAdminList.innerHTML = `<div class="survey-status-heading">${title}（0 人）</div><div class="empty">目前沒有資料</div>`;
     return;
@@ -3427,10 +3432,13 @@ function renderDefensiveStatusList(status){
     const meta = completed
       ? `完成日期：${esc(fmt(response.completed_at))}｜答題 ${esc(response.attempt_count || 0)} 次`
       : (response ? `尚未完成｜最後作答：${esc(fmt(response.last_attempt_at))}` : "尚未開始");
-    const deleteButton = completed ? `<button type="button" class="status-delete-btn defensive-status-delete" data-name="${esc(row.name)}" data-month="${esc(response.month_no)}" data-year="${esc(response.training_year)}">刪除紀錄</button>` : "";
-    return `<div class="defensive-status-card">
-      <div class="status-line"><strong>${esc(row.name)}</strong><span class="${completed ? "survey-result-pass" : "survey-result-fail"}">${completed ? "已完成" : "未完成"}</span></div>
-      <div class="status-meta">${meta}</div>
+    const deleteButton = activeDefensiveStatus === "active"
+      ? `<button type="button" class="status-delete-btn defensive-target-delete" data-name="${esc(row.name)}" data-round="${esc(surveyRoundSelect.value)}">永久刪除</button>`
+      : (completed ? `<button type="button" class="status-delete-btn defensive-status-delete" data-name="${esc(row.name)}" data-month="${esc(response.month_no)}" data-year="${esc(response.training_year)}">刪除紀錄</button>` : "");
+    return `<div class="survey-status-card">
+      <div class="status-name">${esc(row.name)}</div>
+      <div class="status-meta">${activeDefensiveStatus === "active" ? `${esc(surveyRoundSelect.value)}｜在職人員` : meta}</div>
+      <div class="status-result ${completed ? "status-pass" : "status-fail"}">${activeDefensiveStatus === "active" ? (completed ? "本月已完成" : "本月未完成") : (completed ? "已完成" : "未完成")}</div>
       ${deleteButton ? `<div class="status-card-actions">${deleteButton}</div>` : ""}
     </div>`;
   }).join("");
@@ -3663,10 +3671,16 @@ defensiveSummary.onclick = e => {
   activeDefensiveStatus = card.dataset.defensiveStatus;
   defensiveSummary.querySelectorAll("[data-defensive-status]").forEach(item => item.classList.toggle("active", item === card));
   renderDefensiveStatusList(activeDefensiveStatus);
+  defensiveAdminList.scrollIntoView({behavior:"smooth", block:"start"});
 };
 defensiveAdminList.onclick = e => {
-  const deleteButton = e.target.closest(".defensive-status-delete");
-  if(deleteButton) deleteDefensiveResponse(deleteButton.dataset.name, deleteButton.dataset.month, deleteButton.dataset.year);
+  const recordButton = e.target.closest(".defensive-status-delete");
+  if(recordButton){
+    deleteDefensiveResponse(recordButton.dataset.name, recordButton.dataset.month, recordButton.dataset.year);
+    return;
+  }
+  const targetButton = e.target.closest(".defensive-target-delete");
+  if(targetButton) deleteSurveyTarget(targetButton.dataset.name, targetButton.dataset.round);
 };
 
 surveySearchInput.oninput =
