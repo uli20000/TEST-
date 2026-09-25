@@ -814,6 +814,21 @@
 /* 防禦駕駛文字置中 */
 .defensive-page,.defensive-page .training-card,.defensive-page .training-card-title,.defensive-page .training-card-subtitle,.defensive-page .training-message,.defensive-page .training-question-header,.defensive-page .training-question-note,.defensive-page .question-card,.defensive-page .question-title,.defensive-page .answer-option{ text-align:center; }
 .defensive-page .label{display:block;text-align:center}
+.answer-option{
+  width:100%;
+  font:inherit;
+  color:var(--black);
+  background:#fff;
+  text-align:center;
+  cursor:pointer;
+}
+.answer-option.selected{
+  border-color:var(--red);
+  background:#fff1f3;
+  color:var(--red);
+  font-weight:800;
+}
+
 </style>
 </head>
 
@@ -3413,9 +3428,15 @@ function selectedTrainingMonth(){
 function renderDefensiveQuestion(container, number, question, optionA, optionB){
   container.innerHTML = `
     <div class="question-title">第 ${number} 題｜${escapeHtml(question || "")}</div>
-    <label class="answer-option"><input type="radio" name="defensiveQuestion${number}" value="A">A. ${escapeHtml(optionA || "")}</label>
-    <label class="answer-option"><input type="radio" name="defensiveQuestion${number}" value="B">B. ${escapeHtml(optionB || "")}</label>
+    <button type="button" class="answer-option" data-question="${number}" data-value="A">A. ${escapeHtml(optionA || "")}</button>
+    <button type="button" class="answer-option" data-question="${number}" data-value="B">B. ${escapeHtml(optionB || "")}</button>
   `;
+  container.querySelectorAll(".answer-option").forEach(button => {
+    button.addEventListener("click", () => {
+      container.querySelectorAll(".answer-option").forEach(option => option.classList.remove("selected"));
+      button.classList.add("selected");
+    });
+  });
 }
 
 function resetDefensiveForm(){
@@ -3508,8 +3529,8 @@ defensiveVideoLink.addEventListener("click", () => {
 
 defensiveSubmitBtn.addEventListener("click", async () => {
   const name = defensiveNameInput.value.trim();
-  const a1 = document.querySelector('input[name="defensiveQuestion1"]:checked')?.value;
-  const a2 = document.querySelector('input[name="defensiveQuestion2"]:checked')?.value;
+  const a1 = document.querySelector('.answer-option[data-question="1"].selected')?.dataset.value;
+  const a2 = document.querySelector('.answer-option[data-question="2"].selected')?.dataset.value;
   if(!defensiveLesson || !name){ alert("請先載入當月課程。"); return; }
   if(!defensiveVideoOpenedAt){ alert("請先開啟並觀看當月影片。"); return; }
   if(!a1 || !a2){ alert("兩題都必須作答。"); return; }
