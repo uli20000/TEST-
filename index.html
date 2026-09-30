@@ -855,6 +855,7 @@
     <div id="claimBackTop" class="front-top-back intro-back" style="display:none"><button id="claimBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="inspectionBackTop" class="front-top-back intro-back" style="display:none"><button id="inspectionBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="batteryBackTop" class="front-top-back intro-back" style="display:none"><button id="batteryBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="batteryRegisterBackTop" class="front-top-back intro-back" style="display:none"><button id="batteryRegisterBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="surveyBackTop" class="front-top-back intro-back" style="display:none"><button id="surveyBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="defensiveBackTop" class="front-top-back intro-back" style="display:none"><button id="defensiveBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <h2 id="introTitle">上班領車・下班還車</h2>
@@ -879,7 +880,7 @@
 
     <button id="batteryModeBtn" class="mode-btn" type="button">
       <span class="icon">🔋</span>
-      <span class="main">電池異常回饋</span>
+      <span class="main">設備異常回報</span>
     </button>
 
     <button id="defensiveModeBtn" class="mode-btn" type="button">
@@ -1021,6 +1022,7 @@
             placeholder="請輸入紀錄器編號"
             autocomplete="off"
           >
+          <div id="recorderHealthInfo" class="hint" style="display:none;margin-top:10px;text-align:center"></div>
         </div>
       </section>
 
@@ -1328,31 +1330,56 @@
 <div id="batteryForm">
 
       <section class="card">
-        <div class="section-number">01・電池</div>
-        <label class="label" for="batteryNumber">電池編號</label>
-        <input id="batteryNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
-      </section>
-
-      <section class="card">
-        <div class="section-number">02・餐廳</div>
-        <label class="label" for="batteryRestaurant">電池所在餐廳</label>
-        <select id="batteryRestaurant">
-          <option value="">請選擇店號</option>
-          <option>025</option><option>041</option><option>062</option><option>084</option><option>095</option>
-          <option>098</option><option>099</option><option>137</option><option>142</option><option>161</option>
-          <option>165</option><option>173</option><option>179</option><option>182</option><option>183</option>
-          <option>190</option><option>209</option><option>214</option><option>227</option><option>242</option>
-          <option>248</option><option>516</option><option>562</option><option>580</option><option>587</option>
+        <div class="section-number">01・設備類型</div>
+        <label class="label" for="deviceIssueType">請選擇設備</label>
+        <select id="deviceIssueType">
+          <option value="battery">電池</option>
+          <option value="recorder">行車紀錄器</option>
         </select>
       </section>
 
-      <section class="card">
-        <div class="section-number">03・異常內容</div>
-        <label class="label" for="batteryIssueDetail">異常內容／說明</label>
-        <textarea id="batteryIssueDetail" placeholder="請詳細說明電池異常情況"></textarea>
-      </section>
+      <div id="batteryIssueFields">
+        <section class="card">
+          <div class="section-number">02・電池</div>
+          <label class="label" for="batteryNumber">電池編號</label>
+          <input id="batteryNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
+        </section>
 
-      <button id="batterySaveBtn" class="save-btn" type="button">送出電池異常回饋</button>
+        <section class="card">
+          <div class="section-number">03・回報餐廳</div>
+          <label class="label" for="batteryRestaurant">電池所在餐廳</label>
+          <select id="batteryRestaurant">
+            <option value="">請選擇店號</option>
+            <option>025</option><option>041</option><option>062</option><option>084</option><option>095</option>
+            <option>098</option><option>099</option><option>137</option><option>142</option><option>161</option>
+            <option>165</option><option>173</option><option>179</option><option>182</option><option>183</option>
+            <option>190</option><option>209</option><option>214</option><option>227</option><option>242</option>
+            <option>248</option><option>516</option><option>562</option><option>580</option><option>587</option>
+          </select>
+        </section>
+
+        <section class="card">
+          <div class="section-number">04・異常內容</div>
+          <label class="label" for="batteryIssueDetail">異常內容／說明</label>
+          <textarea id="batteryIssueDetail" placeholder="請詳細說明電池異常情況"></textarea>
+        </section>
+      </div>
+
+      <div id="recorderIssueFields" style="display:none">
+        <section class="card">
+          <div class="section-number">02・行車紀錄器</div>
+          <label class="label" for="recorderIssueNumber">紀錄器編號</label>
+          <input id="recorderIssueNumber" type="text" maxlength="100" placeholder="請輸入紀錄器編號" autocomplete="off">
+        </section>
+
+        <section class="card">
+          <div class="section-number">03・異常內容</div>
+          <label class="label" for="recorderIssueDetail">異常內容／說明</label>
+          <textarea id="recorderIssueDetail" placeholder="請詳細說明紀錄器異常情況"></textarea>
+        </section>
+      </div>
+
+      <button id="batterySaveBtn" class="save-btn" type="button">送出設備異常回報</button>
 </div>
 
     <div id="batterySuccess" class="success-panel">
@@ -1363,6 +1390,36 @@
       <div id="batterySuccessData" class="success-data"></div>
 </div>
 
+  </section>
+
+  <!-- =========================
+       電池建檔
+  ========================= -->
+
+  <section id="batteryRegisterPage" class="mode-page battery-page">
+    <div id="batteryRegisterForm">
+      <section class="card">
+        <div class="section-number">01・電池</div>
+        <label class="label" for="batteryRegisterNumber">電池編號</label>
+        <input id="batteryRegisterNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
+      </section>
+
+      <section class="card">
+        <div class="section-number">02・餐廳</div>
+        <label class="label" for="batteryRegisterRestaurant">電池所在餐廳</label>
+        <select id="batteryRegisterRestaurant">
+          <option value="">請選擇店號</option>
+          <option>025</option><option>041</option><option>062</option><option>084</option><option>095</option>
+          <option>098</option><option>099</option><option>137</option><option>142</option><option>161</option>
+          <option>165</option><option>173</option><option>179</option><option>182</option><option>183</option>
+          <option>190</option><option>209</option><option>214</option><option>227</option><option>242</option>
+          <option>248</option><option>516</option><option>562</option><option>580</option><option>587</option>
+        </select>
+      </section>
+
+      <button id="batteryRegisterSaveBtn" class="save-btn" type="button">新增電池建檔</button>
+      <div id="batteryRegisterMessage" class="training-message" style="display:block;margin-top:12px;"></div>
+    </div>
   </section>
 
 
@@ -2490,9 +2547,14 @@ const inspectionSuccess =
   );
 
 const batteryPage = document.getElementById("batteryPage");
+const batteryRegisterPage = document.getElementById("batteryRegisterPage");
 const surveyPage = document.getElementById("surveyPage");
 const batteryForm = document.getElementById("batteryForm");
 const batterySuccess = document.getElementById("batterySuccess");
+const batteryRegisterNumberInput = document.getElementById("batteryRegisterNumber");
+const batteryRegisterRestaurantInput = document.getElementById("batteryRegisterRestaurant");
+const batteryRegisterSaveBtn = document.getElementById("batteryRegisterSaveBtn");
+const batteryRegisterMessage = document.getElementById("batteryRegisterMessage");
 const surveyForm = document.getElementById("surveyForm");
 const surveySuccess = document.getElementById("surveySuccess");
 const defensivePage = document.getElementById("defensivePage");
@@ -2587,6 +2649,8 @@ const recorderNumberWrap =
   document.getElementById(
     "recorderNumberWrap"
   );
+
+const recorderHealthInfo = document.getElementById("recorderHealthInfo");
 
 const claimSaveBtn =
   document.getElementById(
@@ -2797,13 +2861,56 @@ function updateRecorderInput() {
   const type = document.querySelector('input[name="recorderType"]:checked');
   const showNumber = type?.value === "number";
   recorderNumberWrap.classList.toggle("show", showNumber);
-  if (!showNumber) recorderNumber.value = "";
+  if (!showNumber){
+    recorderNumber.value = "";
+    recorderHealthInfo.style.display = "none";
+    recorderHealthInfo.textContent = "";
+  }
 }
 
 document.querySelectorAll('input[name="recorderType"]').forEach(radio => {
   radio.addEventListener("change", updateRecorderInput);
 });
 
+
+async function loadRecorderHealth(){
+  const number = recorderNumber.value.trim();
+  if(!number){
+    recorderHealthInfo.style.display = "none";
+    recorderHealthInfo.textContent = "";
+    return;
+  }
+  recorderHealthInfo.style.display = "block";
+  recorderHealthInfo.textContent = "讀取紀錄器健康履歷中…";
+  try{
+    const result = await db.from("recorders").select("*").eq("recorder_number", number).maybeSingle();
+    if(result.error) throw result.error;
+    if(!result.data){
+      recorderHealthInfo.textContent = "查無此紀錄器建檔資料，請確認編號。";
+      return;
+    }
+    const recorder = result.data;
+    const last = await db.from("claim_records")
+      .select("claimant_name,claimed_at,claim_point")
+      .eq("recorder_number", number)
+      .order("claimed_at",{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    const status = recorder.status === "scrapped" ? "已報廢" : (recorder.health_status === "abnormal" ? "異常" : "正常");
+    const cls = status === "正常" ? "success" : "";
+    recorderHealthInfo.className = `hint ${cls}`;
+    recorderHealthInfo.innerHTML = `紀錄器：${escapeHtml(recorder.recorder_size === "large" ? "大台" : "小台")}｜目前狀態：${escapeHtml(status)}${recorder.health_note ? `<br>異常說明：${escapeHtml(recorder.health_note)}` : ""}${last.data ? `<br>最近登記領取者：${escapeHtml(last.data.claimant_name || "未填")}｜${escapeHtml(formatDateTime(last.data.claimed_at))}` : "<br>尚無領取紀錄"}`;
+  }catch(e){
+    recorderHealthInfo.className = "hint";
+    recorderHealthInfo.textContent = `紀錄器資料讀取失敗：${e.message || "請稍後再試"}`;
+  }
+}
+
+recorderNumber.addEventListener("blur", loadRecorderHealth);
+recorderNumber.addEventListener("input", () => {
+  clearTimeout(window.__recorderHealthTimer);
+  window.__recorderHealthTimer = setTimeout(loadRecorderHealth, 400);
+});
 
 /* =====================================================
    RESET CLAIM
@@ -2821,6 +2928,8 @@ function resetClaimForm() {
 
   recorderNumber.value = "";
   recorderNumberWrap.classList.remove("show");
+  recorderHealthInfo.style.display = "none";
+  recorderHealthInfo.textContent = "";
 
   document.querySelectorAll('input[name="recorderType"]').forEach(radio => {
     radio.checked = false;
@@ -2920,6 +3029,19 @@ async function saveClaim() {
     return;
   }
 
+
+  if(recorderType.value === "number") {
+    const recorderResult = await db.from("recorders").select("status").eq("recorder_number", recorder).maybeSingle();
+    if(recorderResult.error) throw recorderResult.error;
+    if(!recorderResult.data){
+      alert("此紀錄器尚未建檔，請通知後台先完成紀錄器建檔。");
+      return;
+    }
+    if(recorderResult.data.status === "scrapped"){
+      alert("此紀錄器已報廢，請更換其他紀錄器。");
+      return;
+    }
+  }
 
   const oilCard =
     document.querySelector(
@@ -3083,72 +3205,150 @@ claimSaveBtn.addEventListener(
    BATTERY ISSUE REPORT
    ===================================================== */
 
+const deviceIssueTypeInput = document.getElementById("deviceIssueType");
+const batteryIssueFields = document.getElementById("batteryIssueFields");
+const recorderIssueFields = document.getElementById("recorderIssueFields");
 const batteryNumberInput = document.getElementById("batteryNumber");
 const batteryRestaurantInput = document.getElementById("batteryRestaurant");
 const batteryIssueDetailInput = document.getElementById("batteryIssueDetail");
+const recorderIssueNumberInput = document.getElementById("recorderIssueNumber");
+const recorderIssueDetailInput = document.getElementById("recorderIssueDetail");
 const batterySaveBtn = document.getElementById("batterySaveBtn");
 
-async function saveBatteryIssue() {
-  const batteryNumber = batteryNumberInput.value.trim();
-  const restaurant = batteryRestaurantInput.value;
-  const detail = batteryIssueDetailInput.value.trim();
+function updateDeviceIssueFields(){
+  const type = deviceIssueTypeInput.value;
+  const isBattery = type === "battery";
+  batteryIssueFields.style.display = isBattery ? "block" : "none";
+  recorderIssueFields.style.display = isBattery ? "none" : "block";
+  batterySaveBtn.textContent = isBattery ? "送出電池異常回報" : "送出紀錄器異常回報";
+}
 
-  if (!batteryNumber) {
-    alert("請輸入電池編號。");
-    batteryNumberInput.focus();
+async function saveBatteryIssue() {
+  const type = deviceIssueTypeInput.value;
+  const isBattery = type === "battery";
+  const number = (isBattery ? batteryNumberInput.value : recorderIssueNumberInput.value).trim();
+  const detail = (isBattery ? batteryIssueDetailInput.value : recorderIssueDetailInput.value).trim();
+  const restaurant = batteryRestaurantInput.value;
+
+  if(!number){
+    alert(`請輸入${isBattery ? "電池" : "紀錄器"}編號。`);
+    (isBattery ? batteryNumberInput : recorderIssueNumberInput).focus();
     return;
   }
-  if (!restaurant) {
-    alert("請選擇電池所在餐廳。");
-    batteryRestaurantInput.focus();
-    return;
-  }
-  if (!detail) {
+  if(!detail){
     alert("請填寫異常內容／說明。");
-    batteryIssueDetailInput.focus();
+    (isBattery ? batteryIssueDetailInput : recorderIssueDetailInput).focus();
+    return;
+  }
+  if(isBattery && !restaurant){
+    alert("請選擇電池回報餐廳。");
+    batteryRestaurantInput.focus();
     return;
   }
 
   batterySaveBtn.disabled = true;
   batterySaveBtn.textContent = "送出中…";
-
-  try {
-    const result = await db.from("battery_issue_reports").insert({
-      battery_number: batteryNumber,
-      restaurant_no: restaurant,
-      issue_description: detail,
-      resolution_status: "pending"
-    });
-
-    if (result.error) {
-      console.error(result.error);
-      alert("電池異常回饋儲存失敗，請確認資料庫欄位是否完整。");
-      return;
+  try{
+    let result;
+    if(isBattery){
+      const registered = await db.from("batteries").select("id,battery_number,restaurant_no,status").eq("battery_number", number).maybeSingle();
+      if(registered.error) throw registered.error;
+      if(!registered.data) throw new Error("此電池尚未建檔，請通知後台先完成電池建檔。");
+      if(registered.data.status !== "active") throw new Error("此電池已報廢，無法回報異常。");
+      if(String(registered.data.restaurant_no || "") !== String(restaurant || "")) throw new Error(`此電池建檔餐廳為 ${registered.data.restaurant_no}，請確認回報餐廳。`);
+      result = await db.from("battery_issue_reports").insert({battery_number:number, restaurant_no:restaurant, issue_description:detail, resolution_status:"pending"});
+      if(!result.error){
+        await db.from("batteries").update({health_status:"abnormal", health_note:detail}).eq("id", registered.data.id);
+      }
+    }else{
+      const registered = await db.from("recorders").select("id,recorder_number,status").eq("recorder_number", number).maybeSingle();
+      if(registered.error) throw registered.error;
+      if(!registered.data) throw new Error("此紀錄器尚未建檔，請通知後台先完成紀錄器建檔。");
+      if(registered.data.status !== "active") throw new Error("此紀錄器已報廢，無法回報異常。");
+      result = await db.from("recorder_issue_reports").insert({recorder_id:registered.data.id, recorder_number:number, issue_description:detail, resolution_status:"pending"});
+      if(!result.error){
+        await db.from("recorders").update({health_status:"abnormal", health_note:detail}).eq("id", registered.data.id);
+      }
     }
-
+    if(result.error) throw result.error;
     document.getElementById("batterySuccessData").innerHTML = `
-      <div><strong>電池編號：</strong>${escapeHtml(batteryNumber)}</div>
-      <div><strong>所在餐廳：</strong>${escapeHtml(restaurant)}</div>
+      <div><strong>設備：</strong>${escapeHtml(isBattery ? "電池" : "行車紀錄器")}</div>
+      <div><strong>設備編號：</strong>${escapeHtml(number)}</div>
       <div><strong>異常說明：</strong>${escapeHtml(detail)}</div>
-      <div><strong>回報時間：</strong>${formatDateTime(new Date().toISOString())}</div>
-    `;
+      <div><strong>回報時間：</strong>${formatDateTime(new Date().toISOString())}</div>`;
     batteryForm.style.display = "none";
     batterySuccess.classList.add("show");
-  } catch (error) {
+  }catch(error){
     console.error(error);
-    alert("系統發生錯誤，請稍後再試。");
-  } finally {
+    alert(`設備異常回報失敗：${error.message || "請稍後再試"}`);
+  }finally{
     batterySaveBtn.disabled = false;
-    batterySaveBtn.textContent = "送出電池異常回饋";
+    updateDeviceIssueFields();
   }
 }
 
 batterySaveBtn.addEventListener("click", saveBatteryIssue);
+deviceIssueTypeInput.addEventListener("change", updateDeviceIssueFields);
+
+async function saveBatteryRegistration(){
+  const batteryNumber = batteryRegisterNumberInput.value.trim();
+  const restaurant = batteryRegisterRestaurantInput.value;
+  if(!batteryNumber){
+    batteryRegisterMessage.className = "training-message";
+    batteryRegisterMessage.textContent = "請輸入電池編號。";
+    batteryRegisterNumberInput.focus();
+    return;
+  }
+  if(!restaurant){
+    batteryRegisterMessage.className = "training-message";
+    batteryRegisterMessage.textContent = "請選擇電池所在餐廳。";
+    batteryRegisterRestaurantInput.focus();
+    return;
+  }
+  batteryRegisterSaveBtn.disabled = true;
+  batteryRegisterSaveBtn.textContent = "建檔中…";
+  batteryRegisterMessage.className = "training-message";
+  batteryRegisterMessage.textContent = "資料儲存中…";
+  try{
+    const result = await db.from("batteries").insert({
+      battery_number: batteryNumber,
+      restaurant_no: restaurant,
+      status: "active"
+    });
+    if(result.error){
+      if(result.error.code === "23505") throw new Error("此電池編號已完成建檔。");
+      throw result.error;
+    }
+    batteryRegisterMessage.className = "training-message success";
+    batteryRegisterMessage.textContent = `✅ 電池 ${batteryNumber} 已完成建檔。`;
+    batteryRegisterNumberInput.value = "";
+    batteryRegisterRestaurantInput.value = "";
+  }catch(e){
+    batteryRegisterMessage.className = "training-message";
+    batteryRegisterMessage.textContent = `建檔失敗：${e.message || "請稍後再試"}`;
+  }finally{
+    batteryRegisterSaveBtn.disabled = false;
+    batteryRegisterSaveBtn.textContent = "新增電池建檔";
+  }
+}
+
+batteryRegisterSaveBtn.addEventListener("click", saveBatteryRegistration);
 
 function resetBatteryForm() {
+  deviceIssueTypeInput.value = "battery";
   batteryNumberInput.value = "";
   batteryRestaurantInput.value = "";
   batteryIssueDetailInput.value = "";
+  recorderIssueNumberInput.value = "";
+  recorderIssueDetailInput.value = "";
+  updateDeviceIssueFields();
+}
+
+function resetBatteryRegisterForm(){
+  batteryRegisterNumberInput.value = "";
+  batteryRegisterRestaurantInput.value = "";
+  batteryRegisterMessage.textContent = "";
+  batteryRegisterMessage.className = "training-message";
 }
 
 
@@ -3637,13 +3837,14 @@ function showMode(mode) {
   claimPage.style.display = mode === "claim" ? "block" : "none";
   inspectionPage.style.display = mode === "inspection" ? "block" : "none";
   batteryPage.style.display = mode === "battery" ? "block" : "none";
+  batteryRegisterPage.style.display = mode === "batteryRegister" ? "block" : "none";
   surveyPage.style.display = mode === "survey" ? "block" : "none";
   defensivePage.style.display = mode === "defensive" ? "block" : "none";
 
   introSection.style.display = "block";
   introText.classList.add("show");
   introText.style.display = "block";
-  ["claimBackTop","inspectionBackTop","batteryBackTop","surveyBackTop","defensiveBackTop"].forEach(id => {
+  ["claimBackTop","inspectionBackTop","batteryBackTop","batteryRegisterBackTop","surveyBackTop","defensiveBackTop"].forEach(id => {
     document.getElementById(id).style.display = "none";
   });
 
@@ -3668,6 +3869,13 @@ function showMode(mode) {
     introText.textContent = "此紀錄不綁定車牌，只使用電池編號與所在餐廳。";
     batteryForm.style.display = "block";
     batterySuccess.classList.remove("show");
+  } else if (mode === "batteryRegister") {
+    document.getElementById("batteryRegisterBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "電池建檔";
+    introText.textContent = "請先建立電池資料，之後才能正確統計正常與異常數量。";
+    batteryRegisterPage.style.display = "block";
+    resetBatteryRegisterForm();
   } else if (mode === "survey") {
     document.getElementById("surveyBackTop").style.display = "block";
     pageTitle.textContent = "桃園-Rider Center";
@@ -3694,6 +3902,7 @@ function showHome() {
   claimPage.style.display = "none";
   inspectionPage.style.display = "none";
   batteryPage.style.display = "none";
+  batteryRegisterPage.style.display = "none";
   surveyPage.style.display = "none";
   defensivePage.style.display = "none";
 
@@ -3718,6 +3927,7 @@ function showHome() {
   resetClaimForm();
   resetInspectionForm();
   resetBatteryForm();
+  resetBatteryRegisterForm();
   resetSurveyForm();
   resetDefensiveForm();
 
@@ -3802,6 +4012,7 @@ document
 
 document.getElementById("batteryBackBtn").addEventListener("click", showHome);
 document.getElementById("batterySuccessHomeBtn").addEventListener("click", showHome);
+document.getElementById("batteryRegisterBackBtn").addEventListener("click", showHome);
 document.getElementById("surveyBackBtn").addEventListener("click", showHome);
 document.getElementById("surveySuccessHomeBtn").addEventListener("click", showHome);
 
