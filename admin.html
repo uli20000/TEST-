@@ -742,6 +742,39 @@ button{cursor:pointer}
   margin-bottom:14px;
 }
 
+.summary-with-refresh{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+
+.summary-with-refresh .survey-summary{
+  display:contents;
+}
+
+.summary-refresh-btn{
+  width:100%;
+  min-height:92px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  color:var(--black);
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.summary-refresh-btn:hover{
+  border-color:#c9a99e;
+}
+
+@media(max-width:700px){
+  .summary-with-refresh{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
 .survey-card{
   background:#fff;
   border:1px solid var(--line);
@@ -864,17 +897,21 @@ button{cursor:pointer}
     <span class="icon">🚗</span>
     車輛檢查
   </button>
-  <button id="surveyModeBtn" class="admin-mode-btn" type="button">
-    <span class="icon">📋</span>
-    意向調查
-  </button>
   <button id="batteryModeBtn" class="admin-mode-btn" type="button">
     <span class="icon">🔋</span>
-    電池設備查看
+    設備管理
   </button>
   <button id="defensiveModeBtn" class="admin-mode-btn" type="button">
     <span class="icon">🛡️</span>
     防禦駕駛
+  </button>
+  <button id="surveyModeBtn" class="admin-mode-btn" type="button">
+    <span class="icon">📋</span>
+    意向調查
+  </button>
+  <button id="rosterModeBtn" class="admin-mode-btn" type="button">
+    <span class="icon">👥</span>
+    在職名單
   </button>
 </div>
 
@@ -976,20 +1013,18 @@ button{cursor:pointer}
 <section id="surveyModePage" class="admin-mode-page">
   <div class="mode-back-row"><button id="surveyBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
-    <div class="section-title">駕駛意向調查</div>
-    <div id="surveySummary" class="survey-summary"></div>
-    <div id="surveyStatusList" class="survey-status-list"></div>
+    <div class="section-title">意向調查</div>
     <div class="search-box">
-      <input id="surveySearchInput" class="search-input" type="text" placeholder="搜尋填寫人姓名">
+      <input id="surveySearchInput" class="search-input" type="text" placeholder="搜尋姓名">
       <div class="mode-tools">
         <button id="surveyExportBtn" class="action-btn" type="button">📊 匯出意向調查</button>
       </div>
     </div>
-  </section>
-
-  <section class="section" style="display:none;">
-    <div class="section-title">不合格名單</div>
-    <div id="surveyFailedList" class="roster-list"></div>
+    <div class="summary-with-refresh">
+      <div id="surveySummary" class="survey-summary"></div>
+      <button id="surveyRefreshBtn" class="summary-refresh-btn" type="button">↻ 重新整理</button>
+    </div>
+    <div id="surveyStatusList" class="survey-status-list"></div>
   </section>
 
   <section class="section">
@@ -1002,14 +1037,51 @@ button{cursor:pointer}
 <section id="batteryModePage" class="admin-mode-page">
   <div class="mode-back-row"><button id="batteryBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
-    <div class="section-title">電池設備查看</div>
-    <div id="batterySummary" class="survey-summary"></div>
+    <div class="section-title">設備管理</div>
     <div class="search-box">
-      <input id="batterySearchInput" class="search-input" type="text" placeholder="搜尋電池編號或餐廳店號">
+      <select id="deviceAdminType" class="search-input">
+        <option value="battery">電池</option>
+        <option value="recorder">行車紀錄器</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">新增設備建檔</div>
+    <div class="search-box">
+      <input id="deviceRegisterNumber" class="search-input" type="text" placeholder="設備編號" autocomplete="off">
+      <select id="deviceRegisterRestaurant" class="search-input" style="margin-top:10px">
+        <option value="">請選擇電池所在餐廳</option>
+        <option>025</option><option>041</option><option>062</option><option>084</option><option>095</option>
+        <option>098</option><option>099</option><option>137</option><option>142</option><option>161</option>
+        <option>165</option><option>173</option><option>179</option><option>182</option><option>183</option>
+        <option>190</option><option>209</option><option>214</option><option>227</option><option>242</option>
+        <option>248</option><option>516</option><option>562</option><option>580</option><option>587</option>
+      </select>
+      <select id="deviceRegisterSize" class="search-input" style="margin-top:10px;display:none">
+        <option value="small">小台</option>
+        <option value="large">大台</option>
+      </select>
+      <select id="deviceRegisterHealth" class="search-input" style="margin-top:10px">
+        <option value="normal">正常</option>
+        <option value="abnormal">異常</option>
+      </select>
+      <textarea id="deviceRegisterNote" class="search-input" placeholder="異常原因說明（選擇異常時必填）" style="height:90px;margin-top:10px;display:none;padding-top:12px"></textarea>
+      <button id="deviceRegisterBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增設備</button>
+      <div id="deviceRegisterMessage" class="hint" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="search-box">
+      <input id="batterySearchInput" class="search-input" type="text" placeholder="搜尋設備編號">
       <div class="mode-tools">
-        <button id="batteryRefreshBtn" class="action-btn" type="button">↻ 重新整理電池紀錄</button>
-        <button id="batteryExportBtn" class="action-btn" type="button">📊 匯出電池異常</button>
+        <button id="batteryExportBtn" class="action-btn" type="button">📊 匯出目前設備</button>
       </div>
+    </div>
+    <div class="summary-with-refresh">
+      <div id="batterySummary" class="survey-summary"></div>
+      <button id="batteryRefreshBtn" class="summary-refresh-btn" type="button">↻ 重新整理</button>
     </div>
   </section>
   <section class="section">
@@ -1022,36 +1094,52 @@ button{cursor:pointer}
 <section id="defensiveModePage" class="admin-mode-page">
   <div class="mode-back-row"><button id="defensiveBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
-    <div class="section-title">防禦駕駛月考</div>
+    <div class="section-title">防禦駕駛</div>
     <div class="search-box">
       <select id="defensiveAdminMonth" class="search-input">
         <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option><option value="4">4 月</option>
         <option value="5">5 月</option><option value="6">6 月</option><option value="7">7 月</option><option value="8">8 月</option>
         <option value="9">9 月</option><option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
       </select>
-      <button id="defensiveRefreshBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">↻ 重新整理防禦駕駛</button>
+      <input id="defensiveSearchInput" class="search-input" type="text" placeholder="搜尋姓名" style="margin-top:12px">
+      <div class="mode-tools">
+        <button id="defensiveExportBtn" class="action-btn" type="button">📊 匯出本月防禦駕駛</button>
+      </div>
     </div>
-    <div id="defensiveSummary" class="survey-summary" style="margin-top:14px;"></div>
+    <div class="summary-with-refresh">
+      <div id="defensiveSummary" class="survey-summary"></div>
+      <button id="defensiveRefreshBtn" class="summary-refresh-btn" type="button">↻ 重新整理</button>
+    </div>
   </section>
   <section class="section">
     <div id="defensiveAdminList" class="vehicle-list">
       <div class="loading">尚未載入防禦駕駛資料</div>
     </div>
   </section>
-  <section class="section">
-    <div class="section-title">目前在職名單（意向調查／防禦駕駛共用）</div>
-    <div class="survey-admin-tools">
-      <select id="surveyRoundSelect" class="search-input">
-        <option value="2027M1">2027M1</option>
-        <option value="2027M7">2027M7</option>
-      </select>
-      <input id="surveyTargetNameInput" class="search-input" type="text" placeholder="輸入新人姓名" autocomplete="name">
-      <button id="surveyTargetAddBtn" class="action-btn" type="button">＋ 新增應完成人員</button>
-    </div>
-    <div id="surveyTargetMessage" class="hint" style="margin-top:8px;"></div>
-    <div id="surveyIncompleteList" class="roster-panel" style="display:none;"></div>
-  </section>
+</section>
 
+<section id="rosterModePage" class="admin-mode-page">
+  <div class="mode-back-row"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
+  <section class="section">
+    <div class="section-title">在職名單</div>
+    <div class="search-box">
+      <input id="surveyTargetNameInput" class="search-input" type="text" placeholder="輸入新人姓名" autocomplete="name">
+      <button id="surveyTargetAddBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增在職員工</button>
+      <div id="surveyTargetMessage" class="hint" style="margin-top:8px;"></div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="section-title">目前在職員工</div>
+    <div id="rosterList" class="roster-list">
+      <div class="loading">尚未載入在職名單</div>
+    </div>
+  </section>
+  <select id="surveyRoundSelect" style="display:none">
+    <option value="2027M1">2027M1</option>
+    <option value="2027M7">2027M7</option>
+  </select>
+  <div id="surveyIncompleteList" style="display:none"></div>
+  <div id="surveyFailedList" style="display:none"></div>
 </section>
 </div>
 
@@ -1212,6 +1300,7 @@ const vehicleBackBtn = $("vehicleBackBtn");
 const surveyBackBtn = $("surveyBackBtn");
 const surveySearchInput = $("surveySearchInput");
 const surveyExportBtn = $("surveyExportBtn");
+const surveyRefreshBtn = $("surveyRefreshBtn");
 const surveySummary = $("surveySummary");
 const surveyStatusList = $("surveyStatusList");
 const surveyResponseList = $("surveyResponseList");
@@ -1223,11 +1312,25 @@ const batteryExportBtn = $("batteryExportBtn");
 const batterySearchInput = $("batterySearchInput");
 const batterySummary = $("batterySummary");
 const batteryReportList = $("batteryReportList");
+const deviceAdminType = $("deviceAdminType");
+const deviceRegisterNumber = $("deviceRegisterNumber");
+const deviceRegisterRestaurant = $("deviceRegisterRestaurant");
+const deviceRegisterSize = $("deviceRegisterSize");
+const deviceRegisterHealth = $("deviceRegisterHealth");
+const deviceRegisterNote = $("deviceRegisterNote");
+const deviceRegisterBtn = $("deviceRegisterBtn");
+const deviceRegisterMessage = $("deviceRegisterMessage");
+const rosterModePage = $("rosterModePage");
+const rosterModeBtn = $("rosterModeBtn");
+const rosterBackBtn = $("rosterBackBtn");
+const rosterList = $("rosterList");
 const defensiveModePage = $("defensiveModePage");
 const defensiveModeBtn = $("defensiveModeBtn");
 const defensiveBackBtn = $("defensiveBackBtn");
 const defensiveAdminMonth = $("defensiveAdminMonth");
 const defensiveRefreshBtn = $("defensiveRefreshBtn");
+const defensiveExportBtn = $("defensiveExportBtn");
+const defensiveSearchInput = $("defensiveSearchInput");
 const defensiveSummary = $("defensiveSummary");
 const defensiveAdminList = $("defensiveAdminList");
 defensiveAdminMonth.value = String(new Date().getMonth() + 1);
@@ -1247,6 +1350,9 @@ let surveyResponses = [];
 let surveyTargets = [];
 let activeSurveyStatus = "required";
 let batteryReports = [];
+let batteryInventory = [];
+let recorderReports = [];
+let recorderInventory = [];
 let defensiveResponses = [];
 let defensiveTargets = [];
 let activeDefensiveStatus = "required";
@@ -2416,9 +2522,15 @@ async function openHistory(v){
       allVehicleReports
     );
 
+    // 一般歷史只顯示最近 5 天；但所有尚未解決的異常，
+    // 不論發生多久都必須保留顯示，才能直接完成結案。
     const reports =
       allVehicleReports.filter(report =>
-        isWithinFiveDays(report.reported_at)
+        isWithinFiveDays(report.reported_at) ||
+        (
+          report.overall_status === "abnormal" &&
+          report.resolution_status !== "resolved"
+        )
       );
 
     historyContainer.innerHTML =
@@ -2445,7 +2557,7 @@ async function openHistory(v){
     historyNote.className = "empty";
     historyNote.style.padding = "16px";
     historyNote.style.fontSize = "13px";
-    historyNote.textContent = "巡檢紀錄僅顯示最近 5 天｜更早資料仍保存在雲端，可由月份匯出查看";
+    historyNote.textContent = "巡檢紀錄顯示最近 5 天，以及所有尚未解決異常｜更早且已解決資料可由月份匯出查看";
     historyContainer.appendChild(historyNote);
 
     reports.forEach(report => {
@@ -3124,7 +3236,6 @@ function renderSurveyEmptySummary(message){
     <button type="button" class="summary-card clickable" data-survey-status="required"><div class="summary-label">應完成</div><div class="summary-number">0</div></button>
     <button type="button" class="summary-card abnormal clickable" data-survey-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">0</div></button>
     <button type="button" class="summary-card done clickable" data-survey-status="completed"><div class="summary-label">已完成</div><div class="summary-number">0</div></button>
-    <button type="button" class="summary-card abnormal clickable" data-survey-status="failed"><div class="summary-label">不合格</div><div class="summary-number">0</div></button>
   `;
   surveyStatusList.innerHTML = `<div class="empty" style="grid-column:1/-1;">${esc(message || "目前沒有資料")}</div>`;
 }
@@ -3134,7 +3245,6 @@ function renderDefensiveEmptySummary(message){
     <button type="button" class="summary-card clickable" data-defensive-status="required"><div class="summary-label">應完成</div><div class="summary-number">0</div></button>
     <button type="button" class="summary-card abnormal clickable" data-defensive-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">0</div></button>
     <button type="button" class="summary-card done clickable" data-defensive-status="completed"><div class="summary-label">已完成</div><div class="summary-number">0</div></button>
-    <button type="button" class="summary-card clickable" data-defensive-status="active"><div class="summary-label">在職名單</div></button>
   `;
   defensiveAdminList.className = "survey-status-list";
   defensiveAdminList.innerHTML = `<div class="empty" style="grid-column:1/-1;">${esc(message || "目前沒有資料")}</div>`;
@@ -3149,7 +3259,6 @@ function renderSurveySummary(){
     <button type="button" class="summary-card clickable" data-survey-status="required"><div class="summary-label">應完成</div><div class="summary-number">${surveyTargets.length}</div></button>
     <button type="button" class="summary-card abnormal clickable" data-survey-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">${incomplete}</div></button>
     <button type="button" class="summary-card done clickable" data-survey-status="completed"><div class="summary-label">已完成</div><div class="summary-number">${completedNames.size}</div></button>
-    <button type="button" class="summary-card abnormal clickable" data-survey-status="failed"><div class="summary-label">不合格</div><div class="summary-number">${failed}</div></button>
   `;
   surveySummary.querySelectorAll("[data-survey-status]").forEach(card => {
     card.classList.toggle("active", card.dataset.surveyStatus === activeSurveyStatus);
@@ -3170,10 +3279,11 @@ function latestSurveyResponseByName(){
 function renderSurveyStatusList(status){
   activeSurveyStatus = status || "required";
   const responseMap = latestSurveyResponseByName();
+  const keyword = surveySearchInput ? surveySearchInput.value.trim().toLowerCase() : "";
   const targetRows = surveyTargets.map(row => {
     const name = String(row.respondent_name || "").trim();
     return {name, round: row.survey_round || surveyRoundSelect.value, response: responseMap.get(name) || null};
-  }).filter(row => row.name);
+  }).filter(row => row.name && (!keyword || row.name.toLowerCase().includes(keyword)));
   let rows = targetRows;
   let title = "應完成名單";
   if(activeSurveyStatus === "incomplete"){
@@ -3336,6 +3446,7 @@ function renderSurveyRoster(){
   const completedNames = new Set(surveyResponses.map(row => String(row.respondent_name || "").trim()).filter(name => targetNameSet.has(name)));
   const failed = surveyResponses.filter(row => targetNameSet.has(String(row.respondent_name || "").trim()) && (row.part1_result === "不合格" || row.part2_result === "不合格"));
   const incomplete = surveyTargets.filter(row => !completedNames.has(String(row.respondent_name || "").trim()));
+  if(!surveyIncompleteList || !surveyFailedList) return;
   surveyIncompleteList.innerHTML = `
     <div class="roster-panel-title">${selectedRound} 未完成（${incomplete.length} 人）</div>
     <div class="roster-list">${incomplete.length ? incomplete.map(row => `
@@ -3363,7 +3474,7 @@ async function addSurveyTarget(){
     if(result.error) throw result.error;
     surveyTargetNameInput.value = "";
     surveyTargetMessage.textContent = `✅ 已加入目前在職名單：${name}`;
-    await loadSurveyData();
+    await loadRosterData();
   }catch(e){
     surveyTargetMessage.textContent = e.code === "23505" ? "此姓名已存在於此問卷批次。" : `新增失敗：${e.message || "請確認權限"}`;
   }finally{
@@ -3381,8 +3492,43 @@ async function deleteSurveyTarget(name, round){
     const targetDelete = await db.from("driver_survey_targets").delete().eq("respondent_name", name);
     if(targetDelete.error) throw targetDelete.error;
     alert("✅ 該姓名的名單、問卷與防禦駕駛紀錄已永久刪除。");
-    await loadSurveyData();
+    await loadRosterData();
   }catch(e){ alert(`刪除失敗：${e.message || "請確認 DELETE 權限"}`); }
+}
+
+function renderActiveRoster(){
+  const keyword = (rosterList.dataset.keyword || "").trim().toLowerCase();
+  const rows = (surveyTargets || []).filter(row => {
+    const name = String(row.respondent_name || "").trim();
+    return name && (!keyword || name.toLowerCase().includes(keyword));
+  });
+  if(!rows.length){
+    rosterList.innerHTML = '<div class="empty">目前沒有在職員工</div>';
+    return;
+  }
+  rosterList.innerHTML = rows.map(row => `
+    <div class="roster-item">
+      <span>${esc(row.respondent_name)}<small style="display:block;color:var(--gray);">意向調查／防禦駕駛共用</small></span>
+      <button type="button" class="survey-target-delete-btn" data-name="${esc(row.respondent_name)}" data-round="${esc(row.survey_round || surveyRoundSelect.value)}">永久刪除</button>
+    </div>
+  `).join('');
+}
+
+async function loadRosterData(){
+  rosterList.innerHTML = '<div class="loading">載入在職名單中…</div>';
+  try{
+    const result = await db.from("driver_survey_targets").select("*").order("created_at",{ascending:true});
+    if(result.error) throw result.error;
+    const map = new Map();
+    (result.data || []).forEach(row => {
+      const name = String(row.respondent_name || "").trim();
+      if(name && !map.has(name)) map.set(name, {...row, respondent_name:name});
+    });
+    surveyTargets = [...map.values()];
+    renderActiveRoster();
+  }catch(e){
+    rosterList.innerHTML = `<div class="empty">在職名單讀取失敗：${esc(e.message || "請確認權限")}</div>`;
+  }
 }
 
 function focusSurveyResponse(name){
@@ -3406,7 +3552,6 @@ function renderDefensiveSummary(uniqueNames, completed, incomplete){
     <button type="button" class="summary-card clickable" data-defensive-status="required"><div class="summary-label">應完成</div><div class="summary-number">${uniqueNames.length}</div></button>
     <button type="button" class="summary-card abnormal clickable" data-defensive-status="incomplete"><div class="summary-label">未完成</div><div class="summary-number">${incomplete.length}</div></button>
     <button type="button" class="summary-card done clickable" data-defensive-status="completed"><div class="summary-label">已完成</div><div class="summary-number">${completed.size}</div></button>
-    <button type="button" class="summary-card clickable" data-defensive-status="active"><div class="summary-label">在職名單</div></button>
   `;
   defensiveSummary.querySelectorAll("[data-defensive-status]").forEach(card => {
     card.classList.toggle("active", card.dataset.defensiveStatus === activeDefensiveStatus);
@@ -3417,14 +3562,16 @@ function renderDefensiveSummary(uniqueNames, completed, incomplete){
 function renderDefensiveStatusList(status){
   activeDefensiveStatus = status || "required";
   const responseMap = latestDefensiveResponseByName();
+  const keyword = defensiveSearchInput ? defensiveSearchInput.value.trim().toLowerCase() : "";
   const allRows = defensiveTargets.map(name => ({name, response: responseMap.get(String(name).trim()) || null}));
-  let rows = allRows;
+  const filteredRows = allRows.filter(row => !keyword || row.name.toLowerCase().includes(keyword));
+  let rows = filteredRows;
   let title = "應完成名單";
   if(activeDefensiveStatus === "completed"){
-    rows = allRows.filter(row => row.response?.status === "completed");
+    rows = filteredRows.filter(row => row.response?.status === "completed");
     title = "已完成名單";
   }else if(activeDefensiveStatus === "incomplete"){
-    rows = allRows.filter(row => row.response?.status !== "completed");
+    rows = filteredRows.filter(row => row.response?.status !== "completed");
     title = "未完成名單";
   }else if(activeDefensiveStatus === "active"){
     title = "在職名單";
@@ -3487,6 +3634,44 @@ async function loadDefensiveAdminData(){
   }
 }
 
+function exportDefensiveResponses(){
+  const year = new Date().getFullYear();
+  const monthNo = Number(defensiveAdminMonth.value);
+  const names = [...new Set((defensiveTargets || []).map(name => String(name || "").trim()).filter(Boolean))];
+  if(!names.length){
+    alert("目前沒有可匯出的防禦駕駛名單。");
+    return;
+  }
+
+  const responseMap = new Map();
+  (defensiveResponses || []).forEach(row => {
+    const name = String(row.respondent_name || "").trim();
+    if(name && !responseMap.has(name)) responseMap.set(name, row);
+  });
+
+  const rows = names.map(name => {
+    const row = responseMap.get(name) || null;
+    const completed = row?.status === "completed";
+    return {
+      年度: year,
+      訓練月份: `${monthNo}月`,
+      員工姓名: name,
+      完成狀態: completed ? "已完成" : (row ? "作答未完成" : "尚未開始"),
+      答題次數: row?.attempt_count ?? 0,
+      第1題答案: row?.question_1_answer || "",
+      第2題答案: row?.question_2_answer || "",
+      最後作答時間: row?.last_attempt_at || "",
+      完成時間: row?.completed_at || "",
+      影片開啟時間: row?.video_opened_at || ""
+    };
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "防禦駕駛");
+  XLSX.writeFile(wb, `KFC_防禦駕駛_${year}-${String(monthNo).padStart(2,"0")}.xlsx`);
+}
+
 async function loadSurveyData(){
   surveyResponseList.innerHTML = '<div class="loading">載入問卷資料中…</div>';
   try{
@@ -3515,18 +3700,38 @@ async function loadSurveyData(){
   }
 }
 
+function batteryKey(value){
+  return String(value || "").trim().toLowerCase();
+}
+
+function batteryReportPending(row){
+  return row && row.resolution_status !== "resolved";
+}
+
+function batteryInventoryMap(){
+  return new Map((batteryInventory || []).map(row => [batteryKey(row.battery_number), row]));
+}
+
 function renderBatterySummary(){
-  const pending = batteryReports.filter(x => x.resolution_status !== "resolved").length;
-  const resolved = batteryReports.filter(x => x.resolution_status === "resolved").length;
+  const activeRows = (batteryInventory || []).filter(row => row.status === "active");
+  const activeKeys = new Set(activeRows.map(row => batteryKey(row.battery_number)).filter(Boolean));
+  const abnormalKeys = new Set((batteryReports || [])
+    .filter(row => batteryReportPending(row) && activeKeys.has(batteryKey(row.battery_number)))
+    .map(row => batteryKey(row.battery_number))
+    .filter(Boolean));
+  const total = activeRows.length;
+  const abnormal = abnormalKeys.size;
+  const normal = Math.max(total - abnormal, 0);
   batterySummary.innerHTML = `
-    <div class="summary-card"><div class="summary-label">回報總數</div><div class="summary-number">${batteryReports.length}</div></div>
-    <div class="summary-card abnormal"><div class="summary-label">待處理</div><div class="summary-number">${pending}</div></div>
-    <div class="summary-card done"><div class="summary-label">已處理</div><div class="summary-number">${resolved}</div></div>
+    <div class="summary-card"><div class="summary-label">總數量</div><div class="summary-number">${total}</div></div>
+    <div class="summary-card done"><div class="summary-label">正常</div><div class="summary-number">${normal}</div></div>
+    <div class="summary-card abnormal"><div class="summary-label">異常</div><div class="summary-number">${abnormal}</div></div>
   `;
 }
 
 function renderBatteryReports(){
   const keyword = batterySearchInput.value.trim().toLowerCase();
+  const inventoryMap = batteryInventoryMap();
   const rows = batteryReports.filter(x => {
     if(!keyword) return true;
     return [x.battery_number, x.restaurant_no, x.issue_description]
@@ -3540,7 +3745,15 @@ function renderBatteryReports(){
   }
 
   batteryReportList.innerHTML = rows.map(row => {
-    const resolved = row.resolution_status === "resolved";
+    const inventory = inventoryMap.get(batteryKey(row.battery_number));
+    const pending = batteryReportPending(row);
+    const scrapped = inventory?.status === "scrapped" || row.resolution_note === "報廢";
+    const statusText = pending ? "待處理" : (scrapped ? "已報廢" : "維修完成");
+    const statusClass = pending ? "survey-result-fail" : "survey-result-pass";
+    const actions = pending ? `
+      <button class="action-btn battery-repair-btn" type="button" data-id="${esc(row.id)}">🔧 維修完成</button>
+      <button class="action-btn danger battery-scrap-btn" type="button" data-id="${esc(row.id)}">🗑 報廢</button>
+    ` : "";
     return `
       <div class="survey-card">
         <div class="survey-card-top">
@@ -3548,34 +3761,183 @@ function renderBatteryReports(){
           <div class="survey-time">${esc(fmt(row.reported_at))}</div>
         </div>
         <div class="survey-grid">
-          <div class="survey-item">所在餐廳<strong>${esc(row.restaurant_no || "未填寫")}</strong></div>
-          <div class="survey-item">處理狀態<strong class="${resolved ? "survey-result-pass" : "survey-result-fail"}">${resolved ? "已處理" : "待處理"}</strong></div>
+          <div class="survey-item">所在餐廳<strong>${esc(row.restaurant_no || inventory?.restaurant_no || "未填寫")}</strong></div>
+          <div class="survey-item">處理狀態<strong class="${statusClass}">${statusText}</strong></div>
         </div>
         <div class="survey-detail"><strong>異常內容：</strong>${esc(row.issue_description || "未填寫")}</div>
+        ${inventory ? `<div class="survey-detail"><strong>建檔狀態：</strong>${inventory.status === "active" ? "使用中" : "已報廢"}</div>` : `<div class="survey-detail" style="color:var(--danger)"><strong>建檔狀態：</strong>尚未建檔</div>`}
         ${row.resolution_note ? `<div class="survey-detail"><strong>處理備註：</strong>${esc(row.resolution_note)}</div>` : ""}
-        <div class="record-actions">
-          <button class="delete-btn battery-delete-btn" type="button" data-id="${esc(row.id)}">🗑 刪除這筆</button>
-        </div>
+        ${actions ? `<div class="record-actions">${actions}</div>` : ""}
       </div>
     `;
   }).join("");
 }
 
-async function loadBatteryData(){
-  batteryReportList.innerHTML = '<div class="loading">載入電池紀錄中…</div>';
+function recorderKey(value){
+  return String(value || "").trim().toLowerCase();
+}
+
+function recorderReportPending(row){
+  return row && row.resolution_status !== "resolved";
+}
+
+function renderRecorderSummary(){
+  const active = recorderInventory.filter(row => row.status === "active");
+  const activeKeys = new Set(active.map(row => recorderKey(row.recorder_number)).filter(Boolean));
+  const abnormalKeys = new Set(recorderReports.filter(row => recorderReportPending(row) && activeKeys.has(recorderKey(row.recorder_number))).map(row => recorderKey(row.recorder_number)));
+  const total = active.length;
+  const abnormal = abnormalKeys.size;
+  const normal = Math.max(total - abnormal, 0);
+  batterySummary.innerHTML = `
+    <div class="summary-card"><div class="summary-label">總數量</div><div class="summary-number">${total}</div></div>
+    <div class="summary-card done"><div class="summary-label">正常</div><div class="summary-number">${normal}</div></div>
+    <div class="summary-card abnormal"><div class="summary-label">異常</div><div class="summary-number">${abnormal}</div></div>`;
+}
+
+function renderRecorderReports(){
+  const keyword = batterySearchInput.value.trim().toLowerCase();
+  const inventoryMap = new Map(recorderInventory.map(row => [recorderKey(row.recorder_number), row]));
+  const rows = recorderReports.filter(row => !keyword || [row.recorder_number,row.issue_description].some(value => String(value || "").toLowerCase().includes(keyword)));
+  if(!rows.length){ batteryReportList.innerHTML = '<div class="empty">目前沒有紀錄器異常回報</div>'; return; }
+  batteryReportList.innerHTML = rows.map(row => {
+    const inv = inventoryMap.get(recorderKey(row.recorder_number));
+    const pending = recorderReportPending(row);
+    const scrapped = inv?.status === "scrapped" || row.resolution_note === "報廢";
+    const statusText = pending ? "待處理" : (scrapped ? "已報廢" : "維修完成");
+    const actions = pending ? `<button class="action-btn recorder-repair-btn" type="button" data-id="${esc(row.id)}">🔧 維修完成</button><button class="action-btn danger recorder-scrap-btn" type="button" data-id="${esc(row.id)}">🗑 報廢</button>` : "";
+    return `<div class="survey-card">
+      <div class="survey-card-top"><div class="survey-name">📹 ${esc(row.recorder_number || "未填編號")}</div><div class="survey-time">${esc(fmt(row.reported_at))}</div></div>
+      <div class="survey-grid"><div class="survey-item">紀錄器類型<strong>${inv?.recorder_size === "large" ? "大台" : "小台"}</strong></div><div class="survey-item">處理狀態<strong class="${pending ? "survey-result-fail" : "survey-result-pass"}">${statusText}</strong></div></div>
+      <div class="survey-detail"><strong>異常內容：</strong>${esc(row.issue_description || "未填寫")}</div>
+      ${inv ? `<div class="survey-detail"><strong>建檔狀態：</strong>${inv.status === "active" ? "使用中" : "已報廢"}</div>` : `<div class="survey-detail" style="color:var(--danger)"><strong>建檔狀態：</strong>尚未建檔</div>`}
+      ${row.resolution_note ? `<div class="survey-detail"><strong>處理備註：</strong>${esc(row.resolution_note)}</div>` : ""}
+      ${actions ? `<div class="record-actions">${actions}</div>` : ""}</div>`;
+  }).join("");
+}
+
+async function loadRecorderData(){
+  batteryReportList.innerHTML = '<div class="loading">載入紀錄器資料中…</div>';
   try{
-    const result = await db
-      .from("battery_issue_reports")
-      .select("*")
-      .order("reported_at",{ascending:false});
+    const [ir,rr] = await Promise.all([db.from("recorders").select("*").order("created_at",{ascending:false}),db.from("recorder_issue_reports").select("*").order("reported_at",{ascending:false})]);
+    if(ir.error) throw ir.error; if(rr.error) throw rr.error;
+    recorderInventory = ir.data || []; recorderReports = rr.data || [];
+    renderRecorderSummary(); renderRecorderReports();
+  }catch(e){
+    recorderInventory=[]; recorderReports=[]; batterySummary.innerHTML=`<div class="empty" style="grid-column:1/-1">紀錄器資料讀取失敗：${esc(e.message || "請先執行 recorders 建表 SQL")}</div>`; batteryReportList.innerHTML=`<div class="empty">紀錄器資料讀取失敗：${esc(e.message || "請確認資料表與權限")}</div>`;
+  }
+}
+
+function loadDeviceData(){
+  batterySearchInput.value = "";
+  if(deviceAdminType.value === "recorder") loadRecorderData(); else loadBatteryData();
+}
+
+function updateDeviceRegisterFields(){
+  const recorder = deviceAdminType.value === "recorder";
+  deviceRegisterRestaurant.style.display = recorder ? "none" : "block";
+  deviceRegisterSize.style.display = recorder ? "block" : "none";
+  deviceRegisterRestaurant.required = !recorder;
+  deviceRegisterNote.style.display = deviceRegisterHealth.value === "abnormal" ? "block" : "none";
+  deviceRegisterNumber.placeholder = recorder ? "紀錄器編號" : "電池編號";
+  deviceRegisterBtn.textContent = recorder ? "＋ 新增紀錄器" : "＋ 新增電池";
+}
+
+async function addDeviceFromAdmin(){
+  const type = deviceAdminType.value;
+  const number = deviceRegisterNumber.value.trim();
+  const health = deviceRegisterHealth.value;
+  const note = deviceRegisterNote.value.trim();
+  if(!number){ deviceRegisterMessage.textContent = "請輸入設備編號。"; return; }
+  if(type === "battery" && !deviceRegisterRestaurant.value){ deviceRegisterMessage.textContent = "請選擇電池所在餐廳。"; return; }
+  if(health === "abnormal" && !note){ deviceRegisterMessage.textContent = "設備異常時，請填寫異常原因。"; return; }
+  deviceRegisterBtn.disabled = true; deviceRegisterMessage.textContent = "建檔中…";
+  try{
+    const table = type === "battery" ? "batteries" : "recorders";
+    const payload = type === "battery" ? {battery_number:number,restaurant_no:deviceRegisterRestaurant.value,status:"active",health_status:health,health_note:note || null} : {recorder_number:number,recorder_size:deviceRegisterSize.value,status:"active",health_status:health,health_note:note || null};
+    const result = await db.from(table).insert(payload).select().single();
     if(result.error) throw result.error;
-    batteryReports = result.data || [];
+    if(health === "abnormal") {
+      const issue = type === "battery" ? {battery_number:number,restaurant_no:deviceRegisterRestaurant.value,issue_description:note,resolution_status:"pending"} : {recorder_id:result.data.id,recorder_number:number,issue_description:note,resolution_status:"pending"};
+      const ir = await db.from(type === "battery" ? "battery_issue_reports" : "recorder_issue_reports").insert(issue);
+      if(ir.error) throw ir.error;
+    }
+    deviceRegisterMessage.textContent = `✅ ${type === "battery" ? "電池" : "紀錄器"} ${number} 已完成建檔。`;
+    deviceRegisterNumber.value=""; deviceRegisterRestaurant.value=""; deviceRegisterNote.value=""; deviceRegisterHealth.value="normal"; updateDeviceRegisterFields(); loadDeviceData();
+  }catch(e){ deviceRegisterMessage.textContent = `建檔失敗：${e.message || "請確認權限"}`; }
+  finally{ deviceRegisterBtn.disabled=false; }
+}
+
+async function updateRecorderIssue(id, action){
+  const row = recorderReports.find(item => String(item.id) === String(id)); if(!row || !recorderReportPending(row)) return;
+  const scrap = action === "scrapped"; const label = scrap ? "報廢" : "維修完成";
+  if(!confirm(`確定要將紀錄器「${row.recorder_number || "未填編號"}」標記為「${label}」嗎？`)) return;
+  try{
+    const inv = recorderInventory.find(item => recorderKey(item.recorder_number) === recorderKey(row.recorder_number));
+    if(!inv) throw new Error("找不到此紀錄器建檔資料。");
+    const now = new Date().toISOString();
+    const ur = await db.from("recorders").update({status:scrap ? "scrapped" : "active",health_status:scrap ? "abnormal" : "normal",health_note:scrap ? "報廢" : null,...(scrap ? {scrapped_at:now,scrapped_note:"由異常回報標記報廢"} : {})}).eq("id",inv.id);
+    if(ur.error) throw ur.error;
+    const rr = await db.from("recorder_issue_reports").update({resolution_status:"resolved",resolved_at:now,resolution_note:label}).eq("recorder_number",row.recorder_number).neq("resolution_status","resolved");
+    if(rr.error) throw rr.error;
+    alert(`✅ 已完成：${label}`); await loadRecorderData();
+  }catch(e){ alert(`紀錄器處理失敗：${e.message || "未知錯誤"}`); }
+}
+
+function exportRecorderReports(){
+  if(!recorderReports.length){ alert("目前沒有可匯出的紀錄器異常資料。"); return; }
+  const map = new Map(recorderInventory.map(row => [recorderKey(row.recorder_number),row]));
+  const rows = recorderReports.map(row => ({紀錄器編號:row.recorder_number || "",類型:map.get(recorderKey(row.recorder_number))?.recorder_size === "large" ? "大台" : "小台",異常內容:row.issue_description || "",回報時間:row.reported_at || "",處理狀態:row.resolution_status === "resolved" ? (row.resolution_note === "報廢" ? "已報廢" : "維修完成") : "待處理",處理時間:row.resolved_at || "",處理備註:row.resolution_note || ""}));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"紀錄器異常回報"); XLSX.writeFile(wb,`KFC_紀錄器異常_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function loadBatteryData(){
+  batteryReportList.innerHTML = '<div class="loading">載入電池資料中…</div>';
+  try{
+    const [inventoryResult, reportResult] = await Promise.all([
+      db.from("batteries").select("*").order("created_at",{ascending:false}),
+      db.from("battery_issue_reports").select("*").order("reported_at",{ascending:false})
+    ]);
+    if(inventoryResult.error) throw inventoryResult.error;
+    if(reportResult.error) throw reportResult.error;
+    batteryInventory = inventoryResult.data || [];
+    batteryReports = reportResult.data || [];
     renderBatterySummary();
     renderBatteryReports();
   }
   catch(e){
-    batterySummary.innerHTML = "";
-    batteryReportList.innerHTML = `<div class="empty">電池資料讀取失敗：${esc(e.message || "請確認 anon SELECT 權限")}</div>`;
+    batteryInventory = [];
+    batteryReports = [];
+    batterySummary.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">電池建檔資料讀取失敗：${esc(e.message || "請先執行 batteries 建表 SQL")}</div>
+    `;
+    batteryReportList.innerHTML = `<div class="empty">電池資料讀取失敗：${esc(e.message || "請確認資料表與權限")}</div>`;
+  }
+}
+
+async function updateBatteryIssue(id, action){
+  const row = batteryReports.find(item => String(item.id || "") === String(id || ""));
+  if(!row || !batteryReportPending(row)) return;
+  const isScrap = action === "scrapped";
+  const label = isScrap ? "報廢" : "維修完成";
+  if(!confirm(`確定要將電池「${row.battery_number || "未填編號"}」標記為「${label}」嗎？`)) return;
+  try{
+    if(isScrap){
+      const inventory = batteryInventory.find(item => batteryKey(item.battery_number) === batteryKey(row.battery_number) && item.status === "active");
+      if(!inventory){
+        throw new Error("找不到此電池的使用中建檔資料，請先完成電池建檔。");
+      }
+      const inventoryResult = await db.from("batteries").update({status:"scrapped", scrapped_at:new Date().toISOString(), scrapped_note:"由異常回報標記報廢"}).eq("id", inventory.id);
+      if(inventoryResult.error) throw inventoryResult.error;
+    }
+    const reportResult = await db.from("battery_issue_reports").update({resolution_status:"resolved", resolved_at:new Date().toISOString(), resolution_note:label}).eq("battery_number", row.battery_number).neq("resolution_status","resolved");
+    if(!reportResult.error && !isScrap){
+      await db.from("batteries").update({health_status:"normal", health_note:null}).eq("battery_number", row.battery_number).eq("status","active");
+    }
+    if(reportResult.error) throw reportResult.error;
+    alert(`✅ 已完成：${label}`);
+    await loadBatteryData();
+  }catch(e){
+    alert(`電池處理失敗：${e.message || "未知錯誤"}`);
   }
 }
 
@@ -3622,10 +3984,12 @@ function showAdminMode(mode){
   surveyModePage.style.display = mode === "survey" ? "block" : "none";
   batteryModePage.style.display = mode === "battery" ? "block" : "none";
   defensiveModePage.style.display = mode === "defensive" ? "block" : "none";
+  rosterModePage.style.display = mode === "roster" ? "block" : "none";
   if(mode === "vehicle") loadData();
   if(mode === "survey") loadSurveyData();
-  if(mode === "battery") loadBatteryData();
+  if(mode === "battery") loadDeviceData();
   if(mode === "defensive") loadDefensiveAdminData();
+  if(mode === "roster") loadRosterData();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -3642,6 +4006,9 @@ vehicleModeBtn.onclick =
 surveyModeBtn.onclick =
   () => showAdminMode("survey");
 
+rosterModeBtn.onclick =
+  () => showAdminMode("roster");
+
 batteryModeBtn.onclick =
   () => showAdminMode("battery");
 
@@ -3651,14 +4018,20 @@ vehicleBackBtn.onclick =
 surveyBackBtn.onclick =
   () => showAdminMode("home");
 
+rosterBackBtn.onclick =
+  () => showAdminMode("home");
+
 batteryBackBtn.onclick =
   () => showAdminMode("home");
 
 batteryRefreshBtn.onclick =
-  loadBatteryData;
+  loadDeviceData;
 
+deviceAdminType.onchange = () => { updateDeviceRegisterFields(); loadDeviceData(); };
+deviceRegisterHealth.onchange = updateDeviceRegisterFields;
+deviceRegisterBtn.onclick = addDeviceFromAdmin;
 batterySearchInput.oninput =
-  renderBatteryReports;
+  () => deviceAdminType.value === "recorder" ? renderRecorderReports() : renderBatteryReports();
 
 surveySummary.onclick = e => {
   const card = e.target.closest("[data-survey-status]");
@@ -3697,10 +4070,16 @@ defensiveAdminList.onclick = e => {
 };
 
 surveySearchInput.oninput =
-  renderSurveyResponses;
+  () => {
+    renderSurveyStatusList(activeSurveyStatus);
+    renderSurveyResponses();
+  };
 
 surveyExportBtn.onclick =
   exportSurveyResponses;
+
+surveyRefreshBtn.onclick =
+  loadSurveyData;
 
 surveyResponseList.onclick =
   e => {
@@ -3710,12 +4089,21 @@ surveyResponseList.onclick =
 
 batteryReportList.onclick =
   e => {
-    const button = e.target.closest(".battery-delete-btn");
-    if(button) deleteBatteryReport(button.dataset.id);
+    if(deviceAdminType.value === "recorder") {
+      const repairButton = e.target.closest(".recorder-repair-btn");
+      if(repairButton){ updateRecorderIssue(repairButton.dataset.id, "repaired"); return; }
+      const scrapButton = e.target.closest(".recorder-scrap-btn");
+      if(scrapButton){ updateRecorderIssue(scrapButton.dataset.id, "scrapped"); return; }
+      return;
+    }
+    const repairButton = e.target.closest(".battery-repair-btn");
+    if(repairButton){ updateBatteryIssue(repairButton.dataset.id, "repaired"); return; }
+    const scrapButton = e.target.closest(".battery-scrap-btn");
+    if(scrapButton){ updateBatteryIssue(scrapButton.dataset.id, "scrapped"); return; }
   };
 
 batteryExportBtn.onclick =
-  exportBatteryReports;
+  () => deviceAdminType.value === "recorder" ? exportRecorderReports() : exportBatteryReports();
 
 claimedCard.onclick =
   () => openQuickList("claimed");
@@ -3729,11 +4117,15 @@ surveyRoundSelect.onchange = loadSurveyData;
 defensiveModeBtn.onclick = () => showAdminMode("defensive");
 defensiveBackBtn.onclick = () => showAdminMode("home");
 defensiveRefreshBtn.onclick = loadDefensiveAdminData;
+defensiveExportBtn.onclick = exportDefensiveResponses;
 defensiveAdminMonth.onchange = loadDefensiveAdminData;
-surveyIncompleteList.onclick = e => {
+defensiveSearchInput.oninput = () => renderDefensiveStatusList(activeDefensiveStatus);
+const rosterDeleteHandler = e => {
   const button = e.target.closest(".survey-target-delete-btn");
   if(button) deleteSurveyTarget(button.dataset.name, button.dataset.round);
 };
+rosterList.onclick = rosterDeleteHandler;
+surveyIncompleteList.onclick = rosterDeleteHandler;
 surveyFailedList.onclick = e => {
   const button = e.target.closest(".survey-failed-btn");
   if(button) focusSurveyResponse(button.dataset.name);
