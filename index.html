@@ -1417,11 +1417,13 @@
         <label class="label" for="batteryRegisterRestaurant">電池所在餐廳</label>
         <select id="batteryRegisterRestaurant">
           <option value="">請選擇店號</option>
-          <option>025</option><option>041</option><option>062</option><option>084</option><option>095</option>
-          <option>098</option><option>099</option><option>137</option><option>142</option><option>161</option>
-          <option>165</option><option>173</option><option>179</option><option>182</option><option>183</option>
-          <option>190</option><option>209</option><option>214</option><option>227</option><option>242</option>
-          <option>248</option><option>516</option><option>562</option><option>580</option><option>587</option>
+          <option>013</option><option>018</option><option>025</option><option>041</option><option>062</option><option>066</option>
+          <option>084</option><option>093</option><option>095</option><option>098</option><option>099</option><option>133</option>
+          <option>137</option><option>142</option><option>144</option><option>154</option><option>161</option><option>165</option>
+          <option>167</option><option>173</option><option>179</option><option>182</option><option>183</option><option>190</option>
+          <option>201</option><option>203</option><option>209</option><option>214</option><option>227</option><option>235</option>
+          <option>242</option><option>248</option><option>516</option><option>544</option><option>562</option><option>580</option>
+          <option>587</option><option>594</option>
         </select>
       </section>
 
@@ -3974,7 +3976,7 @@ function showHome() {
   introText.textContent = "";
   introSection.style.display = "none";
   introText.classList.remove("show");
-  ["claimBackTop","inspectionBackTop","batteryBackTop","surveyBackTop","defensiveBackTop"].forEach(id => {
+  ["claimBackTop","inspectionBackTop","batteryBackTop","batteryRegisterBackTop","surveyBackTop","defensiveBackTop"].forEach(id => {
     document.getElementById(id).style.display = "none";
   });
 
