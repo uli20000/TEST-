@@ -833,6 +833,20 @@
   font-weight:800;
 }
 
+
+/* 設備管理：先顯示小卡，再進入異常原因 */
+.device-card-panel{border-color:#d5e5d9;background:#fbfffc;text-align:left}
+.device-mini-card{display:grid;gap:10px}
+.device-mini-top{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900}
+.device-mini-icon{font-size:30px}
+.device-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.device-mini-item{padding:10px;border-radius:12px;background:#f6f4ef;color:var(--gray);font-size:13px;line-height:1.5}
+.device-mini-item strong{display:block;color:var(--black);font-size:16px}
+.device-register-note{padding:12px;border-radius:12px;background:#fff8df;color:#765800;line-height:1.6;font-size:14px;margin-bottom:14px}
+@media(max-width:500px){.device-mini-grid{grid-template-columns:1fr}}
+
+.device-action-btn{width:100%;min-height:54px;margin-top:12px;border:2px solid var(--black);border-radius:15px;background:#fff;color:#1683df;font-size:18px;font-weight:800;cursor:pointer}
+.device-action-btn:disabled{opacity:.5}
 </style>
 </head>
 
@@ -880,12 +894,12 @@
 
     <button id="batteryModeBtn" class="mode-btn" type="button">
       <span class="icon">🔋</span>
-      <span class="main">設備異常回報</span>
+      <span class="main">設備管理</span>
     </button>
 
     <button id="defensiveModeBtn" class="mode-btn" type="button">
       <span class="icon">🛡️</span>
-      <span class="main">每月防禦駕駛</span>
+      <span class="main">防禦駕駛</span>
     </button>
 
     <button id="surveyModeBtn" class="mode-btn" type="button">
@@ -938,6 +952,7 @@
             <option>楊梅中山</option>
             <option>桃園大溪</option>
             <option>桃園大竹</option>
+            <option>桃園大園</option>
             <option>桃園大興西</option>
             <option>桃園萬壽</option>
             <option>桃園中山二</option>
@@ -1120,13 +1135,26 @@
 <div id="inspectionForm">
 
       <!-- =========================
-           01 車輛
+           01 領車人
+      ========================= -->
+
+      <section class="card">
+        <div class="section-number">01・領車人</div>
+        <label class="label">領車人</label>
+        <div class="name-search-wrap">
+          <input id="reporterName" type="text" placeholder="請輸入領車人姓名" autocomplete="off">
+          <div id="reporterNameSuggestions" class="name-suggestions"></div>
+        </div>
+      </section>
+
+      <!-- =========================
+           02 車輛
       ========================= -->
 
       <section class="card">
 
         <div class="section-number">
-          01・車輛
+          02・車輛
         </div>
 
         <label class="label">
@@ -1196,7 +1224,7 @@
       <section class="card">
 
         <div class="section-number">
-          02・里程
+          03・里程
         </div>
 
         <label class="label">
@@ -1221,7 +1249,7 @@
       <section class="card">
 
         <div class="section-number">
-          03・安全檢查
+          04・安全檢查
         </div>
 
         <div
@@ -1229,43 +1257,10 @@
           class="checks"
         ></div>
 
-        <div class="hint">
-          每項都必須選擇；選擇「異常」時必須填寫異常說明。
-        </div>
-
-
         <div
           id="statusCard"
           class="status-card"
         ></div>
-
-      </section>
-
-
-      <!-- =========================
-           04 填寫人
-      ========================= -->
-
-      <section class="card">
-
-        <div class="section-number">
-          04・填寫人
-        </div>
-
-        <label class="label">
-          巡檢人
-        </label>
-
-        <div class="name-search-wrap">
-          <input
-            id="reporterName"
-            type="text"
-            placeholder=""
-            autocomplete="off"
-          >
-          <div id="reporterNameSuggestions" class="name-suggestions"></div>
-        </div>
-
 
       </section>
 
@@ -1282,11 +1277,6 @@
         儲存巡檢紀錄
       </button>
 
-
-      <!-- 新增：還車頁返回首頁 -->
-<div class="hint">
-        每次巡檢都會新增一筆紀錄，不會覆蓋過去資料。
-      </div>
 
     </div>
 
@@ -1313,9 +1303,7 @@
 
       <div class="success-greeting">
         今天辛苦了，安全回家 ❤️
-        <span class="small">
-          謝謝你完成今日巡檢，辛苦了！
-        </span>
+
       </div>
 </div>
 
@@ -1327,8 +1315,7 @@
   ========================= -->
 
   <section id="batteryPage" class="mode-page battery-page">
-<div id="batteryForm">
-
+    <div id="batteryForm">
       <section class="card">
         <div class="section-number">01・設備類型</div>
         <label class="label" for="deviceIssueType">請選擇設備</label>
@@ -1338,66 +1325,67 @@
         </select>
       </section>
 
-      <div id="batteryIssueFields">
-        <section class="card">
-          <div class="section-number">02・電池</div>
-          <label class="label" for="batteryNumber">電池編號</label>
-          <input id="batteryNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
-        </section>
+      <section class="card">
+        <div class="section-number">02・設備編號</div>
+        <label class="label" for="deviceNumber">輸入設備編號</label>
+        <input id="deviceNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
+        <button id="deviceLookupBtn" class="device-action-btn" type="button">查詢設備</button>
+        <div id="deviceLookupMessage" class="hint" style="margin-top:10px"></div>
+      </section>
 
-        <section class="card">
-          <div class="section-number">03・回報餐廳</div>
-          <label class="label" for="batteryRestaurant">電池所在餐廳</label>
-          <select id="batteryRestaurant">
-            <option value="">請選擇餐廳名稱</option>
-            <option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option>
-            <option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option>
-            <option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option>
-            <option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option>
-            <option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option>
-            <option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option><option value="580">苗栗頭份（580）</option>
-            <option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option>
-            <option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option>
-            <option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option>
-            <option value="025">苗栗中正（025）</option><option value="173">苗栗竹南（173）</option><option value="142">桃園桃營（142）</option>
-            <option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option>
-            <option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option>
-            <option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option>
-          </select>
-        </section>
+      <section id="deviceCardPanel" class="card device-card-panel" style="display:none"></section>
 
+      <div id="deviceRegisterPanel" style="display:none">
         <section class="card">
-          <div class="section-number">04・異常內容</div>
-          <label class="label" for="batteryIssueDetail">異常內容／說明</label>
-          <textarea id="batteryIssueDetail" placeholder="請詳細說明電池異常情況"></textarea>
-        </section>
-      </div>
-
-      <div id="recorderIssueFields" style="display:none">
-        <section class="card">
-          <div class="section-number">02・行車紀錄器</div>
-          <label class="label" for="recorderIssueNumber">紀錄器編號</label>
-          <input id="recorderIssueNumber" type="text" maxlength="100" placeholder="請輸入紀錄器編號" autocomplete="off">
-        </section>
-
-        <section class="card">
-          <div class="section-number">03・異常內容</div>
-          <label class="label" for="recorderIssueDetail">異常內容／說明</label>
-          <textarea id="recorderIssueDetail" placeholder="請詳細說明紀錄器異常情況"></textarea>
+          <div class="section-number">03・新增設備小卡</div>
+          <div class="device-register-note">查無此設備，請先補充資料建立小卡，建立後再填寫異常原因。</div>
+          <div id="batteryRegisterFields">
+            <label class="label" for="batteryRestaurant">電池所在餐廳</label>
+            <select id="batteryRestaurant">
+              <option value="">請選擇餐廳名稱</option>
+              <option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option>
+              <option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option>
+              <option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option>
+              <option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option>
+              <option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option>
+              <option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option><option value="580">苗栗頭份（580）</option>
+              <option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option>
+              <option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option>
+              <option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option>
+              <option value="025">苗栗中正（025）</option><option value="173">苗栗竹南（173）</option><option value="142">桃園桃營（142）</option>
+              <option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option>
+              <option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option>
+              <option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option>
+            </select>
+          </div>
+          <div id="recorderRegisterFields" style="display:none">
+            <label class="label" for="recorderRegisterSize">紀錄器型號</label>
+            <select id="recorderRegisterSize">
+              <option value="large">A10／大台</option>
+              <option value="small">C100／小台</option>
+            </select>
+          </div>
+          <button id="deviceRegisterInlineBtn" class="device-action-btn" type="button">新增小卡並繼續</button>
+          <div id="deviceRegisterMessage" class="hint" style="margin-top:10px"></div>
         </section>
       </div>
 
-      <button id="batterySaveBtn" class="save-btn" type="button">送出設備異常回報</button>
-</div>
+      <div id="deviceIssuePanel" style="display:none">
+        <section class="card">
+          <div class="section-number">03・異常原因</div>
+          <label class="label" for="deviceIssueDetail">請說明異常原因</label>
+          <textarea id="deviceIssueDetail" placeholder="請詳細說明設備異常情況"></textarea>
+        </section>
+        <button id="deviceIssueSubmitBtn" class="save-btn" type="button">送出設備異常回報</button>
+      </div>
+    </div>
 
     <div id="batterySuccess" class="success-panel">
-  <div class="front-top-back"><button id="batterySuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
-
+      <div class="front-top-back"><button id="batterySuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
       <div class="success-icon">✓</div>
-      <div class="success-title">回饋已送出</div>
+      <div class="success-title">設備異常已送出</div>
       <div id="batterySuccessData" class="success-data"></div>
-</div>
-
+    </div>
   </section>
 
   <!-- =========================
@@ -2027,6 +2015,17 @@ async function loadVehicle() {
     }
 
 
+    const latestClaim = await db
+      .from("claim_records")
+      .select("claimant_name,claimed_at")
+      .eq("vehicle_id", vehicle.id)
+      .order("claimed_at", {ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if(!reporterNameInput.value.trim() && latestClaim.data?.claimant_name){
+      reporterNameInput.value = latestClaim.data.claimant_name;
+    }
+
     if (
       previous.data
     ) {
@@ -2244,7 +2243,7 @@ function validateInspection() {
   ) {
 
     alert(
-      "巡檢人請填寫 3 個中文字。"
+      "領車人請填寫 3 個中文字。"
     );
 
     reporterNameInput.focus();
@@ -2449,7 +2448,7 @@ async function saveInspection() {
       </div>
 
       <div>
-        <strong>巡檢人：</strong>
+        <strong>領車人：</strong>
         ${reporterNameInput.value.trim()}
       </div>
 
@@ -3262,75 +3261,200 @@ claimSaveBtn.addEventListener(
    ===================================================== */
 
 const deviceIssueTypeInput = document.getElementById("deviceIssueType");
-const batteryIssueFields = document.getElementById("batteryIssueFields");
-const recorderIssueFields = document.getElementById("recorderIssueFields");
-const batteryNumberInput = document.getElementById("batteryNumber");
-const batteryRestaurantInput = document.getElementById("batteryRestaurant");
-const batteryIssueDetailInput = document.getElementById("batteryIssueDetail");
-const recorderIssueNumberInput = document.getElementById("recorderIssueNumber");
-const recorderIssueDetailInput = document.getElementById("recorderIssueDetail");
-const batterySaveBtn = document.getElementById("batterySaveBtn");
+const deviceNumberInput = document.getElementById("deviceNumber");
+const deviceLookupBtn = document.getElementById("deviceLookupBtn");
+const deviceLookupMessage = document.getElementById("deviceLookupMessage");
+const deviceCardPanel = document.getElementById("deviceCardPanel");
+const deviceRegisterPanel = document.getElementById("deviceRegisterPanel");
+const deviceRegisterMessage = document.getElementById("deviceRegisterMessage");
+const deviceRegisterInlineBtn = document.getElementById("deviceRegisterInlineBtn");
+const deviceIssuePanel = document.getElementById("deviceIssuePanel");
+const deviceIssueDetailInput = document.getElementById("deviceIssueDetail");
+const deviceIssueSubmitBtn = document.getElementById("deviceIssueSubmitBtn");
+const deviceBatteryRestaurantInput = document.getElementById("batteryRestaurant");
+const deviceRecorderSizeInput = document.getElementById("recorderRegisterSize");
+const deviceBatteryRegisterFields = document.getElementById("batteryRegisterFields");
+const deviceRecorderRegisterFields = document.getElementById("recorderRegisterFields");
+let currentManagedDevice = null;
 
-function updateDeviceIssueFields(){
-  const type = deviceIssueTypeInput.value;
-  const isBattery = type === "battery";
-  batteryIssueFields.style.display = isBattery ? "block" : "none";
-  recorderIssueFields.style.display = isBattery ? "none" : "block";
-  batterySaveBtn.textContent = isBattery ? "送出電池異常回報" : "送出紀錄器異常回報";
+function managedDeviceIsBattery(){
+  return deviceIssueTypeInput.value === "battery";
 }
 
-async function saveBatteryIssue() {
-  const type = deviceIssueTypeInput.value;
-  const isBattery = type === "battery";
-  const number = (isBattery ? batteryNumberInput.value : recorderIssueNumberInput.value).trim();
-  const detail = (isBattery ? batteryIssueDetailInput.value : recorderIssueDetailInput.value).trim();
-  const restaurant = batteryRestaurantInput.value;
+function managedDeviceTable(){
+  return managedDeviceIsBattery() ? "batteries" : "recorders";
+}
 
+function managedDeviceLabel(){
+  return managedDeviceIsBattery() ? "電池" : "行車紀錄器";
+}
+
+function managedDeviceNumber(row){
+  return managedDeviceIsBattery() ? row?.battery_number : row?.recorder_number;
+}
+
+function managedDeviceStatus(row){
+  if(row?.status === "scrapped") return "已報廢";
+  if(row?.health_status === "abnormal") return "異常";
+  return "正常";
+}
+
+function renderManagedDeviceCard(row){
+  const battery = managedDeviceIsBattery();
+  const status = managedDeviceStatus(row);
+  const statusClass = status === "正常" ? "success" : "";
+  deviceCardPanel.innerHTML = `
+    <div class="device-mini-card">
+      <div class="device-mini-top"><span class="device-mini-icon">${battery ? "🔋" : "📹"}</span><span>${battery ? "電池" : "行車紀錄器"}小卡</span></div>
+      <div class="device-mini-grid">
+        <div class="device-mini-item">設備編號<strong>${escapeHtml(managedDeviceNumber(row) || "未填寫")}</strong></div>
+        <div class="device-mini-item">${battery ? "所在餐廳" : "型號"}<strong>${escapeHtml(battery ? (row.restaurant_no || "未填寫") : (row.recorder_size === "large" ? "A10／大台" : "C100／小台"))}</strong></div>
+      </div>
+      <div class="hint ${statusClass}">目前狀態：${escapeHtml(status)}${row.health_note ? `<br>異常說明：${escapeHtml(row.health_note)}` : ""}</div>
+    </div>`;
+  deviceCardPanel.style.display = "block";
+}
+
+function updateDeviceManagementFields(){
+  const battery = managedDeviceIsBattery();
+  deviceNumberInput.placeholder = battery ? "請輸入電池編號" : "請輸入紀錄器編號";
+  deviceBatteryRegisterFields.style.display = battery ? "block" : "none";
+  deviceRecorderRegisterFields.style.display = battery ? "none" : "block";
+}
+
+function resetDeviceManagementForm(){
+  currentManagedDevice = null;
+  deviceNumberInput.value = "";
+  deviceLookupMessage.textContent = "";
+  deviceRegisterMessage.textContent = "";
+  deviceCardPanel.innerHTML = "";
+  deviceCardPanel.style.display = "none";
+  deviceRegisterPanel.style.display = "none";
+  deviceIssuePanel.style.display = "none";
+  deviceIssueDetailInput.value = "";
+  deviceIssueTypeInput.value = "battery";
+  if(deviceBatteryRestaurantInput) deviceBatteryRestaurantInput.value = "";
+  if(deviceRecorderSizeInput) deviceRecorderSizeInput.value = "large";
+  updateDeviceManagementFields();
+}
+
+async function lookupManagedDevice(){
+  const number = deviceNumberInput.value.trim();
   if(!number){
-    alert(`請輸入${isBattery ? "電池" : "紀錄器"}編號。`);
-    (isBattery ? batteryNumberInput : recorderIssueNumberInput).focus();
+    deviceLookupMessage.textContent = `請輸入${managedDeviceLabel()}編號。`;
+    deviceNumberInput.focus();
+    return;
+  }
+  deviceLookupBtn.disabled = true;
+  deviceLookupBtn.textContent = "查詢中…";
+  deviceLookupMessage.textContent = "";
+  deviceRegisterPanel.style.display = "none";
+  deviceIssuePanel.style.display = "none";
+  try{
+    const columns = managedDeviceIsBattery()
+      ? "id,battery_number,restaurant_no,status,health_status,health_note,created_at"
+      : "id,recorder_number,recorder_size,status,health_status,health_note,created_at";
+    const result = await db.from(managedDeviceTable()).select(columns).eq(managedDeviceIsBattery() ? "battery_number" : "recorder_number", number).maybeSingle();
+    if(result.error) throw result.error;
+    if(result.data){
+      currentManagedDevice = result.data;
+      renderManagedDeviceCard(result.data);
+      if(result.data.status === "scrapped"){
+        deviceLookupMessage.textContent = "此設備已報廢，無法送出異常回報。";
+        return;
+      }
+      deviceLookupMessage.textContent = "已找到設備小卡，請繼續填寫異常原因。";
+      deviceIssuePanel.style.display = "block";
+      return;
+    }
+    currentManagedDevice = null;
+    deviceCardPanel.innerHTML = "";
+    deviceCardPanel.style.display = "none";
+    deviceRegisterPanel.style.display = "block";
+    deviceLookupMessage.textContent = `查無此${managedDeviceLabel()}，請先新增小卡。`;
+  }catch(error){
+    console.error(error);
+    deviceLookupMessage.textContent = `設備查詢失敗：${error.message || "請稍後再試"}`;
+  }finally{
+    deviceLookupBtn.disabled = false;
+    deviceLookupBtn.textContent = "查詢設備";
+  }
+}
+
+async function addManagedDevice(){
+  const number = deviceNumberInput.value.trim();
+  const battery = managedDeviceIsBattery();
+  if(!number){
+    deviceRegisterMessage.textContent = `請先輸入${managedDeviceLabel()}編號。`;
+    deviceNumberInput.focus();
+    return;
+  }
+  if(battery && !deviceBatteryRestaurantInput.value){
+    deviceRegisterMessage.textContent = "請選擇電池所在餐廳。";
+    deviceBatteryRestaurantInput.focus();
+    return;
+  }
+  deviceRegisterInlineBtn.disabled = true;
+  deviceRegisterInlineBtn.textContent = "新增中…";
+  deviceRegisterMessage.textContent = "正在建立設備小卡…";
+  try{
+    const payload = battery
+      ? {battery_number:number, restaurant_no:deviceBatteryRestaurantInput.value, status:"active", health_status:"normal", health_note:null}
+      : {recorder_number:number, recorder_size:deviceRecorderSizeInput.value, status:"active", health_status:"normal", health_note:null};
+    const result = await db.from(managedDeviceTable()).insert(payload).select().single();
+    if(result.error){
+      if(result.error.code === "23505"){
+        deviceRegisterMessage.textContent = "此編號已存在，正在載入設備小卡…";
+        await lookupManagedDevice();
+        return;
+      }
+      throw result.error;
+    }
+    currentManagedDevice = result.data;
+    renderManagedDeviceCard(result.data);
+    deviceRegisterPanel.style.display = "none";
+    deviceIssuePanel.style.display = "block";
+    deviceRegisterMessage.textContent = "";
+    deviceLookupMessage.textContent = "設備小卡已新增，請繼續填寫異常原因。";
+  }catch(error){
+    console.error(error);
+    deviceRegisterMessage.textContent = `新增失敗：${error.message || "請稍後再試"}`;
+  }finally{
+    deviceRegisterInlineBtn.disabled = false;
+    deviceRegisterInlineBtn.textContent = "新增小卡並繼續";
+  }
+}
+
+async function submitManagedDeviceIssue(){
+  const detail = deviceIssueDetailInput.value.trim();
+  if(!currentManagedDevice){
+    alert("請先查詢或新增設備小卡。");
+    return;
+  }
+  if(currentManagedDevice.status === "scrapped"){
+    alert("此設備已報廢，無法回報異常。");
     return;
   }
   if(!detail){
-    alert("請填寫異常內容／說明。");
-    (isBattery ? batteryIssueDetailInput : recorderIssueDetailInput).focus();
+    alert("請填寫異常原因。");
+    deviceIssueDetailInput.focus();
     return;
   }
-  if(isBattery && !restaurant){
-    alert("請選擇電池回報餐廳。");
-    batteryRestaurantInput.focus();
-    return;
-  }
-
-  batterySaveBtn.disabled = true;
-  batterySaveBtn.textContent = "送出中…";
+  const battery = managedDeviceIsBattery();
+  deviceIssueSubmitBtn.disabled = true;
+  deviceIssueSubmitBtn.textContent = "送出中…";
   try{
-    let result;
-    if(isBattery){
-      const registered = await db.from("batteries").select("id,battery_number,restaurant_no,status").eq("battery_number", number).maybeSingle();
-      if(registered.error) throw registered.error;
-      if(!registered.data) throw new Error("此電池尚未建檔，請通知後台先完成電池建檔。");
-      if(registered.data.status !== "active") throw new Error("此電池已報廢，無法回報異常。");
-      if(String(registered.data.restaurant_no || "") !== String(restaurant || "")) throw new Error(`此電池建檔餐廳為 ${registered.data.restaurant_no}，請確認回報餐廳。`);
-      result = await db.from("battery_issue_reports").insert({battery_number:number, restaurant_no:restaurant, issue_description:detail, resolution_status:"pending"});
-      if(!result.error){
-        await db.from("batteries").update({health_status:"abnormal", health_note:detail}).eq("id", registered.data.id);
-      }
-    }else{
-      const registered = await db.from("recorders").select("id,recorder_number,status").eq("recorder_number", number).maybeSingle();
-      if(registered.error) throw registered.error;
-      if(!registered.data) throw new Error("此紀錄器尚未建檔，請通知後台先完成紀錄器建檔。");
-      if(registered.data.status !== "active") throw new Error("此紀錄器已報廢，無法回報異常。");
-      result = await db.from("recorder_issue_reports").insert({recorder_id:registered.data.id, recorder_number:number, issue_description:detail, resolution_status:"pending"});
-      if(!result.error){
-        await db.from("recorders").update({health_status:"abnormal", health_note:detail}).eq("id", registered.data.id);
-      }
-    }
+    const issuePayload = battery
+      ? {battery_number:currentManagedDevice.battery_number, restaurant_no:currentManagedDevice.restaurant_no, issue_description:detail, resolution_status:"pending"}
+      : {recorder_id:currentManagedDevice.id, recorder_number:currentManagedDevice.recorder_number, issue_description:detail, resolution_status:"pending"};
+    const result = await db.from(battery ? "battery_issue_reports" : "recorder_issue_reports").insert(issuePayload);
     if(result.error) throw result.error;
+    const update = await db.from(managedDeviceTable()).update({health_status:"abnormal", health_note:detail}).eq("id", currentManagedDevice.id);
+    if(update.error) throw update.error;
     document.getElementById("batterySuccessData").innerHTML = `
-      <div><strong>設備：</strong>${escapeHtml(isBattery ? "電池" : "行車紀錄器")}</div>
-      <div><strong>設備編號：</strong>${escapeHtml(number)}</div>
-      <div><strong>異常說明：</strong>${escapeHtml(detail)}</div>
+      <div><strong>設備：</strong>${escapeHtml(battery ? "電池" : "行車紀錄器")}</div>
+      <div><strong>設備編號：</strong>${escapeHtml(managedDeviceNumber(currentManagedDevice))}</div>
+      <div><strong>異常原因：</strong>${escapeHtml(detail)}</div>
       <div><strong>回報時間：</strong>${formatDateTime(new Date().toISOString())}</div>`;
     batteryForm.style.display = "none";
     batterySuccess.classList.add("show");
@@ -3338,73 +3462,35 @@ async function saveBatteryIssue() {
     console.error(error);
     alert(`設備異常回報失敗：${error.message || "請稍後再試"}`);
   }finally{
-    batterySaveBtn.disabled = false;
-    updateDeviceIssueFields();
+    deviceIssueSubmitBtn.disabled = false;
+    deviceIssueSubmitBtn.textContent = "送出設備異常回報";
   }
 }
 
-batterySaveBtn.addEventListener("click", saveBatteryIssue);
-deviceIssueTypeInput.addEventListener("change", updateDeviceIssueFields);
+deviceIssueTypeInput.addEventListener("change", () => {
+  currentManagedDevice = null;
+  deviceCardPanel.style.display = "none";
+  deviceRegisterPanel.style.display = "none";
+  deviceIssuePanel.style.display = "none";
+  deviceLookupMessage.textContent = "";
+  deviceRegisterMessage.textContent = "";
+  updateDeviceManagementFields();
+});
+deviceLookupBtn.addEventListener("click", lookupManagedDevice);
+deviceRegisterInlineBtn.addEventListener("click", addManagedDevice);
+deviceIssueSubmitBtn.addEventListener("click", submitManagedDeviceIssue);
 
-async function saveBatteryRegistration(){
-  const batteryNumber = batteryRegisterNumberInput.value.trim();
-  const restaurant = batteryRegisterRestaurantInput.value;
-  if(!batteryNumber){
-    batteryRegisterMessage.className = "training-message";
-    batteryRegisterMessage.textContent = "請輸入電池編號。";
-    batteryRegisterNumberInput.focus();
-    return;
-  }
-  if(!restaurant){
-    batteryRegisterMessage.className = "training-message";
-    batteryRegisterMessage.textContent = "請選擇電池所在餐廳。";
-    batteryRegisterRestaurantInput.focus();
-    return;
-  }
-  batteryRegisterSaveBtn.disabled = true;
-  batteryRegisterSaveBtn.textContent = "建檔中…";
-  batteryRegisterMessage.className = "training-message";
-  batteryRegisterMessage.textContent = "資料儲存中…";
-  try{
-    const result = await db.from("batteries").insert({
-      battery_number: batteryNumber,
-      restaurant_no: restaurant,
-      status: "active"
-    });
-    if(result.error){
-      if(result.error.code === "23505") throw new Error("此電池編號已完成建檔。");
-      throw result.error;
-    }
-    batteryRegisterMessage.className = "training-message success";
-    batteryRegisterMessage.textContent = `✅ 電池 ${batteryNumber} 已完成建檔。`;
-    batteryRegisterNumberInput.value = "";
-    batteryRegisterRestaurantInput.value = "";
-  }catch(e){
-    batteryRegisterMessage.className = "training-message";
-    batteryRegisterMessage.textContent = `建檔失敗：${e.message || "請稍後再試"}`;
-  }finally{
-    batteryRegisterSaveBtn.disabled = false;
-    batteryRegisterSaveBtn.textContent = "新增電池建檔";
-  }
-}
-
-batteryRegisterSaveBtn.addEventListener("click", saveBatteryRegistration);
-
-function resetBatteryForm() {
-  deviceIssueTypeInput.value = "battery";
-  batteryNumberInput.value = "";
-  batteryRestaurantInput.value = "";
-  batteryIssueDetailInput.value = "";
-  recorderIssueNumberInput.value = "";
-  recorderIssueDetailInput.value = "";
-  updateDeviceIssueFields();
+function resetBatteryForm(){
+  resetDeviceManagementForm();
 }
 
 function resetBatteryRegisterForm(){
-  batteryRegisterNumberInput.value = "";
-  batteryRegisterRestaurantInput.value = "";
-  batteryRegisterMessage.textContent = "";
-  batteryRegisterMessage.className = "training-message";
+  if(typeof batteryRegisterNumberInput !== "undefined") batteryRegisterNumberInput.value = "";
+  if(typeof batteryRegisterRestaurantInput !== "undefined") batteryRegisterRestaurantInput.value = "";
+  if(typeof batteryRegisterMessage !== "undefined"){
+    batteryRegisterMessage.textContent = "";
+    batteryRegisterMessage.className = "training-message";
+  }
 }
 
 
@@ -3915,16 +4001,18 @@ function showMode(mode) {
     document.getElementById("inspectionBackTop").style.display = "block";
     pageTitle.textContent = "桃園-Rider Center";
     introTitle.textContent = "下班前完成安全檢查";
-    introText.textContent = "10 項安全檢查全部完成後，提交今日還車紀錄。";
+    introText.textContent = "";
+    introText.style.display = "none";
     inspectionForm.style.display = "block";
     inspectionSuccess.classList.remove("show");
   } else if (mode === "battery") {
     document.getElementById("batteryBackTop").style.display = "block";
     pageTitle.textContent = "桃園-Rider Center";
-    introTitle.textContent = "回報電池異常";
-    introText.textContent = "此紀錄不綁定車牌，只使用電池編號與所在餐廳。";
+    introTitle.textContent = "設備管理";
+    introText.textContent = "查詢或新增設備小卡，再填寫異常原因。";
     batteryForm.style.display = "block";
     batterySuccess.classList.remove("show");
+    resetBatteryForm();
   } else if (mode === "batteryRegister") {
     document.getElementById("batteryRegisterBackTop").style.display = "block";
     pageTitle.textContent = "桃園-Rider Center";
@@ -3942,7 +4030,7 @@ function showMode(mode) {
   } else if (mode === "defensive") {
     document.getElementById("defensiveBackTop").style.display = "block";
     pageTitle.textContent = "桃園-Rider Center";
-    introTitle.textContent = "每月防禦駕駛";
+    introTitle.textContent = "防禦駕駛";
     introText.textContent = "";
     introText.style.display = "none";
     resetDefensiveForm();
