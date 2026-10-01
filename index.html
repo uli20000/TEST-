@@ -1335,7 +1335,6 @@
         <div class="section-number">02・設備編號</div>
         <label class="label" for="deviceNumber">輸入設備編號</label>
         <input id="deviceNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
-        <button id="deviceLookupBtn" class="device-action-btn" type="button">查詢設備</button>
         <div id="deviceLookupMessage" class="hint" style="margin-top:10px"></div>
       </section>
 
@@ -3268,7 +3267,6 @@ claimSaveBtn.addEventListener(
 
 const deviceIssueTypeInput = document.getElementById("deviceIssueType");
 const deviceNumberInput = document.getElementById("deviceNumber");
-const deviceLookupBtn = document.getElementById("deviceLookupBtn");
 const deviceLookupMessage = document.getElementById("deviceLookupMessage");
 const deviceCardPanel = document.getElementById("deviceCardPanel");
 const deviceRegisterPanel = document.getElementById("deviceRegisterPanel");
@@ -3282,6 +3280,8 @@ const deviceRecorderSizeInput = document.getElementById("recorderRegisterSize");
 const deviceBatteryRegisterFields = document.getElementById("batteryRegisterFields");
 const deviceRecorderRegisterFields = document.getElementById("recorderRegisterFields");
 let currentManagedDevice = null;
+let managedDeviceLookupToken = 0;
+let managedDeviceLookupTimer = null;
 
 function managedDeviceIsBattery(){
   return deviceIssueTypeInput.value === "battery";
@@ -3356,13 +3356,16 @@ function resetDeviceManagementForm(){
 async function lookupManagedDevice(){
   const number = deviceNumberInput.value.trim();
   if(!number){
-    deviceLookupMessage.textContent = `請輸入${managedDeviceLabel()}編號。`;
-    deviceNumberInput.focus();
+    currentManagedDevice = null;
+    deviceCardPanel.innerHTML = "";
+    deviceCardPanel.style.display = "none";
+    deviceRegisterPanel.style.display = "none";
+    deviceIssuePanel.style.display = "none";
+    deviceLookupMessage.textContent = "";
     return;
   }
-  deviceLookupBtn.disabled = true;
-  deviceLookupBtn.textContent = "查詢中…";
-  deviceLookupMessage.textContent = "";
+  const lookupToken = ++managedDeviceLookupToken;
+  deviceLookupMessage.textContent = "查詢設備中…";
   deviceRegisterPanel.style.display = "none";
   deviceIssuePanel.style.display = "none";
   try{
@@ -3370,6 +3373,7 @@ async function lookupManagedDevice(){
       ? "id,battery_number,restaurant_no,status,health_status,health_note,created_at"
       : "id,recorder_number,recorder_size,status,health_status,health_note,created_at";
     const result = await db.from(managedDeviceTable()).select(columns).eq(managedDeviceIsBattery() ? "battery_number" : "recorder_number", number).maybeSingle();
+    if(lookupToken !== managedDeviceLookupToken || number !== deviceNumberInput.value.trim()) return;
     if(result.error) throw result.error;
     if(result.data){
       currentManagedDevice = result.data;
@@ -3388,12 +3392,21 @@ async function lookupManagedDevice(){
     deviceRegisterPanel.style.display = "block";
     deviceLookupMessage.textContent = `查無此${managedDeviceLabel()}，請先新增小卡。`;
   }catch(error){
+    if(lookupToken !== managedDeviceLookupToken) return;
     console.error(error);
     deviceLookupMessage.textContent = `設備查詢失敗：${error.message || "請稍後再試"}`;
-  }finally{
-    deviceLookupBtn.disabled = false;
-    deviceLookupBtn.textContent = "查詢設備";
   }
+}
+
+function scheduleManagedDeviceLookup(){
+  clearTimeout(managedDeviceLookupTimer);
+  const number = deviceNumberInput.value.trim();
+  if(!number){
+    lookupManagedDevice();
+    return;
+  }
+  deviceLookupMessage.textContent = "輸入完成後自動查詢…";
+  managedDeviceLookupTimer = setTimeout(() => lookupManagedDevice(), 450);
 }
 
 async function addManagedDevice(){
@@ -3497,7 +3510,11 @@ document.querySelectorAll(".device-type-btn").forEach(button => {
     updateDeviceManagementFields();
   });
 });
-deviceLookupBtn.addEventListener("click", lookupManagedDevice);
+deviceNumberInput.addEventListener("input", scheduleManagedDeviceLookup);
+deviceNumberInput.addEventListener("blur", () => {
+  clearTimeout(managedDeviceLookupTimer);
+  lookupManagedDevice();
+});
 deviceRegisterInlineBtn.addEventListener("click", addManagedDevice);
 deviceIssueSubmitBtn.addEventListener("click", submitManagedDeviceIssue);
 
