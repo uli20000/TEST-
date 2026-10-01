@@ -2873,6 +2873,40 @@ document.querySelectorAll('input[name="recorderType"]').forEach(radio => {
 });
 
 
+async function registerRecorderFromClaim(){
+  const number = recorderNumber.value.trim();
+  const sizeInput = document.getElementById("claimRecorderSize");
+  const registerButton = document.getElementById("claimRecorderRegisterBtn");
+  const message = document.getElementById("claimRecorderRegisterMessage");
+  const size = sizeInput?.value === "small" ? "small" : "large";
+  if(!number || !registerButton) return;
+  registerButton.disabled = true;
+  registerButton.textContent = "新增中…";
+  if(message) message.textContent = "正在建立紀錄器資料…";
+  try{
+    const result = await db.from("recorders").insert({
+      recorder_number: number,
+      recorder_size: size,
+      status: "active",
+      health_status: "normal",
+      health_note: null
+    }).select("*").single();
+    if(result.error){
+      if(result.error.code === "23505"){
+        await loadRecorderHealth();
+        return;
+      }
+      throw result.error;
+    }
+    recorderHealthInfo.className = "hint success";
+    recorderHealthInfo.innerHTML = `紀錄器「${escapeHtml(number)}」已新增為正常使用中（${size === "large" ? "A10／大台" : "C100／小台"}）。`;
+  }catch(e){
+    if(message) message.textContent = `新增失敗：${e.message || "請稍後再試"}`;
+    registerButton.disabled = false;
+    registerButton.textContent = "＋ 新增為正常使用中";
+  }
+}
+
 async function loadRecorderHealth(){
   const number = recorderNumber.value.trim();
   if(!number){
@@ -2886,7 +2920,19 @@ async function loadRecorderHealth(){
     const result = await db.from("recorders").select("*").eq("recorder_number", number).maybeSingle();
     if(result.error) throw result.error;
     if(!result.data){
-      recorderHealthInfo.textContent = "查無此紀錄器建檔資料，請確認編號。";
+      const safeNumber = escapeHtml(number);
+      recorderHealthInfo.className = "hint";
+      recorderHealthInfo.innerHTML = `
+        查無紀錄器「${safeNumber}」建檔資料。<br>
+        <span style="display:block;margin-top:8px;font-weight:800;">確認編號正確後，可直接新增</span>
+        <select id="claimRecorderSize" class="search-input" style="margin-top:8px;max-width:240px;">
+          <option value="large">A10／大台</option>
+          <option value="small">C100／小台</option>
+        </select>
+        <button id="claimRecorderRegisterBtn" type="button" class="action-btn" style="margin-top:8px;">＋ 新增為正常使用中</button>
+        <div id="claimRecorderRegisterMessage" style="margin-top:6px;"></div>
+      `;
+      document.getElementById("claimRecorderRegisterBtn").addEventListener("click", registerRecorderFromClaim);
       return;
     }
     const recorder = result.data;
