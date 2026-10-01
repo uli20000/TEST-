@@ -847,6 +847,11 @@
 
 .device-action-btn{width:100%;min-height:54px;margin-top:12px;border:2px solid var(--black);border-radius:15px;background:#fff;color:#1683df;font-size:18px;font-weight:800;cursor:pointer}
 .device-action-btn:disabled{opacity:.5}
+
+.device-type-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.device-type-btn{min-height:58px;border:2px solid #d8d3ca;border-radius:15px;background:#fff;color:var(--black);font-size:18px;font-weight:800;cursor:pointer}
+.device-type-btn.active{border-color:var(--red);background:var(--danger-bg);color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.08)}
+.device-type-btn:focus-visible{outline:3px solid rgba(22,131,223,.35);outline-offset:2px}
 </style>
 </head>
 
@@ -1318,11 +1323,12 @@
     <div id="batteryForm">
       <section class="card">
         <div class="section-number">01・設備類型</div>
-        <label class="label" for="deviceIssueType">請選擇設備</label>
-        <select id="deviceIssueType">
-          <option value="battery">電池</option>
-          <option value="recorder">行車紀錄器</option>
-        </select>
+        <div class="label">請選擇設備</div>
+        <input id="deviceIssueType" type="hidden" value="battery">
+        <div class="device-type-buttons" role="group" aria-label="設備類型">
+          <button class="device-type-btn" type="button" data-device-type="recorder">📹 紀錄器</button>
+          <button class="device-type-btn active" type="button" data-device-type="battery">🔋 電池</button>
+        </div>
       </section>
 
       <section class="card">
@@ -3315,8 +3321,17 @@ function renderManagedDeviceCard(row){
   deviceCardPanel.style.display = "block";
 }
 
+function updateDeviceTypeButtons(){
+  document.querySelectorAll(".device-type-btn").forEach(button => {
+    const active = button.dataset.deviceType === deviceIssueTypeInput.value;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
 function updateDeviceManagementFields(){
   const battery = managedDeviceIsBattery();
+  updateDeviceTypeButtons();
   deviceNumberInput.placeholder = battery ? "請輸入電池編號" : "請輸入紀錄器編號";
   deviceBatteryRegisterFields.style.display = battery ? "block" : "none";
   deviceRecorderRegisterFields.style.display = battery ? "none" : "block";
@@ -3467,14 +3482,20 @@ async function submitManagedDeviceIssue(){
   }
 }
 
-deviceIssueTypeInput.addEventListener("change", () => {
-  currentManagedDevice = null;
-  deviceCardPanel.style.display = "none";
-  deviceRegisterPanel.style.display = "none";
-  deviceIssuePanel.style.display = "none";
-  deviceLookupMessage.textContent = "";
-  deviceRegisterMessage.textContent = "";
-  updateDeviceManagementFields();
+document.querySelectorAll(".device-type-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    deviceIssueTypeInput.value = button.dataset.deviceType;
+    currentManagedDevice = null;
+    deviceNumberInput.value = "";
+    deviceCardPanel.innerHTML = "";
+    deviceCardPanel.style.display = "none";
+    deviceRegisterPanel.style.display = "none";
+    deviceIssuePanel.style.display = "none";
+    deviceLookupMessage.textContent = "";
+    deviceRegisterMessage.textContent = "";
+    deviceIssueDetailInput.value = "";
+    updateDeviceManagementFields();
+  });
 });
 deviceLookupBtn.addEventListener("click", lookupManagedDevice);
 deviceRegisterInlineBtn.addEventListener("click", addManagedDevice);
