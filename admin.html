@@ -876,26 +876,49 @@ button{cursor:pointer}
 .survey-admin-tools .action-btn{width:auto;min-height:42px;padding:8px 12px;white-space:nowrap;font-size:14px}
 @media(max-width:700px){.survey-admin-tools{grid-template-columns:1fr}.survey-admin-tools .action-btn{width:100%}}
 
-/* 管理員登入：手機優先 */
-.auth-gate{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#f4f0e8 0%,#fff 56%,#f8dfe3 100%)}
-.auth-card{width:min(100%,420px);background:rgba(255,255,255,.96);border:1px solid rgba(200,16,46,.14);border-radius:28px;padding:30px 22px 24px;box-shadow:0 18px 50px rgba(36,36,36,.14);text-align:center}
-.auth-mark{width:64px;height:64px;margin:0 auto 14px;border-radius:20px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:32px;box-shadow:0 8px 18px rgba(200,16,46,.22)}
-.auth-card h1{margin:0;color:var(--black);font-size:25px;letter-spacing:.5px}
-.auth-subtitle{margin:8px 0 24px;color:var(--gray);font-size:14px;line-height:1.6}
-.auth-field{text-align:left;margin:12px 0}
-.auth-field label{display:block;margin:0 0 7px;font-size:13px;font-weight:800;color:var(--black)}
+/* 管理員登入：手機優先、簡潔品牌卡片 */
+.auth-gate{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 18px;position:relative;overflow:hidden;background:#f4f0e8}
+.auth-gate::before,.auth-gate::after{content:"";position:absolute;border-radius:999px;pointer-events:none}
+.auth-gate::before{width:420px;height:420px;right:-180px;top:-170px;background:rgba(200,16,46,.08)}
+.auth-gate::after{width:340px;height:340px;left:-180px;bottom:-190px;background:rgba(200,16,46,.06)}
+.auth-card{width:min(100%,460px);position:relative;z-index:1;background:rgba(255,255,255,.96);border:1px solid rgba(36,36,36,.08);border-radius:30px;padding:28px 30px 26px;box-shadow:0 20px 60px rgba(36,36,36,.13);text-align:left}
+.auth-card::before{content:"";display:block;width:48px;height:5px;margin-bottom:26px;border-radius:999px;background:var(--red)}
+.auth-brand{display:flex;align-items:center;gap:9px;color:var(--gray);font-size:11px;font-weight:900;letter-spacing:2.4px;margin-bottom:18px}
+.auth-brand-kfc{color:var(--red);font-size:16px;letter-spacing:1px}
+.auth-brand-separator{color:#c7c0b6;font-size:16px}
+.auth-mark{width:72px;height:72px;margin:0 0 18px;border-radius:22px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:900;letter-spacing:1px;box-shadow:0 10px 20px rgba(200,16,46,.22)}
+.auth-mark span{display:block}
+.auth-card h1{margin:0;color:var(--black);font-size:30px;line-height:1.2;letter-spacing:.3px}
+.auth-heading{margin-top:7px;color:var(--black);font-size:18px;font-weight:800}
+.auth-subtitle{margin:10px 0 26px;color:var(--gray);font-size:14px;line-height:1.65}
+.auth-field{text-align:left;margin:16px 0}
+.auth-field label{display:block;margin:0 0 8px;font-size:14px;font-weight:900;color:var(--black)}
 .auth-input-wrap{position:relative}
-.auth-input{width:100%;height:48px;border:1px solid var(--line);border-radius:13px;padding:0 14px;background:#fff;color:var(--black);font-size:16px;outline:none}
-.auth-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.11)}
-.auth-input.has-toggle{padding-right:58px}
-.auth-toggle{position:absolute;right:8px;top:7px;height:34px;border:0;background:transparent;color:var(--gray);font-weight:800;padding:0 8px}
-.auth-submit{width:100%;height:50px;margin-top:10px;border:0;border-radius:14px;background:var(--red);color:#fff;font-size:17px;font-weight:800;box-shadow:0 8px 18px rgba(200,16,46,.2)}
+.auth-input{width:100%;height:54px;border:1px solid #d8d3ca;border-radius:15px;padding:0 15px;background:#fff;color:var(--black);font-size:16px;outline:none;transition:.2s}
+.auth-input::placeholder{color:#aaa}
+.auth-input:focus{border-color:var(--red);box-shadow:0 0 0 4px rgba(200,16,46,.10)}
+.auth-input.has-toggle{padding-right:68px}
+.auth-toggle{position:absolute;right:7px;top:7px;height:40px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--red);font-size:13px;font-weight:900;padding:0 12px;cursor:pointer}
+.auth-submit{width:100%;height:56px;margin-top:12px;border:0;border-radius:15px;background:var(--red);color:#fff;font-size:17px;font-weight:900;letter-spacing:.5px;box-shadow:0 10px 22px rgba(200,16,46,.20);cursor:pointer}
+.auth-submit:hover{background:#ae0e28}
 .auth-submit:disabled{opacity:.6;cursor:wait}
-.auth-message{min-height:22px;margin-top:13px;color:var(--danger);font-size:14px;line-height:1.5}
-.auth-foot{margin-top:18px;color:var(--gray);font-size:12px}
+.auth-message{min-height:22px;margin-top:14px;color:var(--danger);font-size:14px;line-height:1.5}
+.auth-foot{margin-top:20px;padding-top:16px;border-top:1px solid #eee9e1;color:var(--gray);font-size:12px;line-height:1.5}
 .admin-session-bar{display:none;align-items:center;justify-content:center;gap:10px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);color:var(--gray);font-size:12px}
 .admin-session-bar button{border:1px solid #e2aaa4;background:var(--danger-bg);color:var(--danger);border-radius:9px;padding:6px 10px;font-weight:800}
+@media(max-width:500px){.auth-gate{padding:18px 14px}.auth-card{padding:24px 20px 22px;border-radius:26px}.auth-card::before{margin-bottom:22px}.auth-card h1{font-size:27px}.auth-mark{width:66px;height:66px;border-radius:20px}.auth-subtitle{margin-bottom:22px}}
 
+
+/* 後台首頁與設備管理：手機優先 */
+.admin-mode-btn{min-height:84px;font-size:22px}
+.admin-mode-btn .icon{font-size:34px}
+.device-admin-type-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:620px;margin:0 auto}
+.device-admin-type-btn{min-height:58px;border:2px solid var(--line);border-radius:15px;background:#fff;color:var(--black);font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+.device-admin-type-btn.active{border-color:var(--red);background:var(--danger-bg);color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.08)}
+.device-admin-type-btn:focus-visible{outline:3px solid rgba(22,131,223,.35);outline-offset:2px}
+.device-add-panel{border-color:#e1c66e;background:#fffdf5}
+.device-add-intro{padding:12px;border-radius:12px;background:var(--yellow-bg);color:#765800;font-size:14px;line-height:1.6;text-align:left;margin-bottom:12px}
+@media(max-width:700px){.admin-mode-btn{min-height:82px;font-size:21px}.admin-mode-btn .icon{font-size:32px}}
 </style>
 </head>
 
@@ -903,17 +926,17 @@ button{cursor:pointer}
 
 <div id="authGate" class="auth-gate">
   <form id="authForm" class="auth-card" autocomplete="on">
-    <div class="auth-mark">🔐</div>
-    <h1>安全管理後台</h1>
-    <div class="auth-subtitle">KFC Delivery Center<br>僅限授權管理人員登入</div>
+    <div class="auth-brand"><span class="auth-brand-kfc">KFC</span><span class="auth-brand-separator">/</span><span>T995 RIDER CENTER</span></div>
+    <div class="auth-mark"><span>995</span></div>
+    <div class="auth-heading">管理後台</div>
     <div class="auth-field">
-      <label for="authEmail">管理員 Email</label>
-      <input id="authEmail" class="auth-input" type="email" autocomplete="username" placeholder="請輸入管理員 Email" required>
+      <label for="authEmail">帳號</label>
+      <input id="authEmail" class="auth-input" type="email" autocomplete="username" placeholder="" required>
     </div>
     <div class="auth-field">
       <label for="authPassword">密碼</label>
       <div class="auth-input-wrap">
-        <input id="authPassword" class="auth-input has-toggle" type="password" autocomplete="current-password" placeholder="請輸入密碼" required>
+        <input id="authPassword" class="auth-input has-toggle" type="password" autocomplete="current-password" placeholder="" required>
         <button id="authPasswordToggle" class="auth-toggle" type="button">顯示</button>
       </div>
     </div>
@@ -943,7 +966,7 @@ button{cursor:pointer}
 <div id="adminModeMenu" class="admin-menu">
   <button id="vehicleModeBtn" class="admin-mode-btn" type="button">
     <span class="icon">🚗</span>
-    車輛檢查
+    車輛管理
   </button>
   <button id="batteryModeBtn" class="admin-mode-btn" type="button">
     <span class="icon">🔋</span>
@@ -1086,21 +1109,28 @@ button{cursor:pointer}
   <div class="mode-back-row"><button id="batteryBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
     <div class="section-title">設備管理</div>
-    <div class="search-box">
-      <select id="deviceAdminType" class="search-input">
-        <option value="battery">電池</option>
-        <option value="recorder">行車紀錄器</option>
-      </select>
+    <input id="deviceAdminType" type="hidden" value="battery">
+    <div class="device-admin-type-buttons" role="group" aria-label="設備類型">
+      <button id="deviceBatteryTypeBtn" class="device-admin-type-btn active" type="button" data-device-type="battery">🔋 電池</button>
+      <button id="deviceRecorderTypeBtn" class="device-admin-type-btn" type="button" data-device-type="recorder">📹 紀錄器</button>
     </div>
   </section>
 
   <section class="section">
-    <div class="section-title">新增設備建檔</div>
+    <div class="section-title" id="deviceSearchTitle">搜尋電池</div>
     <div class="search-box">
-      <input id="deviceRegisterNumber" class="search-input" type="text" placeholder="設備編號" autocomplete="off">
-      <select id="deviceRegisterRestaurant" class="search-input" style="margin-top:10px">
-        <option value="">請選擇餐廳名稱</option>
-            <option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option>
+      <input id="batterySearchInput" class="search-input" type="text" placeholder="輸入電池編號後自動查詢" autocomplete="off">
+      <div id="deviceSearchMessage" class="hint" style="margin-top:8px">輸入編號後會自動開始查詢。</div>
+    </div>
+  </section>
+
+  <section id="deviceRegisterPanel" class="section" style="display:none">
+    <div class="section-title">新增正常設備</div>
+    <div class="search-box device-add-panel">
+      <div id="deviceRegisterIntro" class="device-add-intro">查無此設備，請補充資料後新增。新增的設備會直接設定為正常。</div>
+      <select id="deviceRegisterRestaurant" class="search-input">
+        <option value="">請選擇電池所在餐廳</option>
+        <option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option>
             <option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option>
             <option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option>
             <option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option>
@@ -1115,25 +1145,18 @@ button{cursor:pointer}
             <option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option>
       </select>
       <select id="deviceRegisterSize" class="search-input" style="margin-top:10px;display:none">
-        <option value="small">小台</option>
-        <option value="large">大台</option>
+        <option value="large">A10／大台</option>
+        <option value="small">C100／小台</option>
       </select>
-      <select id="deviceRegisterHealth" class="search-input" style="margin-top:10px">
-        <option value="normal">正常</option>
-        <option value="abnormal">異常</option>
-      </select>
-      <textarea id="deviceRegisterNote" class="search-input" placeholder="異常原因說明（選擇異常時必填）" style="height:90px;margin-top:10px;display:none;padding-top:12px"></textarea>
-      <button id="deviceRegisterBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增設備</button>
+      <button id="deviceRegisterBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增正常電池</button>
       <div id="deviceRegisterMessage" class="hint" style="margin-top:8px"></div>
     </div>
   </section>
 
   <section class="section">
+    <div class="section-title" id="deviceInventoryTitle">目前電池設備</div>
     <div class="search-box">
-      <input id="batterySearchInput" class="search-input" type="text" placeholder="搜尋設備編號">
-      <div class="mode-tools">
-        <button id="batteryExportBtn" class="action-btn" type="button">📊 匯出目前設備</button>
-      </div>
+      <button id="batteryExportBtn" class="action-btn" type="button" style="width:100%">📊 匯出目前設備</button>
     </div>
     <div class="summary-with-refresh">
       <div id="batterySummary" class="survey-summary"></div>
@@ -1142,7 +1165,7 @@ button{cursor:pointer}
   </section>
   <section class="section">
     <div id="batteryReportList" class="vehicle-list">
-      <div class="loading">尚未載入電池紀錄</div>
+      <div class="loading">尚未載入設備資料</div>
     </div>
   </section>
 </section>
@@ -1369,11 +1392,14 @@ const batterySearchInput = $("batterySearchInput");
 const batterySummary = $("batterySummary");
 const batteryReportList = $("batteryReportList");
 const deviceAdminType = $("deviceAdminType");
-const deviceRegisterNumber = $("deviceRegisterNumber");
+const deviceBatteryTypeBtn = $("deviceBatteryTypeBtn");
+const deviceRecorderTypeBtn = $("deviceRecorderTypeBtn");
+const deviceSearchTitle = $("deviceSearchTitle");
+const deviceSearchMessage = $("deviceSearchMessage");
+const deviceInventoryTitle = $("deviceInventoryTitle");
+const deviceRegisterPanel = $("deviceRegisterPanel");
 const deviceRegisterRestaurant = $("deviceRegisterRestaurant");
 const deviceRegisterSize = $("deviceRegisterSize");
-const deviceRegisterHealth = $("deviceRegisterHealth");
-const deviceRegisterNote = $("deviceRegisterNote");
 const deviceRegisterBtn = $("deviceRegisterBtn");
 const deviceRegisterMessage = $("deviceRegisterMessage");
 const rosterModePage = $("rosterModePage");
@@ -3927,44 +3953,123 @@ async function loadRecorderData(){
   }
 }
 
-function loadDeviceData(){
-  batterySearchInput.value = "";
-  if(deviceAdminType.value === "recorder") loadRecorderData(); else loadBatteryData();
+function currentDeviceLabel(){
+  return deviceAdminType.value === "recorder" ? "紀錄器" : "電池";
+}
+
+function currentDeviceTable(){
+  return deviceAdminType.value === "recorder" ? "recorders" : "batteries";
+}
+
+function currentDeviceInventory(){
+  return deviceAdminType.value === "recorder" ? (recorderInventory || []) : (batteryInventory || []);
+}
+
+function filteredCurrentDeviceInventory(){
+  const keyword = batterySearchInput.value.trim().toLowerCase();
+  return currentDeviceInventory().filter(row => {
+    if(!keyword) return true;
+    const values = deviceAdminType.value === "recorder"
+      ? [row.recorder_number, row.recorder_size, row.health_note]
+      : [row.battery_number, row.restaurant_no, row.health_note];
+    return values.filter(Boolean).some(value => String(value).toLowerCase().includes(keyword));
+  });
 }
 
 function updateDeviceRegisterFields(){
   const recorder = deviceAdminType.value === "recorder";
+  deviceBatteryTypeBtn.classList.toggle("active", !recorder);
+  deviceRecorderTypeBtn.classList.toggle("active", recorder);
+  deviceBatteryTypeBtn.setAttribute("aria-pressed", recorder ? "false" : "true");
+  deviceRecorderTypeBtn.setAttribute("aria-pressed", recorder ? "true" : "false");
+  deviceSearchTitle.textContent = recorder ? "搜尋紀錄器" : "搜尋電池";
+  deviceInventoryTitle.textContent = recorder ? "目前紀錄器設備" : "目前電池設備";
+  batterySearchInput.placeholder = recorder ? "輸入紀錄器編號後自動查詢" : "輸入電池編號後自動查詢";
   deviceRegisterRestaurant.style.display = recorder ? "none" : "block";
   deviceRegisterSize.style.display = recorder ? "block" : "none";
-  deviceRegisterRestaurant.required = !recorder;
-  deviceRegisterNote.style.display = deviceRegisterHealth.value === "abnormal" ? "block" : "none";
-  deviceRegisterNumber.placeholder = recorder ? "紀錄器編號" : "電池編號";
-  deviceRegisterBtn.textContent = recorder ? "＋ 新增紀錄器" : "＋ 新增電池";
+  deviceRegisterBtn.textContent = recorder ? "＋ 新增正常紀錄器" : "＋ 新增正常電池";
+}
+
+function syncDeviceSearchState(){
+  const keyword = batterySearchInput.value.trim();
+  if(!keyword){
+    deviceRegisterPanel.style.display = "none";
+    deviceSearchMessage.textContent = `目前顯示全部${currentDeviceLabel()}設備。`;
+    return;
+  }
+  const rows = filteredCurrentDeviceInventory();
+  if(rows.length){
+    deviceRegisterPanel.style.display = "none";
+    deviceSearchMessage.textContent = `已找到 ${rows.length} 筆${currentDeviceLabel()}設備。`;
+  }else{
+    deviceRegisterPanel.style.display = "block";
+    deviceRegisterMessage.textContent = `查無此${currentDeviceLabel()}，請確認編號後新增正常設備。`;
+    deviceSearchMessage.textContent = `查無此${currentDeviceLabel()}，可直接新增正常設備。`;
+  }
+}
+
+async function loadDeviceData(clearSearch=false){
+  if(clearSearch) batterySearchInput.value = "";
+  updateDeviceRegisterFields();
+  if(deviceAdminType.value === "recorder") await loadRecorderData(); else await loadBatteryData();
+  syncDeviceSearchState();
 }
 
 async function addDeviceFromAdmin(){
   const type = deviceAdminType.value;
-  const number = deviceRegisterNumber.value.trim();
-  const health = deviceRegisterHealth.value;
-  const note = deviceRegisterNote.value.trim();
-  if(!number){ deviceRegisterMessage.textContent = "請輸入設備編號。"; return; }
-  if(type === "battery" && !deviceRegisterRestaurant.value){ deviceRegisterMessage.textContent = "請選擇電池所在餐廳。"; return; }
-  if(health === "abnormal" && !note){ deviceRegisterMessage.textContent = "設備異常時，請填寫異常原因。"; return; }
-  deviceRegisterBtn.disabled = true; deviceRegisterMessage.textContent = "建檔中…";
+  const number = batterySearchInput.value.trim();
+  if(!number){
+    deviceSearchMessage.textContent = `請先輸入${type === "recorder" ? "紀錄器" : "電池"}編號。`;
+    batterySearchInput.focus();
+    return;
+  }
+  if(type === "battery" && !deviceRegisterRestaurant.value){
+    deviceRegisterMessage.textContent = "請選擇電池所在餐廳。";
+    deviceRegisterRestaurant.focus();
+    return;
+  }
+  deviceRegisterBtn.disabled = true;
+  deviceRegisterMessage.textContent = "新增正常設備中…";
   try{
     const table = type === "battery" ? "batteries" : "recorders";
-    const payload = type === "battery" ? {battery_number:number,restaurant_no:deviceRegisterRestaurant.value,status:"active",health_status:health,health_note:note || null} : {recorder_number:number,recorder_size:deviceRegisterSize.value,status:"active",health_status:health,health_note:note || null};
+    const payload = type === "battery"
+      ? {battery_number:number, restaurant_no:deviceRegisterRestaurant.value, status:"active", health_status:"normal", health_note:null}
+      : {recorder_number:number, recorder_size:deviceRegisterSize.value, status:"active", health_status:"normal", health_note:null};
     const result = await db.from(table).insert(payload).select().single();
-    if(result.error) throw result.error;
-    if(health === "abnormal") {
-      const issue = type === "battery" ? {battery_number:number,restaurant_no:deviceRegisterRestaurant.value,issue_description:note,resolution_status:"pending"} : {recorder_id:result.data.id,recorder_number:number,issue_description:note,resolution_status:"pending"};
-      const ir = await db.from(type === "battery" ? "battery_issue_reports" : "recorder_issue_reports").insert(issue);
-      if(ir.error) throw ir.error;
+    if(result.error){
+      if(result.error.code === "23505") throw new Error("此設備編號已完成建檔，請重新查詢。");
+      throw result.error;
     }
-    deviceRegisterMessage.textContent = `✅ ${type === "battery" ? "電池" : "紀錄器"} ${number} 已完成建檔。`;
-    deviceRegisterNumber.value=""; deviceRegisterRestaurant.value=""; deviceRegisterNote.value=""; deviceRegisterHealth.value="normal"; updateDeviceRegisterFields(); loadDeviceData();
-  }catch(e){ deviceRegisterMessage.textContent = `建檔失敗：${e.message || "請確認權限"}`; }
-  finally{ deviceRegisterBtn.disabled=false; }
+    deviceRegisterMessage.textContent = `✅ ${type === "battery" ? "電池" : "紀錄器"} ${number} 已新增為正常設備。`;
+    if(type === "battery") deviceRegisterRestaurant.value = "";
+    await loadDeviceData(false);
+  }catch(e){
+    deviceRegisterMessage.textContent = `新增失敗：${e.message || "請確認權限"}`;
+  }finally{
+    deviceRegisterBtn.disabled = false;
+  }
+}
+
+function exportCurrentDevices(){
+  const rows = filteredCurrentDeviceInventory();
+  if(!rows.length){ alert(`目前沒有可匯出的${currentDeviceLabel()}設備。`); return; }
+  const recorder = deviceAdminType.value === "recorder";
+  const exportRows = rows.map(row => recorder ? ({
+    紀錄器編號: row.recorder_number || "",
+    型號: row.recorder_size === "large" ? "A10／大台" : "C100／小台",
+    設備狀態: row.status === "scrapped" ? "已報廢" : row.health_status === "abnormal" ? "異常" : "正常",
+    異常說明: row.health_note || "",
+    建檔時間: row.created_at || ""
+  }) : ({
+    電池編號: row.battery_number || "",
+    所在餐廳: row.restaurant_no || "",
+    設備狀態: row.status === "scrapped" ? "已報廢" : row.health_status === "abnormal" ? "異常" : "正常",
+    異常說明: row.health_note || "",
+    建檔時間: row.created_at || ""
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(exportRows), recorder ? "目前紀錄器" : "目前電池");
+  XLSX.writeFile(wb, `KFC_目前${recorder ? "紀錄器" : "電池"}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 async function updateRecorderIssue(id, action){
@@ -4087,7 +4192,7 @@ function showAdminMode(mode){
   rosterModePage.style.display = mode === "roster" ? "block" : "none";
   if(mode === "vehicle") loadData();
   if(mode === "survey") loadSurveyData();
-  if(mode === "battery") loadDeviceData();
+  if(mode === "battery") loadDeviceData(true);
   if(mode === "defensive") loadDefensiveAdminData();
   if(mode === "roster") loadRosterData();
   window.scrollTo({top:0,behavior:"smooth"});
@@ -4125,13 +4230,68 @@ batteryBackBtn.onclick =
   () => showAdminMode("home");
 
 batteryRefreshBtn.onclick =
-  loadDeviceData;
+  () => loadDeviceData(false);
 
-deviceAdminType.onchange = () => { updateDeviceRegisterFields(); loadDeviceData(); };
-deviceRegisterHealth.onchange = updateDeviceRegisterFields;
+document.querySelectorAll(".device-admin-type-btn").forEach(button => {
+  button.onclick = () => {
+    deviceAdminType.value = button.dataset.deviceType;
+    deviceRegisterMessage.textContent = "";
+    loadDeviceData(true);
+  };
+});
 deviceRegisterBtn.onclick = addDeviceFromAdmin;
-batterySearchInput.oninput =
-  () => deviceAdminType.value === "recorder" ? renderRecorderReports() : renderBatteryReports();
+let deviceSearchTimer = null;
+let deviceSearchToken = 0;
+
+async function searchCurrentDeviceByNumber(){
+  const keyword = batterySearchInput.value.trim();
+  if(!keyword){
+    if(deviceAdminType.value === "recorder") renderRecorderReports(); else renderBatteryReports();
+    syncDeviceSearchState();
+    return;
+  }
+  const token = ++deviceSearchToken;
+  const recorder = deviceAdminType.value === "recorder";
+  const table = recorder ? "recorders" : "batteries";
+  const column = recorder ? "recorder_number" : "battery_number";
+  deviceRegisterPanel.style.display = "none";
+  deviceSearchMessage.textContent = `正在查詢${currentDeviceLabel()}…`;
+  try{
+    const result = await db.from(table).select("*").eq(column, keyword).maybeSingle();
+    if(token !== deviceSearchToken || keyword !== batterySearchInput.value.trim()) return;
+    if(result.error) throw result.error;
+    if(result.data){
+      if(recorder){
+        recorderInventory = [...recorderInventory.filter(row => String(row.id) !== String(result.data.id)), result.data];
+        renderRecorderReports();
+      }else{
+        batteryInventory = [...batteryInventory.filter(row => String(row.id) !== String(result.data.id)), result.data];
+        renderBatteryReports();
+      }
+      deviceRegisterPanel.style.display = "none";
+      deviceSearchMessage.textContent = `已找到 1 筆${currentDeviceLabel()}設備，已顯示設備小卡。`;
+      return;
+    }
+    if(recorder) renderRecorderReports(); else renderBatteryReports();
+    deviceRegisterPanel.style.display = "block";
+    deviceRegisterMessage.textContent = `查無此${currentDeviceLabel()}，請確認編號後新增正常設備。`;
+    deviceSearchMessage.textContent = `查無此${currentDeviceLabel()}，可直接新增正常設備。`;
+  }catch(error){
+    if(token !== deviceSearchToken) return;
+    console.error(error);
+    deviceSearchMessage.textContent = `設備查詢失敗：${error.message || "請稍後再試"}`;
+  }
+}
+
+batterySearchInput.oninput = () => {
+  clearTimeout(deviceSearchTimer);
+  deviceSearchMessage.textContent = "輸入完成後自動查詢…";
+  deviceSearchTimer = setTimeout(searchCurrentDeviceByNumber, 350);
+};
+batterySearchInput.onblur = () => {
+  clearTimeout(deviceSearchTimer);
+  searchCurrentDeviceByNumber();
+};
 
 surveySummary.onclick = e => {
   const card = e.target.closest("[data-survey-status]");
@@ -4202,8 +4362,7 @@ batteryReportList.onclick =
     if(scrapButton){ updateBatteryIssue(scrapButton.dataset.id, "scrapped"); return; }
   };
 
-batteryExportBtn.onclick =
-  () => deviceAdminType.value === "recorder" ? exportRecorderReports() : exportBatteryReports();
+batteryExportBtn.onclick = exportCurrentDevices;
 
 claimedCard.onclick =
   () => openQuickList("claimed");
