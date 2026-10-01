@@ -793,6 +793,7 @@ button{cursor:pointer}
 .survey-name{font-size:18px;font-weight:800}
 .survey-time{color:var(--gray);font-size:12px}
 .survey-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+@media(max-width:700px){.survey-grid{grid-template-columns:1fr}.survey-card-top{align-items:flex-start;flex-direction:column;gap:4px}.survey-name{font-size:17px}.record-actions{display:grid;grid-template-columns:1fr;gap:8px}.record-actions .action-btn{width:100%}}
 .survey-item{padding:9px;border-radius:10px;background:#faf9f6;color:var(--gray);font-size:13px;line-height:1.5}
 .survey-item strong{display:block;color:var(--black);font-size:15px}
 .survey-result-pass{color:var(--green)!important}
@@ -3772,10 +3773,12 @@ function batteryInventoryMap(){
 function renderBatterySummary(){
   const activeRows = (batteryInventory || []).filter(row => row.status === "active");
   const activeKeys = new Set(activeRows.map(row => batteryKey(row.battery_number)).filter(Boolean));
-  const abnormalKeys = new Set((batteryReports || [])
-    .filter(row => batteryReportPending(row) && activeKeys.has(batteryKey(row.battery_number)))
-    .map(row => batteryKey(row.battery_number))
-    .filter(Boolean));
+  const abnormalKeys = new Set([
+    ...activeRows.filter(row => row.health_status === "abnormal").map(row => batteryKey(row.battery_number)),
+    ...(batteryReports || [])
+      .filter(row => batteryReportPending(row) && activeKeys.has(batteryKey(row.battery_number)))
+      .map(row => batteryKey(row.battery_number))
+  ].filter(Boolean));
   const total = activeRows.length;
   const abnormal = abnormalKeys.size;
   const normal = Math.max(total - abnormal, 0);
@@ -3786,44 +3789,63 @@ function renderBatterySummary(){
   `;
 }
 
+function latestDeviceReport(reports, key, value){
+  const matches = (reports || []).filter(row => batteryKey(row[key]) === batteryKey(value));
+  return matches.sort((a,b) => String(b.reported_at || "").localeCompare(String(a.reported_at || "")))[0] || null;
+}
+
 function renderBatteryReports(){
   const keyword = batterySearchInput.value.trim().toLowerCase();
   const inventoryMap = batteryInventoryMap();
-  const rows = batteryReports.filter(x => {
+  const inventoryRows = (batteryInventory || []).map(row => ({
+    kind: "inventory",
+    row,
+    report: latestDeviceReport(batteryReports, "battery_number", row.battery_number)
+  }));
+  const known = new Set((batteryInventory || []).map(row => batteryKey(row.battery_number)));
+  const reportOnlyRows = (batteryReports || [])
+    .filter(row => !known.has(batteryKey(row.battery_number)))
+    .map(row => ({kind:"report", row, report:row}));
+  const rows = [...inventoryRows, ...reportOnlyRows].filter(item => {
+    const row = item.row;
+    const report = item.report;
     if(!keyword) return true;
-    return [x.battery_number, x.restaurant_no, x.issue_description]
-      .filter(Boolean)
-      .some(value => String(value).toLowerCase().includes(keyword));
+    return [row.battery_number, row.restaurant_no, row.issue_description, report?.issue_description]
+      .filter(Boolean).some(value => String(value).toLowerCase().includes(keyword));
   });
 
   if(!rows.length){
-    batteryReportList.innerHTML = '<div class="empty">目前沒有電池異常回報</div>';
+    batteryReportList.innerHTML = '<div class="empty">目前沒有電池建檔資料或異常回報</div>';
     return;
   }
 
-  batteryReportList.innerHTML = rows.map(row => {
-    const inventory = inventoryMap.get(batteryKey(row.battery_number));
-    const pending = batteryReportPending(row);
-    const scrapped = inventory?.status === "scrapped" || row.resolution_note === "報廢";
-    const statusText = pending ? "待處理" : (scrapped ? "已報廢" : "維修完成");
-    const statusClass = pending ? "survey-result-fail" : "survey-result-pass";
+  batteryReportList.innerHTML = rows.map(item => {
+    const row = item.row;
+    const report = item.report;
+    const inventory = item.kind === "inventory" ? row : inventoryMap.get(batteryKey(row.battery_number));
+    const pending = report && batteryReportPending(report);
+    const scrapped = inventory?.status === "scrapped" || report?.resolution_note === "報廢";
+    const abnormal = inventory?.health_status === "abnormal";
+    const statusText = scrapped ? "已報廢" : pending ? "待處理" : abnormal ? "異常" : report ? "維修完成" : "正常";
+    const statusClass = scrapped || pending || abnormal ? "survey-result-fail" : "survey-result-pass";
     const actions = pending ? `
-      <button class="action-btn battery-repair-btn" type="button" data-id="${esc(row.id)}">🔧 維修完成</button>
-      <button class="action-btn danger battery-scrap-btn" type="button" data-id="${esc(row.id)}">🗑 報廢</button>
+      <button class="action-btn battery-repair-btn" type="button" data-id="${esc(report.id)}">🔧 維修完成</button>
+      <button class="action-btn danger battery-scrap-btn" type="button" data-id="${esc(report.id)}">🗑 報廢</button>
     ` : "";
+    const issueText = report?.issue_description || row.health_note || "目前沒有異常回報";
     return `
       <div class="survey-card">
         <div class="survey-card-top">
           <div class="survey-name">🔋 ${esc(row.battery_number || "未填編號")}</div>
-          <div class="survey-time">${esc(fmt(row.reported_at))}</div>
+          <div class="survey-time">建檔：${esc(fmt(inventory?.created_at))}</div>
         </div>
         <div class="survey-grid">
           <div class="survey-item">所在餐廳<strong>${esc(row.restaurant_no || inventory?.restaurant_no || "未填寫")}</strong></div>
-          <div class="survey-item">處理狀態<strong class="${statusClass}">${statusText}</strong></div>
+          <div class="survey-item">設備狀態<strong class="${statusClass}">${statusText}</strong></div>
         </div>
-        <div class="survey-detail"><strong>異常內容：</strong>${esc(row.issue_description || "未填寫")}</div>
-        ${inventory ? `<div class="survey-detail"><strong>建檔狀態：</strong>${inventory.status === "active" ? "使用中" : "已報廢"}</div>` : `<div class="survey-detail" style="color:var(--danger)"><strong>建檔狀態：</strong>尚未建檔</div>`}
-        ${row.resolution_note ? `<div class="survey-detail"><strong>處理備註：</strong>${esc(row.resolution_note)}</div>` : ""}
+        <div class="survey-detail"><strong>異常內容：</strong>${esc(issueText)}</div>
+        ${report ? `<div class="survey-detail"><strong>回報時間：</strong>${esc(fmt(report.reported_at))}</div>` : ""}
+        ${report?.resolution_note ? `<div class="survey-detail"><strong>處理備註：</strong>${esc(report.resolution_note)}</div>` : ""}
         ${actions ? `<div class="record-actions">${actions}</div>` : ""}
       </div>
     `;
@@ -3841,7 +3863,10 @@ function recorderReportPending(row){
 function renderRecorderSummary(){
   const active = recorderInventory.filter(row => row.status === "active");
   const activeKeys = new Set(active.map(row => recorderKey(row.recorder_number)).filter(Boolean));
-  const abnormalKeys = new Set(recorderReports.filter(row => recorderReportPending(row) && activeKeys.has(recorderKey(row.recorder_number))).map(row => recorderKey(row.recorder_number)));
+  const abnormalKeys = new Set([
+    ...active.filter(row => row.health_status === "abnormal").map(row => recorderKey(row.recorder_number)),
+    ...recorderReports.filter(row => recorderReportPending(row) && activeKeys.has(recorderKey(row.recorder_number))).map(row => recorderKey(row.recorder_number))
+  ].filter(Boolean));
   const total = active.length;
   const abnormal = abnormalKeys.size;
   const normal = Math.max(total - abnormal, 0);
@@ -3853,21 +3878,39 @@ function renderRecorderSummary(){
 
 function renderRecorderReports(){
   const keyword = batterySearchInput.value.trim().toLowerCase();
-  const inventoryMap = new Map(recorderInventory.map(row => [recorderKey(row.recorder_number), row]));
-  const rows = recorderReports.filter(row => !keyword || [row.recorder_number,row.issue_description].some(value => String(value || "").toLowerCase().includes(keyword)));
-  if(!rows.length){ batteryReportList.innerHTML = '<div class="empty">目前沒有紀錄器異常回報</div>'; return; }
-  batteryReportList.innerHTML = rows.map(row => {
-    const inv = inventoryMap.get(recorderKey(row.recorder_number));
-    const pending = recorderReportPending(row);
-    const scrapped = inv?.status === "scrapped" || row.resolution_note === "報廢";
-    const statusText = pending ? "待處理" : (scrapped ? "已報廢" : "維修完成");
-    const actions = pending ? `<button class="action-btn recorder-repair-btn" type="button" data-id="${esc(row.id)}">🔧 維修完成</button><button class="action-btn danger recorder-scrap-btn" type="button" data-id="${esc(row.id)}">🗑 報廢</button>` : "";
+  const inventoryRows = (recorderInventory || []).map(row => ({
+    kind: "inventory",
+    row,
+    report: latestDeviceReport(recorderReports, "recorder_number", row.recorder_number)
+  }));
+  const known = new Set((recorderInventory || []).map(row => recorderKey(row.recorder_number)));
+  const reportOnlyRows = (recorderReports || [])
+    .filter(row => !known.has(recorderKey(row.recorder_number)))
+    .map(row => ({kind:"report", row, report:row}));
+  const rows = [...inventoryRows, ...reportOnlyRows].filter(item => {
+    const row = item.row;
+    const report = item.report;
+    if(!keyword) return true;
+    return [row.recorder_number, row.recorder_size, row.issue_description, report?.issue_description]
+      .filter(Boolean).some(value => String(value).toLowerCase().includes(keyword));
+  });
+  if(!rows.length){ batteryReportList.innerHTML = '<div class="empty">目前沒有紀錄器建檔資料或異常回報</div>'; return; }
+  batteryReportList.innerHTML = rows.map(item => {
+    const row = item.row;
+    const report = item.report;
+    const inv = item.kind === "inventory" ? row : null;
+    const pending = report && recorderReportPending(report);
+    const scrapped = inv?.status === "scrapped" || report?.resolution_note === "報廢";
+    const abnormal = inv?.health_status === "abnormal";
+    const statusText = scrapped ? "已報廢" : pending ? "待處理" : abnormal ? "異常" : report ? "維修完成" : "正常";
+    const statusClass = scrapped || pending || abnormal ? "survey-result-fail" : "survey-result-pass";
+    const actions = pending ? `<button class="action-btn recorder-repair-btn" type="button" data-id="${esc(report.id)}">🔧 維修完成</button><button class="action-btn danger recorder-scrap-btn" type="button" data-id="${esc(report.id)}">🗑 報廢</button>` : "";
     return `<div class="survey-card">
-      <div class="survey-card-top"><div class="survey-name">📹 ${esc(row.recorder_number || "未填編號")}</div><div class="survey-time">${esc(fmt(row.reported_at))}</div></div>
-      <div class="survey-grid"><div class="survey-item">紀錄器類型<strong>${inv?.recorder_size === "large" ? "大台" : "小台"}</strong></div><div class="survey-item">處理狀態<strong class="${pending ? "survey-result-fail" : "survey-result-pass"}">${statusText}</strong></div></div>
-      <div class="survey-detail"><strong>異常內容：</strong>${esc(row.issue_description || "未填寫")}</div>
-      ${inv ? `<div class="survey-detail"><strong>建檔狀態：</strong>${inv.status === "active" ? "使用中" : "已報廢"}</div>` : `<div class="survey-detail" style="color:var(--danger)"><strong>建檔狀態：</strong>尚未建檔</div>`}
-      ${row.resolution_note ? `<div class="survey-detail"><strong>處理備註：</strong>${esc(row.resolution_note)}</div>` : ""}
+      <div class="survey-card-top"><div class="survey-name">📹 ${esc(row.recorder_number || "未填編號")}</div><div class="survey-time">建檔：${esc(fmt(inv?.created_at))}</div></div>
+      <div class="survey-grid"><div class="survey-item">紀錄器類型<strong>${inv?.recorder_size === "large" ? "大台" : "小台"}</strong></div><div class="survey-item">設備狀態<strong class="${statusClass}">${statusText}</strong></div></div>
+      <div class="survey-detail"><strong>異常內容：</strong>${esc(report?.issue_description || row.health_note || "目前沒有異常回報")}</div>
+      ${report ? `<div class="survey-detail"><strong>回報時間：</strong>${esc(fmt(report.reported_at))}</div>` : ""}
+      ${report?.resolution_note ? `<div class="survey-detail"><strong>處理備註：</strong>${esc(report.resolution_note)}</div>` : ""}
       ${actions ? `<div class="record-actions">${actions}</div>` : ""}</div>`;
   }).join("");
 }
@@ -4283,7 +4326,7 @@ function lockAdmin(message=""){
 async function unlockAdmin(session){
   if(!session?.user?.email){ lockAdmin(); return; }
   const email = String(session.user.email).trim().toLowerCase();
-  const allow = await db.from("admin_allowlist").select("email").eq("email", email).eq("active", true).maybeSingle();
+  const allow = await db.from("admin_allowlist").select("email").ilike("email", email).eq("active", true).maybeSingle();
   if(allow.error){
     await db.auth.signOut();
     lockAdmin("管理員白名單尚未設定，請先執行 T995 管理員 SQL。");
@@ -4315,15 +4358,21 @@ authForm.onsubmit = async event => {
   authSubmit.disabled = true;
   authSubmit.textContent = "登入中…";
   showAuthMessage("");
-  const result = await db.auth.signInWithPassword({email:authEmailInput.value.trim(),password:authPasswordInput.value});
-  if(result.error){
-    showAuthMessage("登入失敗，請確認帳號與密碼。", false);
-  }else{
-    await unlockAdmin(result.data.session);
+  try{
+    const result = await db.auth.signInWithPassword({email:authEmailInput.value.trim(),password:authPasswordInput.value});
+    if(result.error){
+      showAuthMessage("登入失敗，請確認帳號與密碼。", false);
+    }else{
+      await unlockAdmin(result.data.session);
+    }
+  }catch(error){
+    console.error(error);
+    showAuthMessage("登入服務暫時無法使用，請稍後再試。", false);
+  }finally{
+    authBusy = false;
+    authSubmit.disabled = false;
+    authSubmit.textContent = "登入後台";
   }
-  authBusy = false;
-  authSubmit.disabled = false;
-  authSubmit.textContent = "登入後台";
 };
 
 authLogoutBtn.onclick = async () => {
