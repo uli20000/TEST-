@@ -852,6 +852,19 @@
 .device-type-btn{min-height:58px;border:2px solid #d8d3ca;border-radius:15px;background:#fff;color:var(--black);font-size:18px;font-weight:800;cursor:pointer}
 .device-type-btn.active{border-color:var(--red);background:var(--danger-bg);color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.08)}
 .device-type-btn:focus-visible{outline:3px solid rgba(22,131,223,.35);outline-offset:2px}
+.shift-note{border:1px solid #f0c36d;background:#fff8e8;color:#754f00;border-radius:14px;padding:13px 15px;line-height:1.6;font-size:14px;margin:12px 0}
+.shift-week-label{font-weight:900;font-size:17px;margin:8px 0;color:var(--black)}
+.shift-days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.shift-day{background:#fbfaf7;border:1px solid var(--line);border-radius:13px;padding:11px}
+.shift-day label{display:block;font-weight:800;margin-bottom:6px}
+.shift-day input{width:100%;height:46px;border:1px solid #d8d3ca;border-radius:10px;padding:0 11px;font:inherit;background:#fff}
+.shift-day input:focus{outline:3px solid rgba(200,16,46,.16);border-color:var(--red)}
+.shift-state{margin-top:8px;font-size:14px;line-height:1.55;font-weight:700}
+.shift-state.ok{color:#176b3a}.shift-state.bad{color:#a52a2a}
+.shift-window-closed{opacity:.65}
+.shift-helper{font-size:14px;line-height:1.6;color:var(--gray);margin-top:10px}
+@media(min-width:620px){.shift-days{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
 </style>
 </head>
 
@@ -876,6 +889,7 @@
     <div id="batteryBackTop" class="front-top-back intro-back" style="display:none"><button id="batteryBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="batteryRegisterBackTop" class="front-top-back intro-back" style="display:none"><button id="batteryRegisterBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="surveyBackTop" class="front-top-back intro-back" style="display:none"><button id="surveyBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="shiftBackTop" class="front-top-back intro-back" style="display:none"><button id="shiftBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <div id="defensiveBackTop" class="front-top-back intro-back" style="display:none"><button id="defensiveBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
     <h2 id="introTitle">上班領車・下班還車</h2>
     <p id="introText">完成領車、還車安全檢查與回饋。</p>
@@ -910,6 +924,11 @@
     <button id="surveyModeBtn" class="mode-btn" type="button">
       <span class="icon">📋</span>
       <span class="main">意向調查</span>
+    </button>
+
+    <button id="shiftModeBtn" class="mode-btn" type="button">
+      <span class="icon">🗓️</span>
+      <span class="main">指休表單</span>
     </button>
 
   </div>
@@ -1489,6 +1508,46 @@
       <div id="surveySuccessData" class="success-data"></div>
 </div>
 
+  </section>
+
+  <!-- 員工指休表單 -->
+  <section id="shiftPage" class="mode-page">
+    <div id="shiftForm">
+      <section class="card">
+        <div class="section-number">員工指休／可上班時間</div>
+        <div class="shift-note"><strong>只填可上班時段；當天不排班請留白。</strong><br>每週一 10:00 開放，週六 10:00 截止，填寫下一週。</div>
+        <div id="shiftWeekLabel" class="shift-week-label">查詢開放週次中…</div>
+        <div id="shiftWindowMessage" class="hint"></div>
+        <label class="label" for="shiftEmployeeName" style="margin-top:20px">姓名</label>
+        <input id="shiftEmployeeName" type="text" maxlength="60" autocomplete="off" placeholder="輸入姓名">
+        <div id="shiftEmployeeStatus" class="shift-state" role="status" aria-live="polite"></div>
+      </section>
+      <section class="card">
+        <div class="section-number">週一至週日</div>
+        <div class="shift-helper">可上班的日子填時段，例如 10-15；不排班的日子保持空白。可填多個時段，例如 10-15、18-22。</div>
+        <div class="shift-days" style="margin-top:14px">
+          <div class="shift-day"><label for="shiftMon">週一</label><input id="shiftMon" maxlength="80" placeholder="例如 10-15"></div>
+          <div class="shift-day"><label for="shiftTue">週二</label><input id="shiftTue" maxlength="80" placeholder="例如 10-15"></div>
+          <div class="shift-day"><label for="shiftWed">週三</label><input id="shiftWed" maxlength="80" placeholder="例如 10-15"></div>
+          <div class="shift-day"><label for="shiftThu">週四</label><input id="shiftThu" maxlength="80" placeholder="例如 10-15"></div>
+          <div class="shift-day"><label for="shiftFri">週五</label><input id="shiftFri" maxlength="80" placeholder="例如 10-15"></div>
+          <div class="shift-day"><label for="shiftSat">週六</label><input id="shiftSat" maxlength="80" placeholder="例如 10-15"></div>
+          <div class="shift-day"><label for="shiftSun">週日</label><input id="shiftSun" maxlength="80" placeholder="例如 10-15"></div>
+        </div>
+        <label class="label" for="shiftNotes" style="margin-top:20px">備註／排班需求</label>
+        <textarea id="shiftNotes" maxlength="500" placeholder="選填；若七天皆無法上班，必須說明原因"></textarea>
+      </section>
+      <button id="shiftSubmitBtn" class="save-btn" type="button">送出本週指休表</button>
+      <div id="shiftSubmitMessage" class="hint" style="margin-top:10px" role="status" aria-live="polite"></div>
+    </div>
+    <div id="shiftSuccess" class="success-panel">
+      <div class="front-top-back"><button id="shiftSuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+      <div class="success-icon">✓</div>
+      <div class="success-title">指休表已送出</div>
+      <div id="shiftSuccessData" class="success-data"></div>
+      <div class="hint">開放期間可重新送出修改；後台以最後一次提交為準。</div>
+      <button id="shiftEditAgainBtn" class="action-btn" type="button" style="margin-top:12px">重新修改本週資料</button>
+    </div>
   </section>
 
   <!-- =========================
@@ -4290,6 +4349,116 @@ todayDate.textContent = new Date().toLocaleDateString(
 );
 
 showHome();
+
+/* ===============================
+   桃園 T995 員工指休表單
+================================ */
+const shiftPage = document.getElementById("shiftPage");
+const shiftForm = document.getElementById("shiftForm");
+const shiftSuccess = document.getElementById("shiftSuccess");
+const shiftNameInput = document.getElementById("shiftEmployeeName");
+const shiftEmployeeStatus = document.getElementById("shiftEmployeeStatus");
+const shiftWeekLabel = document.getElementById("shiftWeekLabel");
+const shiftWindowMessage = document.getElementById("shiftWindowMessage");
+const shiftSubmitBtn = document.getElementById("shiftSubmitBtn");
+const shiftSubmitMessage = document.getElementById("shiftSubmitMessage");
+const shiftSuccessData = document.getElementById("shiftSuccessData");
+const shiftHomeTitle = document.getElementById("pageTitle").textContent;
+let verifiedShiftEmployee = null;
+let shiftVerifySerial = 0;
+
+function taipeiShiftNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const y=Number(p.year),m=Number(p.month),d=Number(p.day);
+  return {y,m,d,dow:new Date(Date.UTC(y,m-1,d)).getUTCDay(),minute:Number(p.hour)*60+Number(p.minute)};
+}
+function shiftISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
+function shiftDateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return shiftISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
+function shiftRangeLabel(start){return `${start} 至 ${shiftDateAdd(start,6)}`;}
+function getShiftSubmissionCycle(){
+  const p=taipeiShiftNow();const today=shiftISO(p.y,p.m,p.d);const monday=shiftDateAdd(today,-((p.dow+6)%7));
+  const open=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
+  const weekStart=shiftDateAdd(monday,(open||(p.dow===1&&p.minute<600))?7:14);
+  return {open,weekStart};
+}
+function updateShiftWindow(){
+  const cycle=getShiftSubmissionCycle();shiftWeekLabel.textContent=`填寫週次：${shiftRangeLabel(cycle.weekStart)}`;
+  if(cycle.open){shiftWindowMessage.textContent="目前開放中：週一 10:00 至週六 10:00（台灣時間）。";shiftWindowMessage.className="hint";}
+  else{shiftWindowMessage.textContent="目前未開放；請於每週一 10:00 至週六 10:00 填寫。";shiftWindowMessage.className="hint shift-window-closed";}
+  shiftSubmitBtn.disabled=!cycle.open;return cycle;
+}
+function parseAvailabilityRanges(value){
+  const text=String(value||"").trim();if(!text)return [];
+  const parts=text.split(/[，,、;；/\n]+/).map(x=>x.trim()).filter(Boolean);const out=[];
+  for(const part of parts){
+    const m=part.match(/^(\d{1,2})(?::(\d{2}))?\s*[-~～至]\s*(\d{1,2})(?::(\d{2}))?$/);
+    if(!m)return null;
+    const sh=Number(m[1]),sm=Number(m[2]||0),eh=Number(m[3]),em=Number(m[4]||0);
+    const start=sh*60+sm,end=eh*60+em;
+    if(sh>23||eh>24||sm>59||em>59||start<0||end>1440||start>=end)return null;
+    out.push([start,end]);
+  }
+  return out;
+}
+async function verifyShiftEmployee(){
+  const name=shiftNameInput.value.trim();const serial=++shiftVerifySerial;verifiedShiftEmployee=null;
+  shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  if(!name)return false;
+  shiftEmployeeStatus.textContent="確認在職名單中…";
+  try{
+    const r=await db.from("employee_directory").select("id,full_name,area_code,is_active").eq("full_name",name).eq("is_active",true).maybeSingle();
+    if(serial!==shiftVerifySerial)return false;if(r.error)throw r.error;
+    if(!r.data){shiftEmployeeStatus.textContent="歡迎加入桃園外送中心，目前查無名單，請找店長確認！";shiftEmployeeStatus.className="shift-state bad";return false;}
+    if(!r.data.area_code){shiftEmployeeStatus.textContent="已在職名單中，但尚未設定區域；請找店長確認後再填寫。";shiftEmployeeStatus.className="shift-state bad";return false;}
+    verifiedShiftEmployee=r.data;shiftEmployeeStatus.textContent=`✅ 已確認在職｜${r.data.area_code} 區`;shiftEmployeeStatus.className="shift-state ok";return true;
+  }catch(e){if(serial===shiftVerifySerial){shiftEmployeeStatus.textContent=`名單查詢失敗，請稍後重試或找店長確認。`;shiftEmployeeStatus.className="shift-state bad";}return false;}
+}
+const shiftDayFields={monday:"shiftMon",tuesday:"shiftTue",wednesday:"shiftWed",thursday:"shiftThu",friday:"shiftFri",saturday:"shiftSat",sunday:"shiftSun"};
+async function submitShiftAvailability(){
+  const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="目前不在開放時間，無法送出。";return;}
+  if(!await verifyShiftEmployee())return;
+  const values={};let hasAvailability=false;
+  for(const [key,id] of Object.entries(shiftDayFields)){
+    const value=document.getElementById(id).value.trim();
+    if(value&&parseAvailabilityRanges(value)===null){alert(`${({monday:"週一",tuesday:"週二",wednesday:"週三",thursday:"週四",friday:"週五",saturday:"週六",sunday:"週日"})[key]}時段格式不正確。請用 10-15 或 10-15、18-22。`);document.getElementById(id).focus();return;}
+    values[key]=value||null;if(value)hasAvailability=true;
+  }
+  const notes=document.getElementById("shiftNotes").value.trim();
+  if(!hasAvailability&&!notes){alert("七天都留白時，請在備註欄說明原因。");document.getElementById("shiftNotes").focus();return;}
+  if(hasAvailability&&(!values.saturday||!values.sunday)){
+    const ok=confirm("週六或週日尚未提供可上班時段，可能影響排班工時；若能提供週末時段可增加排班彈性。仍要送出嗎？");if(!ok)return;
+  }
+  const payload={employee_id:verifiedShiftEmployee.id,week_start:cycle.weekStart,...values,notes:notes||null};
+  shiftSubmitBtn.disabled=true;shiftSubmitMessage.textContent="送出中…";
+  try{
+    const r=await db.from("weekly_shift_availability").insert(payload);if(r.error)throw r.error;
+    shiftSuccessData.textContent=`${verifiedShiftEmployee.full_name}｜${verifiedShiftEmployee.area_code} 區｜${shiftRangeLabel(cycle.weekStart)}`;
+    shiftForm.style.display="none";shiftSuccess.classList.add("show");shiftSubmitMessage.textContent="";
+  }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認開放時間並稍後重試。"}`;}
+  finally{shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
+}
+function resetShiftForm(){
+  shiftNameInput.value="";verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  for(const id of Object.values(shiftDayFields))document.getElementById(id).value="";
+  document.getElementById("shiftNotes").value="";shiftSubmitMessage.textContent="";shiftForm.style.display="block";shiftSuccess.classList.remove("show");updateShiftWindow();
+}
+shiftNameInput.addEventListener("blur",verifyShiftEmployee);
+shiftNameInput.addEventListener("input",()=>{shiftVerifySerial++;verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";});
+shiftSubmitBtn.addEventListener("click",submitShiftAvailability);
+document.getElementById("shiftEditAgainBtn").addEventListener("click",()=>{shiftSuccess.classList.remove("show");shiftForm.style.display="block";shiftSubmitMessage.textContent="重新送出後，後台將以最後一次內容為準。";window.scrollTo({top:0,behavior:"smooth"});});
+const baseShowModeForShift=showMode;
+showMode=function(mode){
+  baseShowModeForShift(mode);shiftPage.style.display=mode==="shift"?"block":"none";
+  document.getElementById("shiftBackTop").style.display=mode==="shift"?"block":"none";
+  if(mode==="shift"){
+    pageTitle.textContent=shiftHomeTitle;introTitle.textContent="員工指休表單";introText.textContent="輸入姓名確認在職後，填寫下週可上班時段。";introSection.style.display="block";introText.style.display="block";resetShiftForm();
+  }
+};
+const baseShowHomeForShift=showHome;
+showHome=function(){baseShowHomeForShift();shiftPage.style.display="none";document.getElementById("shiftBackTop").style.display="none";resetShiftForm();};
+document.getElementById("shiftModeBtn").addEventListener("click",()=>showMode("shift"));
+document.getElementById("shiftBackBtn").addEventListener("click",showHome);
+document.getElementById("shiftSuccessHomeBtn").addEventListener("click",showHome);
 
 </script>
 
