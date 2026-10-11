@@ -950,6 +950,54 @@ button{cursor:pointer}
 .device-delete-btn{border:1px solid #b42318!important;background:#fff0ee!important;color:#b42318!important}
 @media(min-width:700px){.shift-admin-toolbar{grid-template-columns:minmax(200px,1fr) minmax(150px,.7fr) auto auto}.shift-admin-grid{grid-template-columns:repeat(7,minmax(0,1fr))}.staffing-grid{grid-template-columns:1fr 1fr}.staffing-results{grid-template-columns:repeat(2,minmax(0,1fr))}.staffing-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+
+.employee-area-tabs{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;margin:12px 0 7px}
+.employee-area-tab{min-width:0;min-height:40px;padding:5px 2px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font-weight:800;font-size:13px;cursor:pointer}
+.employee-area-tab.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 3px 9px rgba(200,16,46,.16)}
+.employee-directory-summary{min-height:20px;color:var(--gray);font-size:13px;margin:4px 0 8px}
+.employee-list .roster-item{align-items:center;flex-wrap:wrap}
+.employee-area-card{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.employee-area-card select{min-width:94px;max-width:130px;padding:7px 8px;border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit}
+.employee-area-card button{white-space:nowrap;padding:7px 8px;font-size:12px}
+.employee-area-card .permanent-delete-employee{border:1px solid #a5231e;background:#fff0ee;color:#a5231e;border-radius:9px;font-weight:800;cursor:pointer}
+@media(max-width:900px){.employee-area-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
+
+/* T995 v3 — protected modules and equal-height administrative cards */
+.protected-mode-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shift-test-toggle{display:flex;align-items:center;gap:12px;margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:left;cursor:pointer}
+.shift-test-toggle input{width:22px;height:22px;accent-color:var(--red);flex:none}
+.shift-test-toggle span{display:grid;gap:3px}.shift-test-toggle small{color:var(--gray);line-height:1.45}
+.admin-fixed-card{height:300px;min-height:300px;max-height:300px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;overflow:hidden;padding:14px;background:#fff;border:1px solid var(--line);border-radius:16px;text-align:left}
+.admin-fixed-card .admin-card-head{min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow:hidden}
+.admin-fixed-card .admin-card-body{flex:1;min-height:0;overflow:hidden}
+.admin-fixed-card .admin-card-actions{min-height:44px;margin-top:auto;display:flex;align-items:flex-end;gap:8px}
+.employee-directory-card .employee-admin-name{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.employee-directory-card .employee-admin-body{display:flex;flex-direction:column;justify-content:center;gap:10px;color:var(--gray);font-size:13px}
+.employee-directory-card .employee-admin-body select{width:100%;height:46px;padding:8px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;font:inherit;color:var(--black)}
+.employee-directory-card .permanent-delete-employee{width:100%;height:44px;border:1px solid #e2aaa4;border-radius:10px;background:var(--danger-bg);color:var(--danger);font-size:13px;font-weight:800;cursor:pointer}
+.device-card-fixed{display:flex;flex-direction:column;text-align:left}
+.device-card-fixed .survey-card-top{min-width:0;min-height:38px;flex:0 0 38px;flex-direction:row;align-items:center;gap:8px;overflow:hidden}
+.device-card-fixed .survey-name{min-width:0;min-height:24px;line-height:24px;flex:1 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-card-fixed .survey-time{flex:none;white-space:nowrap}
+.device-card-fixed .survey-grid{grid-template-columns:1fr 1fr;overflow:visible}
+.device-card-fixed .survey-detail{display:block;flex:none;height:22px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:22px}
+.device-latest-claim{margin-top:auto;padding-top:6px;border-top:1px solid var(--line);color:var(--gray);font-size:12px;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.device-delete-btn{min-height:44px;border:1px solid #e2aaa4!important;background:var(--danger-bg)!important;color:var(--danger)!important}
+.vehicle-card.admin-fixed-card{cursor:pointer}
+.vehicle-card.admin-fixed-card .vehicle-top{max-height:155px;overflow:hidden}
+.vehicle-card.admin-fixed-card .vehicle-info{flex:1;min-height:0;overflow:hidden}
+.protected-password-overlay{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(25,25,25,.48)}
+.protected-password-card{width:min(100%,440px);padding:26px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 16px 48px rgba(0,0,0,.16)}
+.protected-password-mark{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:var(--red);color:#fff;font-size:17px;font-weight:900}
+.protected-password-card h2{margin:18px 0 6px;font-size:21px}.protected-password-card p{margin:0 0 18px;color:var(--gray);line-height:1.5}
+.protected-password-field{margin:12px 0;display:grid;gap:6px}.protected-password-field label{font-size:14px;font-weight:800}
+.protected-password-field input{width:100%;height:48px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:11px;font:inherit}
+.protected-password-error{min-height:22px;color:var(--danger);font-size:13px;line-height:1.45}
+.protected-password-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.protected-password-primary{background:var(--red);border-color:var(--red);color:#fff}
+@media(max-width:700px){.protected-mode-actions{grid-template-columns:1fr}.admin-fixed-card{height:300px;min-height:300px;max-height:300px}.protected-password-card{padding:22px}}
+
 </style>
 </head>
 
@@ -1233,10 +1281,10 @@ button{cursor:pointer}
 </section>
 
 <section id="rosterModePage" class="admin-mode-page">
-  <div class="mode-back-row"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
+  <div class="mode-back-row protected-mode-actions"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="rosterPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
   <section class="section">
     <div class="section-title">在職員工與 A–K 區域</div>
-    <div class="hint">新員工由管理員新增；設定後，員工指休表會依在職狀態與區域驗證。停用不會刪除舊指休資料。</div>
+    <div class="hint">新增員工時設定 A–K 區域；既有員工可隨時調整區域。永久刪除會完整清除該員工相關紀錄，無法復原。</div>
     <div class="search-box" style="margin-top:12px">
       <input id="employeeNameInput" class="search-input" type="text" maxlength="60" placeholder="輸入員工姓名" autocomplete="name">
       <select id="employeeAreaInput" class="search-input" style="margin-top:10px" aria-label="新員工區域">
@@ -1249,6 +1297,8 @@ button{cursor:pointer}
       <button id="employeeAddBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增在職員工</button>
       <div id="employeeMessage" class="hint" style="margin-top:8px" role="status" aria-live="polite"></div>
     </div>
+    <div class="employee-area-tabs" id="employeeAreaTabs" role="tablist" aria-label="依區域篩選在職員工"></div>
+    <div id="employeeDirectorySummary" class="employee-directory-summary" aria-live="polite"></div>
     <div id="employeeDirectoryList" class="roster-list employee-list" style="margin-top:12px"><div class="loading">載入員工資料中…</div></div>
   </section>
 
@@ -1274,10 +1324,11 @@ button{cursor:pointer}
   <div id="surveyFailedList" style="display:none"></div>
 </section>
 <section id="shiftModePage" class="admin-mode-page">
-  <div class="mode-back-row"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
+  <div class="mode-back-row protected-mode-actions"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="shiftPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
   <section class="section">
     <div class="section-title">指休管理與人力建議</div>
     <div class="hint">台灣時間週一 10:00 至週六 10:00 開放員工填寫下一週。TPLH 目標 2.5 以總 TC 計算；第三方使用率上限 20% 為獨立指標。</div>
+    <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox"><span><strong>測試開放模式</strong><small>開啟時任何時間皆可送出指休；測試提交會標記並排除於人力可排工時。</small></span></label>
     <div class="shift-admin-toolbar">
       <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次"></select>
       <select id="shiftAreaFilter" class="search-input" aria-label="依區域篩選"><option value="">全部 A-K 區</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>I</option><option>J</option><option>K</option></select>
@@ -1294,21 +1345,12 @@ button{cursor:pointer}
   </section>
   <section class="section">
     <div class="section-title">匯入歷史資料</div>
-    <div class="staffing-grid">
-      <div class="staffing-panel">
-        <h3>① 匯入 TC 活頁簿</h3>
-        <div class="hint">需含整天與餐期兩個分頁；欄位使用 STR_SN、DATE、DATE PY、去年單數、實際外送TC、扣除第三方TC。Total 彙總列會略過。</div>
-        <input id="tcHistoryFile" class="search-input" type="file" accept=".xlsx,.xls">
-        <button id="tcHistoryImportBtn" class="action-btn" type="button" style="width:100%;margin-top:10px">預覽並匯入 TC</button>
-        <div id="tcHistoryImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
-      </div>
-      <div class="staffing-panel">
-        <h3>② 匯入工時與第三方資料</h3>
-        <div class="hint">第一個分頁需含 STR_SN、DATE、實際工時、實際TPLH、第三方使用率；每間餐廳每天一列。</div>
-        <input id="staffingActualsFile" class="search-input" type="file" accept=".xlsx,.xls">
-        <button id="staffingActualsImportBtn" class="action-btn" type="button" style="width:100%;margin-top:10px">預覽並匯入工時</button>
-        <div id="staffingActualsImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
-      </div>
+    <div class="staffing-panel" style="width:100%">
+      <h3>上傳歷史／實際資料（共用一個上傳格）</h3>
+      <div class="hint">選取你提供的 TC Excel（含「整天」與「餐期」兩個分頁），系統會自動辨識並一次匯入。之後若要補實際工時、TPLH、第三方使用率，也使用同一個上傳格，選擇包含 STR_SN、DATE 與實際資料欄位的 Excel。</div>
+      <input id="staffingImportFile" class="search-input" type="file" accept=".xlsx,.xls">
+      <button id="staffingImportBtn" class="action-btn" type="button" style="width:100%;margin-top:10px">自動辨識並預覽匯入</button>
+      <div id="staffingImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
     </div>
     <div class="hint">空白或負數數值按 0 匯入。重複餐廳／日期／類型會更新既有資料；上傳前會先檢查店名與日期。</div>
   </section>
@@ -1364,6 +1406,20 @@ button{cursor:pointer}
 
   </div>
 
+</div>
+
+<div id="t995ProtectedPasswordModal" class="protected-password-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="t995ProtectedPasswordTitle">
+  <form id="t995ProtectedPasswordForm" class="protected-password-card">
+    <div class="protected-password-mark">T995</div>
+    <h2 id="t995ProtectedPasswordTitle">管理區域驗證</h2>
+    <p id="t995ProtectedPasswordDescription">請輸入共用密碼以繼續。</p>
+    <div id="t995CurrentPasswordWrap" class="protected-password-field" style="display:none"><label for="t995CurrentPassword">目前共用密碼</label><input id="t995CurrentPassword" type="password" autocomplete="current-password"></div>
+    <div id="t995NewPasswordWrap" class="protected-password-field" style="display:none"><label for="t995NewPassword">新共用密碼（至少 8 碼）</label><input id="t995NewPassword" type="password" autocomplete="new-password"></div>
+    <div id="t995ConfirmPasswordWrap" class="protected-password-field" style="display:none"><label for="t995ConfirmPassword">再次輸入新密碼</label><input id="t995ConfirmPassword" type="password" autocomplete="new-password"></div>
+    <div id="t995UnlockPasswordWrap" class="protected-password-field" style="display:none"><label for="t995UnlockPassword">共用密碼</label><input id="t995UnlockPassword" type="password" autocomplete="current-password"></div>
+    <div id="t995PasswordError" class="protected-password-error" role="status"></div>
+    <div class="protected-password-actions"><button id="t995PasswordCancel" class="action-btn" type="button">取消</button><button id="t995PasswordSubmit" class="action-btn protected-password-primary" type="submit">驗證</button></div>
+  </form>
 </div>
 
 <script>
@@ -2101,7 +2157,7 @@ function renderVehicles(){
 
     c.className =
       `
-      vehicle-card
+      vehicle-card admin-fixed-card
       ${u.length ? "has-unresolved" : ""}
       ${isClaimPending(v) ? "claim-pending" : ""}
       ${o.type === "warning" ? "oil-warning" : ""}
@@ -3644,8 +3700,11 @@ async function addSurveyTarget(){
   const round = surveyRoundSelect.value;
   if(!name){ surveyTargetMessage.textContent = "請輸入姓名。"; return; }
   surveyTargetAddBtn.disabled = true;
-  surveyTargetMessage.textContent = "新增中…";
+  surveyTargetMessage.textContent = "確認在職名單中…";
   try{
+    const employee = await db.from("employee_directory").select("id").eq("full_name",name).eq("is_active",true).maybeSingle();
+    if(employee.error) throw employee.error;
+    if(!employee.data){surveyTargetMessage.textContent="請先在上方新增／啟用此員工並設定區域，再加入防禦駕駛名單。";return;}
     const existing = await db.from("driver_survey_targets").select("id").eq("respondent_name",name).limit(1);
     if(existing.error) throw existing.error;
     if(existing.data?.length){
@@ -4655,6 +4714,8 @@ const t995EmployeeAreaInput=$("employeeAreaInput");
 const t995EmployeeAddBtn=$("employeeAddBtn");
 const t995EmployeeMessage=$("employeeMessage");
 const t995EmployeeDirectoryList=$("employeeDirectoryList");
+const t995EmployeeAreaTabs=$("employeeAreaTabs");
+const t995EmployeeDirectorySummary=$("employeeDirectorySummary");
 const t995ShiftModePage=$("shiftModePage");
 const t995ShiftModeBtn=$("shiftModeBtn");
 const t995ShiftBackBtn=$("shiftBackBtn");
@@ -4666,25 +4727,40 @@ const t995ShiftSummary=$("shiftAdminSummary");
 const t995ShiftAdminList=$("shiftAdminList");
 const t995StaffingSummary=$("staffingRecommendationSummary");
 const t995StaffingList=$("staffingRecommendationList");
-const t995TcFile=$("tcHistoryFile");
-const t995TcImportBtn=$("tcHistoryImportBtn");
-const t995TcImportMessage=$("tcHistoryImportMessage");
-const t995ActualsFile=$("staffingActualsFile");
-const t995ActualsImportBtn=$("staffingActualsImportBtn");
-const t995ActualsImportMessage=$("staffingActualsImportMessage");
+const t995TcFile=$("staffingImportFile");
+const t995TcImportBtn=$("staffingImportBtn");
+const t995TcImportMessage=$("staffingImportMessage");
+const t995ActualsFile=t995TcFile;
+const t995ActualsImportBtn=t995TcImportBtn;
+const t995ActualsImportMessage=t995TcImportMessage;
 let t995Employees=[];
+let t995EmployeeAreaFilter="ALL";
 let t995ShiftRows=[];
 let t995ShiftExportRows=[];
-let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8};
+let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_test_mode:true};
 let t995AreaMap=new Map();
 let t995AreaMapLoaded=false;
 
 function t995RenderEmployeeDirectory(){
-  if(!t995Employees.length){t995EmployeeDirectoryList.innerHTML='<div class="empty">目前沒有員工資料</div>';return;}
   const areas=['A','B','C','D','E','F','G','H','I','J','K'];
-  t995EmployeeDirectoryList.innerHTML=t995Employees.map(row=>{
-    const options=['<option value="">未設定</option>',...areas.map(a=>`<option value="${a}" ${row.area_code===a?'selected':''}>${a} 區</option>`)].join('');
-    return `<div class="roster-item"><span><strong>${esc(row.full_name)}</strong><span class="employee-badge">${esc(row.area_code?`${row.area_code} 區`:"未分類")}</span><small class="employee-status" style="display:block">${row.is_active?"在職":"已停用"}</small></span><div class="employee-area-card"><select aria-label="${esc(row.full_name)} 區域" data-t995-employee-area="${esc(row.id)}">${options}</select><button type="button" class="action-btn ${row.is_active?'danger':''}" data-t995-employee-toggle="${esc(row.id)}" data-active="${row.is_active?'true':'false'}">${row.is_active?'停用':'重新啟用'}</button></div></div>`;
+  const counts=Object.fromEntries(areas.map(a=>[a,t995Employees.filter(row=>row.area_code===a).length]));
+  const tabItems=[['ALL','ALL',t995Employees.length],...areas.map(a=>[a,`${a}區`,counts[a]])];
+  t995EmployeeAreaTabs.innerHTML=tabItems.map(([code,label,count])=>`<button type="button" class="employee-area-tab ${t995EmployeeAreaFilter===code?'active':''}" data-t995-area-filter="${code}" aria-pressed="${t995EmployeeAreaFilter===code?'true':'false'}">${label}<br><small>${count}</small></button>`).join('');
+  const areaOrder=Object.fromEntries(areas.map((a,i)=>[a,i]));
+  const sorted=[...t995Employees].sort((a,b)=>{
+    const ai=areaOrder[a.area_code]??areas.length,bi=areaOrder[b.area_code]??areas.length;
+    return ai-bi||String(a.full_name||'').localeCompare(String(b.full_name||''),'zh-Hant');
+  });
+  const rows=t995EmployeeAreaFilter==='ALL'?sorted:sorted.filter(row=>row.area_code===t995EmployeeAreaFilter);
+  t995EmployeeDirectorySummary.textContent=`顯示 ${rows.length} 位／共 ${t995Employees.length} 位員工；依 A–K 區排序，未設定區域列在最後。`;
+  if(!rows.length){t995EmployeeDirectoryList.innerHTML='<div class="empty">這個區域目前沒有員工</div>';return;}
+  t995EmployeeDirectoryList.innerHTML=rows.map(row=>{
+    const options=['<option value="">未設定</option>',...areas.map(x=>`<option value="${x}" ${row.area_code===x?'selected':''}>${x} 區</option>`)].join('');
+    return `<article class="admin-fixed-card employee-directory-card">
+      <div class="admin-card-head"><div class="employee-admin-name">${esc(row.full_name)}</div><span class="employee-badge">${esc(row.area_code?`${row.area_code} 區`:'未分類')}</span></div>
+      <div class="admin-card-body employee-admin-body"><label for="employee-area-${esc(row.id)}">員工區域</label><select id="employee-area-${esc(row.id)}" aria-label="${esc(row.full_name)} 區域" data-t995-employee-area="${esc(row.id)}">${options}</select></div>
+      <div class="admin-card-actions"><button type="button" class="permanent-delete-employee" data-t995-employee-delete="${esc(row.id)}">永久刪除全部紀錄</button></div>
+    </article>`;
   }).join('');
 }
 async function t995LoadEmployees(){
@@ -4699,7 +4775,7 @@ async function t995AddEmployee(){
   t995EmployeeAddBtn.disabled=true;t995EmployeeMessage.textContent="新增中…";
   try{
     const existing=await db.from("employee_directory").select("id,is_active,area_code").eq("full_name",name).maybeSingle();if(existing.error)throw existing.error;
-    if(existing.data){t995EmployeeMessage.textContent=existing.data.is_active?`「${name}」已在職名單中，請在員工卡片修改區域。`:`「${name}」已停用，請使用卡片上的重新啟用。`;return;}
+    if(existing.data){t995EmployeeMessage.textContent=`「${name}」已在職名單中，請在員工卡片修改區域。`;return;}
     const r=await db.from("employee_directory").insert({full_name:name,area_code:area,is_active:true});if(r.error)throw r.error;
     t995EmployeeNameInput.value="";t995EmployeeAreaInput.value="";t995EmployeeMessage.textContent=`✅ 已新增 ${name}｜${area} 區`;await t995LoadEmployees();
   }catch(e){t995EmployeeMessage.textContent=`新增失敗：${e.message||"請確認管理員權限"}`;}
@@ -4713,9 +4789,32 @@ async function t995UpdateEmployeeArea(id,newArea){
   try{const r=await db.from("employee_directory").update({area_code:next,updated_at:new Date().toISOString()}).eq("id",id);if(r.error)throw r.error;await t995LoadEmployees();}
   catch(e){alert(`更新員工區域失敗：${e.message||"請確認管理員權限"}`);await t995LoadEmployees();}
 }
+async function t995DeleteEmployeePermanently(id,button){
+  const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
+  const warning=`永久刪除「${row.full_name}」的全部員工紀錄？
+
+將刪除：員工主檔、意向調查名單與作答、防禦駕駛紀錄、指休資料、領還車紀錄及該員工提交的車輛檢查紀錄。
+
+車輛主檔本身不刪除；刪除領還車紀錄可能改變後台按最新領車資料顯示的狀態。此動作無法復原。`;
+  if(!confirm(warning))return;
+  const typed=prompt(`請輸入員工姓名「${row.full_name}」確認永久刪除：`);
+  if(typed!==row.full_name){if(typed!==null)alert("姓名不一致，已取消刪除。");return;}
+  if(button)button.disabled=true;
+  try{
+    const r=await db.rpc("admin_delete_employee_all_records",{p_employee_id:id});if(r.error)throw r.error;
+    t995Employees=t995Employees.filter(x=>String(x.id)!==String(id));
+    t995RenderEmployeeDirectory();
+    try{await loadRosterData();}catch(e){console.warn("員工刪除後舊名單更新失敗",e);}
+    alert(`✅「${row.full_name}」及其後台相關紀錄已永久刪除。`);
+  }catch(e){
+    alert(`永久刪除失敗：${e.message||"請確認已執行員工停用與永久刪除 SQL 增量更新，並使用管理員帳號登入。"}`);
+    if(button)button.disabled=false;
+  }
+}
+
 async function t995ToggleEmployeeActive(id,currentlyActive){
   const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
-  const next=!currentlyActive;const text=next?`確定重新啟用「${row.full_name}」？`:`確定停用「${row.full_name}」？停用後不能提交新指休資料，舊資料會保留。`;
+  const next=!currentlyActive;const text=next?`確定重新啟用「${row.full_name}」？重新啟用後可依名單規則填寫意向調查、防禦駕駛與指休表。`:`確定停用「${row.full_name}」？停用後無法填寫意向調查、防禦駕駛與指休表；已提交的歷史資料會保留。`;
   if(!confirm(text))return;
   try{const r=await db.from("employee_directory").update({is_active:next,updated_at:new Date().toISOString()}).eq("id",id);if(r.error)throw r.error;await t995LoadEmployees();}
   catch(e){alert(`更新在職狀態失敗：${e.message||"請確認管理員權限"}`);}
@@ -4751,26 +4850,30 @@ async function t995LoadShiftAdmin(){
   try{
     const [er,sr,settings]=await Promise.all([
       db.from("employee_directory").select("id,full_name,area_code,is_active").eq("is_active",true).order("area_code",{ascending:true}).order("full_name",{ascending:true}),
-      db.from("weekly_shift_availability").select("id,employee_id,employee_name,employee_area_code,week_start,monday,tuesday,wednesday,thursday,friday,saturday,sunday,notes,submitted_at").eq("week_start",t995ShiftWeekSelect.value).order("submitted_at",{ascending:false}),
-      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks").eq("singleton",true).maybeSingle()
+      db.from("weekly_shift_availability").select("id,employee_id,employee_name,employee_area_code,week_start,monday,tuesday,wednesday,thursday,friday,saturday,sunday,notes,submitted_at,is_test").eq("week_start",t995ShiftWeekSelect.value).order("submitted_at",{ascending:false}),
+      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks,shift_test_mode").eq("singleton",true).maybeSingle()
     ]);
     if(er.error)throw er.error;if(sr.error)throw sr.error;if(settings.error)throw settings.error;
     t995Employees=er.data||[];if(settings.data)t995StaffingSettings=settings.data;
     const latest=t995LatestShiftByEmployee(sr.data||[]);
+    const latestFormal=t995LatestShiftByEmployee((sr.data||[]).filter(r=>!r.is_test));
     t995ShiftRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
+    const forecastRows=t995Employees.map(e=>({employee:e,shift:latestFormal.get(String(e.id))||null}));
+    const testToggle=document.getElementById("shiftTestModeToggle");if(testToggle)testToggle.checked=Boolean(t995StaffingSettings.shift_test_mode);
     t995RenderShiftAdmin();
-    await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,t995ShiftRows);
+    await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,forecastRows);
   }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">指休資料讀取失敗：${esc(e.message||"請確認 SQL 權限")}</div>`;t995StaffingList.innerHTML=`<div class="empty">人力建議讀取失敗：${esc(e.message||"請先匯入 TC 資料")}</div>`;}
 }
 function t995RenderShiftAdmin(){
   const filter=t995ShiftAreaFilter.value;const rows=t995ShiftRows.filter(x=>!filter||x.employee.area_code===filter);
   const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
-  t995ShiftSummary.textContent=`${t995ShiftWeekSelect.options[t995ShiftWeekSelect.selectedIndex]?.text||"所選週次"}｜在職 ${active} 人｜已提交 ${submitted} 人｜未提交 ${missing} 人`;
+  const testCount=t995ShiftRows.filter(x=>x.shift?.is_test).length;
+  t995ShiftSummary.textContent=`${t995ShiftWeekSelect.options[t995ShiftWeekSelect.selectedIndex]?.text||"所選週次"}｜在職 ${active} 人｜已提交 ${submitted} 人（測試 ${testCount}）｜未提交 ${missing} 人｜測試模式${t995StaffingSettings.shift_test_mode?'開啟':'關閉'}`;
   if(!rows.length){t995ShiftAdminList.innerHTML='<div class="shift-admin-empty">目前沒有符合條件的在職員工。</div>';return;}
   const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
   t995ShiftAdminList.innerHTML=rows.map(({employee:e,shift:r})=>{
     const allBlank=r&&t995IsAllBlank(r);const cls=!r?'is-missing':allBlank?'is-empty':'';
-    const status=!r?'未提交':allBlank?'已提交｜七天皆空白':'已提交';
+    const status=!r?'未提交':r.is_test?'測試資料｜不納入人力分析':allBlank?'已提交｜七天皆空白':'已提交';
     const cells=r?days.map(([label,key])=>`<div class="shift-admin-day"><b>${label}</b>${esc(r[key]||"未提供")}</div>`).join(''):days.map(([label])=>`<div class="shift-admin-day"><b>${label}</b>—</div>`).join('');
     const submittedAt=r?.submitted_at?new Date(r.submitted_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei"}):"—";
     return `<article class="shift-admin-card ${cls}"><h3>${esc(e.full_name)}<span class="employee-badge">${esc(e.area_code||"未分類")} 區</span></h3><div class="employee-status">${status}｜最後送出：${esc(submittedAt)}</div><div class="shift-admin-grid">${cells}</div>${r?.notes?`<div class="shift-admin-notes"><strong>備註：</strong>${esc(r.notes)}</div>`:''}</article>`;
@@ -4778,7 +4881,7 @@ function t995RenderShiftAdmin(){
 }
 function t995BuildShiftExportRows(){
   const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
-  return t995ShiftRows.map(({employee:e,shift:r})=>({週次:t995ShiftWeekSelect.value,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",提交狀態:!r?"未提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
+  return t995ShiftRows.map(({employee:e,shift:r})=>({週次:t995ShiftWeekSelect.value,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",資料類型:r?.is_test?"測試資料（不納入人力建議）":"正式資料",提交狀態:!r?"未提交":r.is_test?"測試提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
 }
 function t995ExportShiftWeek(){
   const rows=t995BuildShiftExportRows();if(!rows.length){alert("目前沒有在職員工資料可匯出。");return;}
@@ -4809,7 +4912,7 @@ async function t995RenderStaffingRecommendation(weekStart,shiftRows){
   for(const r of mealRows){const date=String(r.record_date).slice(0,10);t995MapAdd(mealByAreaDate,`${r.area_code}|${date}`,Number(r.total_tc||0));}
   for(const r of actualRows){const date=String(r.record_date).slice(0,10);const area=r.area_code;const key=`${r.restaurant_name}|${date}`;const tc=fullByStoreDate.get(key)||0;const h=Number(r.actual_work_hours||0);const pct=Number(r.third_party_usage_pct||0);const a=hoursByArea.get(area)||{hours:0,tc:0};a.hours+=h;a.tc+=tc;hoursByArea.set(area,a);if(tc>0){const k=`${area}|${date}`;const v=tpWeightedByAreaDate.get(k)||{num:0,den:0};v.num+=tc*pct;v.den+=tc;tpWeightedByAreaDate.set(k,v);}}
   const tpByAreaDate=new Map([...tpWeightedByAreaDate].map(([k,v])=>[k,v.den?v.num/v.den:0]));
-  const byArea=new Map();for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
+  const byArea=new Map();for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area||shift?.is_test)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
   const areas=['A','B','C','D','E','F','G','H','I','J','K'];const target=Number(t995StaffingSettings.target_tplh)||2.5;const cap=Number(t995StaffingSettings.max_third_party_usage_pct)||20;const dayNames=['週一','週二','週三','週四','週五','週六','週日'];
   const output=areas.map(area=>{
     const days=dayNames.map((day,offset)=>{
@@ -4927,6 +5030,28 @@ async function t995ImportActualsWorkbook(){
   }catch(e){t995ActualsImportMessage.textContent=`匯入失敗：${e.message||"請稍後重試"}${batchId?"；若部分批次已送出，請重新上傳同一完整檔案以覆寫補齊。":""}`;}
   finally{t995ActualsImportBtn.disabled=false;}
 }
+async function t995UnifiedImportWorkbook(){
+  const file=t995TcFile.files?.[0];
+  if(!file){t995TcImportMessage.textContent="請先選擇 Excel 活頁簿。";return;}
+  t995TcImportBtn.disabled=true;t995TcImportMessage.textContent="正在辨識活頁簿內容…";
+  try{
+    const workbook=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});
+    const fullSheet=workbook.SheetNames.find(n=>n.includes("整天"));
+    const mealSheet=workbook.SheetNames.find(n=>n.includes("餐期"));
+    if(fullSheet&&mealSheet){t995TcImportBtn.disabled=false;await t995ImportTcWorkbook();return;}
+    const firstName=workbook.SheetNames[0];
+    if(!firstName)throw new Error("活頁簿沒有工作表。");
+    const firstRow=XLSX.utils.sheet_to_json(workbook.Sheets[firstName],{defval:null,raw:true})[0]||{};
+    const headers=Object.keys(firstRow);
+    const hasStore=["STR_SN","餐廳","餐廳名稱"].some(k=>headers.includes(k));
+    const hasDate=["DATE","日期"].some(k=>headers.includes(k));
+    const hasActual=["實際工時","實際安排工時","工時","實際TPLH","實際 TPLH","實際TPLH (FA)","實際 TPLH (FA)","第三方使用率","第三方使用率%","FA使用率%","第三方率"].some(k=>headers.includes(k));
+    if(hasStore&&hasDate&&hasActual){t995TcImportBtn.disabled=false;await t995ImportActualsWorkbook();return;}
+    throw new Error("無法辨識檔案。請上傳你提供的含「整天／餐期」分頁 TC Excel，或含 STR_SN、DATE、實際工時／TPLH／第三方使用率欄位的實際資料 Excel。");
+  }catch(e){t995TcImportMessage.textContent=`檔案辨識失敗：${e.message||"請確認 Excel 格式"}`;}
+  finally{t995TcImportBtn.disabled=false;}
+}
+
 async function t995DeleteDeviceCard(type,id,number){
   const label=type==="recorder"?"行車紀錄器":"電池";
   if(!confirm(`確定永久刪除${label}小卡「${number}」？\n\n只有沒有任何異常回報歷史的設備可以刪除；此操作無法復原。`))return;
@@ -4958,19 +5083,202 @@ showAdminMode=function(mode){
 };
 t995EmployeeAddBtn.onclick=t995AddEmployee;
 t995EmployeeDirectoryList.onchange=e=>{const s=e.target.closest("[data-t995-employee-area]");if(s)t995UpdateEmployeeArea(s.dataset.t995EmployeeArea,s.value);};
-t995EmployeeDirectoryList.onclick=e=>{const b=e.target.closest("[data-t995-employee-toggle]");if(b)t995ToggleEmployeeActive(b.dataset.t995EmployeeToggle,b.dataset.active==="true");};
+t995EmployeeDirectoryList.onclick=e=>{const del=e.target.closest("[data-t995-employee-delete]");if(del)t995DeleteEmployeePermanently(del.dataset.t995EmployeeDelete,del);};
+t995EmployeeAreaTabs.onclick=e=>{const b=e.target.closest("[data-t995-area-filter]");if(!b)return;t995EmployeeAreaFilter=b.dataset.t995AreaFilter;t995RenderEmployeeDirectory();};
 t995ShiftModeBtn.onclick=()=>showAdminMode("shift");
 t995ShiftBackBtn.onclick=()=>showAdminMode("home");
 t995ShiftWeekSelect.onchange=()=>t995LoadShiftAdmin();
 t995ShiftAreaFilter.onchange=()=>{t995RenderShiftAdmin();t995RenderStaffingFromCurrent();};
 t995ShiftRefreshBtn.onclick=()=>t995LoadShiftAdmin();
 t995ShiftExportBtn.onclick=t995ExportShiftWeek;
-t995TcImportBtn.onclick=t995ImportTcWorkbook;
-t995ActualsImportBtn.onclick=t995ImportActualsWorkbook;
+t995TcImportBtn.onclick=t995UnifiedImportWorkbook;
 const t995OldDeviceCardClick=batteryReportList.onclick;
 batteryReportList.onclick=e=>{const b=e.target.closest("[data-t995-device-delete]");if(b){e.preventDefault();e.stopPropagation();t995DeleteDeviceCard(b.dataset.deviceType,b.dataset.deviceId,b.dataset.deviceNumber);return;}if(t995OldDeviceCardClick)t995OldDeviceCardClick(e);};
 
+
+
+/* T995 v3: guarded employee/shift modules, test-mode control and full device purge. */
+const t995ProtectedModal=document.getElementById("t995ProtectedPasswordModal");
+const t995ProtectedForm=document.getElementById("t995ProtectedPasswordForm");
+const t995PasswordTitle=document.getElementById("t995ProtectedPasswordTitle");
+const t995PasswordDescription=document.getElementById("t995ProtectedPasswordDescription");
+const t995PasswordError=document.getElementById("t995PasswordError");
+const t995PasswordSubmit=document.getElementById("t995PasswordSubmit");
+const t995CurrentWrap=document.getElementById("t995CurrentPasswordWrap");
+const t995NewWrap=document.getElementById("t995NewPasswordWrap");
+const t995ConfirmWrap=document.getElementById("t995ConfirmPasswordWrap");
+const t995UnlockWrap=document.getElementById("t995UnlockPasswordWrap");
+const t995CurrentInput=document.getElementById("t995CurrentPassword");
+const t995NewInput=document.getElementById("t995NewPassword");
+const t995ConfirmInput=document.getElementById("t995ConfirmPassword");
+const t995UnlockInput=document.getElementById("t995UnlockPassword");
+const t995PasswordCancel=document.getElementById("t995PasswordCancel");
+let t995PasswordDialogMode="unlock";
+let t995ProtectedTargetMode=null;
+let t995DeviceClaimRecords=[];
+let t995DeviceClaimFetchError="";
+const t995ShiftTestModeToggle=document.getElementById("shiftTestModeToggle");
+
+function t995ClearPasswordDialog(){
+  [t995CurrentInput,t995NewInput,t995ConfirmInput,t995UnlockInput].forEach(input=>input.value="");
+  t995PasswordError.textContent="";
+}
+function t995OpenPasswordDialog(mode,targetMode){
+  t995PasswordDialogMode=mode;t995ProtectedTargetMode=targetMode||t995ProtectedTargetMode;
+  t995ClearPasswordDialog();
+  t995CurrentWrap.style.display=mode==="change"?"grid":"none";
+  t995NewWrap.style.display=(mode==="setup"||mode==="change")?"grid":"none";
+  t995ConfirmWrap.style.display=(mode==="setup"||mode==="change")?"grid":"none";
+  t995UnlockWrap.style.display=mode==="unlock"?"grid":"none";
+  if(mode==="setup"){
+    t995PasswordTitle.textContent="設定管理區共用密碼";
+    t995PasswordDescription.textContent="首次使用請先設定一組至少 8 碼的共用密碼，之後兩個入口都使用這組密碼。";
+    t995PasswordSubmit.textContent="設定並進入";
+  }else if(mode==="change"){
+    t995PasswordTitle.textContent="變更管理區共用密碼";
+    t995PasswordDescription.textContent="新密碼設定後，在職名單與指休管理會共用新密碼。";
+    t995PasswordSubmit.textContent="變更並重新解鎖";
+  }else{
+    t995PasswordTitle.textContent="管理區域驗證";
+    t995PasswordDescription.textContent="請輸入共用密碼以進入在職名單或指休管理。";
+    t995PasswordSubmit.textContent="驗證並進入";
+  }
+  t995ProtectedModal.style.display="flex";
+  setTimeout(()=>((mode==="setup"||mode==="change")?t995NewInput:t995UnlockInput).focus(),0);
+}
+function t995ClosePasswordDialog(){
+  t995ProtectedModal.style.display="none";t995ClearPasswordDialog();t995ProtectedTargetMode=null;
+}
+async function t995EnterProtectedModule(mode){
+  try{
+    const status=await db.rpc("employee_shift_gate_status");if(status.error)throw status.error;
+    const state=status.data||{};
+    if(!state.configured){t995OpenPasswordDialog("setup",mode);return;}
+    if(state.unlocked){showAdminMode(mode);return;}
+    t995OpenPasswordDialog("unlock",mode);
+  }catch(e){alert(`無法開啟保護功能：${e.message||"請先執行 T995 v3 增量 SQL，並確認管理員登入狀態。"}`);}
+}
+async function t995SubmitPasswordDialog(event){
+  event.preventDefault();t995PasswordSubmit.disabled=true;t995PasswordError.textContent="驗證中…";
+  try{
+    let password="";
+    if(t995PasswordDialogMode==="setup"||t995PasswordDialogMode==="change"){
+      password=t995NewInput.value;
+      if(password.length<8)throw new Error("共用密碼至少需要 8 個字元。");
+      if(password!==t995ConfirmInput.value)throw new Error("兩次輸入的新密碼不一致。");
+      const configured=await db.rpc("set_employee_shift_shared_password",{
+        p_new_password:password,
+        p_current_password:t995PasswordDialogMode==="change"?t995CurrentInput.value:null
+      });
+      if(configured.error)throw configured.error;
+    }else{
+      password=t995UnlockInput.value;
+      if(!password)throw new Error("請輸入共用密碼。");
+    }
+    const unlocked=await db.rpc("unlock_employee_shift_modules",{p_password:password});
+    if(unlocked.error)throw unlocked.error;
+    const target=t995ProtectedTargetMode;t995ClosePasswordDialog();
+    if(target)showAdminMode(target);
+  }catch(e){t995PasswordError.textContent=e.message||"操作失敗，請稍後重試。";}
+  finally{t995PasswordSubmit.disabled=false;}
+}
+t995ProtectedForm.addEventListener("submit",t995SubmitPasswordDialog);
+t995PasswordCancel.onclick=()=>{t995ClosePasswordDialog();showAdminMode("home");};
+t995ProtectedModal.addEventListener("click",event=>{if(event.target===t995ProtectedModal){t995ClosePasswordDialog();showAdminMode("home");}});
+rosterModeBtn.onclick=()=>t995EnterProtectedModule("roster");
+t995ShiftModeBtn.onclick=()=>t995EnterProtectedModule("shift");
+rosterBackBtn.onclick=()=>showAdminMode("home");
+t995ShiftBackBtn.onclick=()=>showAdminMode("home");
+document.getElementById("rosterPasswordChangeBtn").onclick=()=>t995OpenPasswordDialog("change","roster");
+document.getElementById("shiftPasswordChangeBtn").onclick=()=>t995OpenPasswordDialog("change","shift");
+
+if(t995ShiftTestModeToggle){
+  t995ShiftTestModeToggle.addEventListener("change",async()=>{
+    const requested=t995ShiftTestModeToggle.checked;
+    t995ShiftTestModeToggle.disabled=true;
+    try{
+      const r=await db.from("staffing_settings").update({shift_test_mode:requested,updated_at:new Date().toISOString()}).eq("singleton",true);
+      if(r.error)throw r.error;
+      t995StaffingSettings={...t995StaffingSettings,shift_test_mode:requested};
+      alert(requested?"測試開放已啟用；所有提交將標記為測試資料並排除於人力可排工時。":"測試開放已關閉；前台恢復週一 10:00 至週六 10:00 的開放規則。");
+      await t995LoadShiftAdmin();
+    }catch(e){t995ShiftTestModeToggle.checked=!requested;alert(`更新測試模式失敗：${e.message||"請確認已執行 v3 SQL 並重新登入。"}`);}
+    finally{t995ShiftTestModeToggle.disabled=false;}
+  });
+}
+
+function t995LatestClaimForDevice(type,number){
+  const key=type==="recorder"?recorderKey:batteryKey;
+  const field=type==="recorder"?"recorder_number":"battery_number";
+  return t995DeviceClaimRecords.find(row=>key(row[field])===key(number))||null;
+}
+async function t995LoadDeviceClaims(){
+  t995DeviceClaimFetchError="";const rows=[];const pageSize=1000;
+  try{
+    for(let offset=0;;offset+=pageSize){
+      const r=await db.from("claim_records").select("battery_number,recorder_number,claimant_name,claimed_at,claim_point").order("claimed_at",{ascending:false}).range(offset,offset+pageSize-1);
+      if(r.error)throw r.error;rows.push(...(r.data||[]));if(!r.data||r.data.length<pageSize)break;
+    }
+    t995DeviceClaimRecords=rows;
+  }catch(e){t995DeviceClaimRecords=[];t995DeviceClaimFetchError=e.message||"請確認已執行 v3 增量 SQL。";}
+}
+function t995AttachDeviceDeleteButtons(type){
+  const isRecorder=type==="recorder";const list=batteryReportList;
+  const keyFn=isRecorder?recorderKey:batteryKey;const prop=isRecorder?"recorder_number":"battery_number";const icon=isRecorder?"📹":"🔋";
+  const inventory=isRecorder?(recorderInventory||[]):(batteryInventory||[]);
+  list.querySelectorAll(".survey-card").forEach(card=>{
+    card.classList.add("admin-fixed-card","device-card-fixed");
+    const label=card.querySelector(".survey-name");if(!label)return;
+    const number=label.textContent.replace(icon,"").trim();if(!number)return;
+    const latest=t995LatestClaimForDevice(type,number);
+    let usage=card.querySelector(".device-latest-claim");
+    if(!usage){usage=document.createElement("div");usage.className="device-latest-claim";const actions=card.querySelector(".record-actions");if(actions)card.insertBefore(usage,actions);else card.appendChild(usage);}
+    usage.textContent=latest?`最新領用：${latest.claimant_name||"未填姓名"}｜${fmt(latest.claimed_at)}${latest.claim_point?`｜${latest.claim_point}`:""}`:t995DeviceClaimFetchError?`最新領用：無法讀取（${t995DeviceClaimFetchError}）`:"最新領用：尚無領用紀錄";
+    let actions=card.querySelector(".record-actions");if(!actions){actions=document.createElement("div");actions.className="record-actions";card.appendChild(actions);}
+    let button=actions.querySelector("[data-t995-device-delete]");
+    if(!button){button=document.createElement("button");button.type="button";button.className="action-btn device-delete-btn";button.dataset.t995DeviceDelete="true";actions.appendChild(button);}
+    const inv=inventory.find(row=>keyFn(row[prop])===keyFn(number));
+    button.dataset.deviceType=type;button.dataset.deviceId=inv?.id||"";button.dataset.deviceNumber=inv?.[prop]||number;
+    button.textContent="🗑 永久刪除設備與全部歷史";
+    button.setAttribute("aria-label",`永久刪除${isRecorder?"紀錄器":"電池"} ${number} 及全部歷史`);
+  });
+}
+const t995OriginalRenderBatteryReportsV3=renderBatteryReports;
+renderBatteryReports=function(){t995OriginalRenderBatteryReportsV3();t995AttachDeviceDeleteButtons("battery");};
+const t995OriginalRenderRecorderReportsV3=renderRecorderReports;
+renderRecorderReports=function(){t995OriginalRenderRecorderReportsV3();t995AttachDeviceDeleteButtons("recorder");};
+const t995OriginalLoadBatteryDataV3=loadBatteryData;
+loadBatteryData=async function(){await t995OriginalLoadBatteryDataV3();await t995LoadDeviceClaims();renderBatteryReports();};
+const t995OriginalLoadRecorderDataV3=loadRecorderData;
+loadRecorderData=async function(){await t995OriginalLoadRecorderDataV3();await t995LoadDeviceClaims();renderRecorderReports();};
+async function t995DeleteDeviceCard(type,id,number){
+  const label=type==="recorder"?"行車紀錄器":"電池";
+  if(!confirm(`確定永久刪除${label}「${number}」及全部相關資料？\n\n將完整刪除設備小卡與所有異常／維修歷史；不保留、不提供復原。既有車輛領用紀錄暫時保留，避免同時刪除車輛歷史。`))return;
+  try{
+    const r=await db.rpc("admin_delete_device_all_records",{p_device_type:type,p_device_number:number});if(r.error)throw r.error;
+    const keyFn=type==="recorder"?recorderKey:batteryKey;const prop=type==="recorder"?"recorder_number":"battery_number";
+    t995DeviceClaimRecords=t995DeviceClaimRecords.filter(row=>keyFn(row[prop])!==keyFn(number));
+    if(type==="recorder"){
+      recorderInventory=(recorderInventory||[]).filter(row=>keyFn(row[prop])!==keyFn(number));
+      recorderReports=(recorderReports||[]).filter(row=>keyFn(row[prop])!==keyFn(number));renderRecorderSummary();renderRecorderReports();
+    }else{
+      batteryInventory=(batteryInventory||[]).filter(row=>keyFn(row[prop])!==keyFn(number));
+      batteryReports=(batteryReports||[]).filter(row=>keyFn(row[prop])!==keyFn(number));renderBatterySummary();renderBatteryReports();
+    }
+    alert(`✅ ${label}與相關異常／維修歷史已完整刪除。`);
+  }catch(e){alert(`永久刪除失敗：${e.message||"請確認已執行 v3 增量 SQL，並以管理員帳號操作。"}`);}
+}
+const t995PreviousDeviceListClick=batteryReportList.onclick;
+batteryReportList.onclick=event=>{
+  const button=event.target.closest("[data-t995-device-delete]");
+  if(button){event.preventDefault();event.stopPropagation();t995DeleteDeviceCard(button.dataset.deviceType,button.dataset.deviceId,button.dataset.deviceNumber);return;}
+  if(t995PreviousDeviceListClick)t995PreviousDeviceListClick(event);
+};
+
 </script>
+
+
+
 
 </body>
 </html>
