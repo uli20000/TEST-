@@ -863,7 +863,25 @@
 .shift-state.ok{color:#176b3a}.shift-state.bad{color:#a52a2a}
 .shift-window-closed{opacity:.65}
 .shift-helper{font-size:14px;line-height:1.6;color:var(--gray);margin-top:10px}
-
+.shift-day-structured{grid-template-columns:48px minmax(0,1fr);align-items:start}
+.shift-day-name{padding-top:12px;font-weight:800;white-space:nowrap}
+.shift-day-content{display:grid;gap:8px;min-width:0}
+.shift-time-slots{display:grid;gap:6px;min-width:0}
+.shift-time-slots[hidden]{display:none}
+.shift-time-slot{display:grid;grid-template-columns:minmax(0,160px) 12px minmax(0,160px);align-items:center;gap:5px;min-width:0}
+.shift-time-slot-extra{grid-template-columns:minmax(0,160px) 12px minmax(0,160px)}
+.shift-time-input{height:44px!important;min-width:0;max-width:160px;padding:0 6px!important;border:1px solid #d8d3ca!important;border-radius:9px!important;font:inherit!important;font-size:15px!important;text-align:center}
+.shift-time-separator{font-weight:800;color:var(--gray)}
+.shift-slot-remove{min-height:36px;padding:6px 9px;border:1px solid #e2aaa4;border-radius:9px;background:var(--danger-bg);color:var(--danger);font:inherit;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.shift-slot-remove[hidden]{display:none}
+.shift-day-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.shift-add-slot{min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.shift-add-slot:disabled{display:none}
+.shift-unavailable{display:inline-flex!important;align-items:center;gap:6px;min-height:36px;padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:13px;font-weight:800;cursor:pointer}
+.shift-unavailable input[type="checkbox"]{width:18px!important;height:18px!important;min-height:18px;margin:0;padding:0;accent-color:var(--red)}
+.shift-day-structured.is-unavailable .shift-day-name{color:var(--danger)}
+.shift-day-error{grid-column:2;color:var(--danger);font-size:12px;line-height:1.4}
+@media(max-width:500px){.shift-day-structured{grid-template-columns:42px minmax(0,1fr);gap:7px;padding:9px}.shift-time-slot,.shift-time-slot-extra{grid-template-columns:minmax(0,1fr) 10px minmax(0,1fr);gap:4px}.shift-time-input{font-size:14px!important}.shift-unavailable,.shift-add-slot{font-size:12px;padding:5px 8px}}
 
 /* 指休測試模式與電池領用欄位 */
 .shift-window-test{background:#fff4dd;border:1px solid #e9b95e;border-radius:12px;padding:10px 12px;color:#76500c}
@@ -1525,7 +1543,7 @@
     <div id="shiftForm">
       <section class="card">
         <div class="section-number">員工指休／可上班時間</div>
-        <div class="shift-note"><strong>只填可上班時段；當天不排班請留白。</strong><br>每週一 10:00 開放，週六 10:00 截止，填寫下一週。</div>
+        <div class="shift-note"><strong>每天都要填可上班時段，或選「無法上班」。</strong><br>可新增第二時段；七天皆無法上班時，備註必填原因。</div>
         <div id="shiftWeekLabel" class="shift-week-label">查詢開放週次中…</div>
         <div id="shiftWindowMessage" class="hint"></div>
         <label class="label" for="shiftEmployeeName" style="margin-top:20px">姓名</label>
@@ -1537,15 +1555,15 @@
       </section>
       <section class="card">
         <div class="section-number">週一至週日</div>
-        <div class="shift-helper">可上班的日子填時段，例如 10-15；不排班的日子保持空白。可填多個時段，例如 10-15、18-22。</div>
-        <div class="shift-days" style="margin-top:14px">
-          <div class="shift-day"><label for="shiftMon">週一</label><input id="shiftMon" maxlength="80" placeholder="例如 10-15"></div>
-          <div class="shift-day"><label for="shiftTue">週二</label><input id="shiftTue" maxlength="80" placeholder="例如 10-15"></div>
-          <div class="shift-day"><label for="shiftWed">週三</label><input id="shiftWed" maxlength="80" placeholder="例如 10-15"></div>
-          <div class="shift-day"><label for="shiftThu">週四</label><input id="shiftThu" maxlength="80" placeholder="例如 10-15"></div>
-          <div class="shift-day"><label for="shiftFri">週五</label><input id="shiftFri" maxlength="80" placeholder="例如 10-15"></div>
-          <div class="shift-day"><label for="shiftSat">週六</label><input id="shiftSat" maxlength="80" placeholder="例如 10-15"></div>
-          <div class="shift-day"><label for="shiftSun">週日</label><input id="shiftSun" maxlength="80" placeholder="例如 10-15"></div>
+        <div class="shift-helper">每天必填一組可上班時段，或選「無法上班」；新增第二時段選填。</div>
+        <div id="shiftDays" class="shift-days" style="margin-top:14px">
+          <div class="shift-day shift-day-structured" data-shift-day="monday"><div class="shift-day-name">週一</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週一開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週一結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="tuesday"><div class="shift-day-name">週二</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週二開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週二結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="wednesday"><div class="shift-day-name">週三</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週三開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週三結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="thursday"><div class="shift-day-name">週四</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週四開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週四結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="friday"><div class="shift-day-name">週五</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週五開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週五結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="saturday"><div class="shift-day-name">週六</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週六開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週六結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="sunday"><div class="shift-day-name">週日</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" data-shift-start aria-label="週日開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="週日結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
         </div>
         <label class="label" for="shiftNotes" style="margin-top:20px">備註／排班需求</label>
         <textarea id="shiftNotes" maxlength="500" placeholder="選填；若七天皆無法上班，必須說明原因"></textarea>
@@ -4481,21 +4499,59 @@ async function verifyShiftEmployee(){
     verifiedShiftEmployee=r.data;shiftEmployeeStatus.textContent=`✅ 已確認在職｜${r.data.area_code} 區`;shiftEmployeeStatus.className="shift-state ok";return true;
   }catch(e){if(serial===shiftVerifySerial){shiftEmployeeStatus.textContent=`名單查詢失敗，請稍後重試或找店長確認。`;shiftEmployeeStatus.className="shift-state bad";}return false;}
 }
-const shiftDayFields={monday:"shiftMon",tuesday:"shiftTue",wednesday:"shiftWed",thursday:"shiftThu",friday:"shiftFri",saturday:"shiftSat",sunday:"shiftSun"};
+const shiftDayLabels={monday:"週一",tuesday:"週二",wednesday:"週三",thursday:"週四",friday:"週五",saturday:"週六",sunday:"週日"};
+const shiftDaysContainer=document.getElementById("shiftDays");
+function updateShiftDayControls(dayElement){
+  const unavailable=dayElement.querySelector("[data-shift-unavailable]").checked;
+  dayElement.classList.toggle("is-unavailable",unavailable);
+  dayElement.querySelectorAll("[data-shift-start],[data-shift-end]").forEach(input=>input.disabled=unavailable);
+  const addButton=dayElement.querySelector("[data-shift-add-slot]");
+  const hasExtra=dayElement.querySelectorAll("[data-shift-slot]").length>=2;
+  addButton.disabled=unavailable||hasExtra;
+  const removeButton=dayElement.querySelector("[data-shift-remove-slot]");removeButton.hidden=unavailable||!hasExtra;removeButton.disabled=unavailable;
+  dayElement.querySelector(".shift-time-slots").hidden=unavailable;
+}
+function addShiftTimeSlot(dayElement){
+  const slots=dayElement.querySelector(".shift-time-slots");if(slots.querySelectorAll("[data-shift-slot]").length>=2)return;
+  const dayName=shiftDayLabels[dayElement.dataset.shiftDay]||"當日";const number=slots.querySelectorAll("[data-shift-slot]").length+1;
+  const slot=document.createElement("div");slot.className="shift-time-slot shift-time-slot-extra";slot.setAttribute("data-shift-slot","");
+  slot.innerHTML=`<input class="shift-time-input" type="time" data-shift-start aria-label="${dayName}第${number}時段開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" data-shift-end aria-label="${dayName}第${number}時段結束時間">`;
+  slots.appendChild(slot);updateShiftDayControls(dayElement);
+}
+shiftDaysContainer.addEventListener("change",event=>{if(event.target.matches("[data-shift-unavailable]"))updateShiftDayControls(event.target.closest("[data-shift-day]"));});
+shiftDaysContainer.addEventListener("click",event=>{
+  const addButton=event.target.closest("[data-shift-add-slot]");if(addButton){addShiftTimeSlot(addButton.closest("[data-shift-day]"));return;}
+  const removeButton=event.target.closest("[data-shift-remove-slot]");if(removeButton){const dayElement=removeButton.closest("[data-shift-day]");dayElement.querySelector(".shift-time-slot-extra")?.remove();updateShiftDayControls(dayElement);}
+});
+function readShiftDayValue(dayKey){
+  const dayElement=shiftDaysContainer.querySelector(`[data-shift-day="${dayKey}"]`);const dayName=shiftDayLabels[dayKey];
+  if(dayElement.querySelector("[data-shift-unavailable]").checked)return {value:"無法上班",intervals:[]};
+  const slots=[...dayElement.querySelectorAll("[data-shift-slot]")].map(slot=>({start:slot.querySelector("[data-shift-start]").value,end:slot.querySelector("[data-shift-end]").value}));
+  const filled=slots.filter(slot=>slot.start||slot.end);
+  if(!filled.length)return {error:`${dayName}請填可上班時段，或選「無法上班」。`,focus:dayElement.querySelector("[data-shift-start]")};
+  if(filled.some(slot=>!slot.start||!slot.end)){
+    const index=slots.findIndex(slot=>!slot.start||!slot.end);const incomplete=slots[index];
+    return {error:`${dayName}時段請同時選擇開始與結束時間。`,focus:dayElement.querySelectorAll(incomplete.start?"[data-shift-end]":"[data-shift-start]")[index]};
+  }
+  const intervals=filled.map(slot=>{const [sh,sm]=slot.start.split(":").map(Number),[eh,em]=slot.end.split(":").map(Number);return [sh*60+sm,eh*60+em];}).sort((a,b)=>a[0]-b[0]);
+  if(intervals.some(([start,end])=>start>=end))return {error:`${dayName}結束時間需晚於開始時間。`,focus:dayElement.querySelector("[data-shift-end]")};
+  for(let i=1;i<intervals.length;i++)if(intervals[i][0]<intervals[i-1][1])return {error:`${dayName}時段不能重疊。`,focus:dayElement.querySelectorAll("[data-shift-start]")[1]};
+  const encode=minute=>`${String(Math.floor(minute/60)).padStart(2,"0")}:${String(minute%60).padStart(2,"0")}`;
+  return {value:intervals.map(([start,end])=>`${encode(start)}-${encode(end)}`).join("/"),intervals};
+}
 async function submitShiftAvailability(){
   try{await loadShiftTestMode();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
   const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="目前不在開放時間，無法送出。";return;}
   if(!await verifyShiftEmployee())return;
-  const values={};let hasAvailability=false;
-  for(const [key,id] of Object.entries(shiftDayFields)){
-    const value=document.getElementById(id).value.trim();
-    if(value&&parseAvailabilityRanges(value)===null){alert(`${({monday:"週一",tuesday:"週二",wednesday:"週三",thursday:"週四",friday:"週五",saturday:"週六",sunday:"週日"})[key]}時段格式不正確。請用 10-15 或 10-15、18-22。`);document.getElementById(id).focus();return;}
-    values[key]=value||null;if(value)hasAvailability=true;
+  const values={},dayResults={};
+  for(const key of Object.keys(shiftDayLabels)){
+    const result=readShiftDayValue(key);if(result.error){alert(result.error);result.focus?.focus();return;}
+    dayResults[key]=result;values[key]=result.value;
   }
   const notes=document.getElementById("shiftNotes").value.trim();
-  if(!hasAvailability&&!notes){alert("七天都留白時，請在備註欄說明原因。");document.getElementById("shiftNotes").focus();return;}
-  if(hasAvailability&&(!values.saturday||!values.sunday)){
-    const ok=confirm("週六或週日尚未提供可上班時段，可能影響排班工時；若能提供週末時段可增加排班彈性。仍要送出嗎？");if(!ok)return;
+  if(Object.values(values).every(value=>value==="無法上班")&&!notes){alert("七天皆無法上班，請在備註欄說明原因。");document.getElementById("shiftNotes").focus();return;}
+  if(dayResults.saturday.value==="無法上班"||dayResults.sunday.value==="無法上班"){
+    const ok=confirm("週六或週日選擇無法上班，可能影響排班工時；若能提供週末時段可增加排班彈性。仍要送出嗎？");if(!ok)return;
   }
   const payload={employee_id:verifiedShiftEmployee.id,week_start:cycle.weekStart,...values,notes:notes||null};
   shiftSubmitBtn.disabled=true;shiftSubmitMessage.textContent="送出中…";
@@ -4509,7 +4565,11 @@ async function submitShiftAvailability(){
 function resetShiftForm(){
   clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftEmployeeSearchResults=[];
   shiftNameInput.value="";verifiedShiftEmployee=null;shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
-  for(const id of Object.values(shiftDayFields))document.getElementById(id).value="";
+  for(const dayElement of shiftDaysContainer.querySelectorAll("[data-shift-day]")){
+    dayElement.querySelector("[data-shift-unavailable]").checked=false;
+    const slots=[...dayElement.querySelectorAll("[data-shift-slot]")];for(const slot of slots.slice(1))slot.remove();
+    dayElement.querySelectorAll("[data-shift-start],[data-shift-end]").forEach(input=>input.value="");updateShiftDayControls(dayElement);
+  }
   document.getElementById("shiftNotes").value="";shiftSubmitMessage.textContent="";shiftForm.style.display="block";shiftSuccess.classList.remove("show");updateShiftWindow();
 }
 function renderShiftEmployeeSuggestions(matches,keyword){
