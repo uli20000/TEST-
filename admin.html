@@ -919,6 +919,37 @@ button{cursor:pointer}
 .device-add-panel{border-color:#e1c66e;background:#fffdf5}
 .device-add-intro{padding:12px;border-radius:12px;background:var(--yellow-bg);color:#765800;font-size:14px;line-height:1.6;text-align:left;margin-bottom:12px}
 @media(max-width:700px){.admin-mode-btn{min-height:82px;font-size:21px}.admin-mode-btn .icon{font-size:32px}}
+.employee-area-card{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.employee-area-card select{min-height:42px;border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;font:inherit}
+.employee-badge{display:inline-block;border-radius:999px;padding:3px 9px;background:#f5eee2;color:#674b21;font-size:12px;font-weight:900;margin-left:6px}
+.employee-status{font-size:12px;color:var(--gray);margin-top:4px}
+.shift-admin-toolbar{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+.shift-admin-toolbar select,.shift-admin-toolbar button{min-height:44px}
+.shift-admin-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:10px;text-align:left}
+.shift-admin-card h3{margin:0;font-size:17px;line-height:1.4}
+.shift-admin-card.is-missing{border-left:4px solid #d5803b}
+.shift-admin-card.is-empty{border-left:4px solid #77736d}
+.shift-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:11px}
+.shift-admin-day{background:#faf9f6;border-radius:9px;padding:8px;font-size:13px;min-height:54px}
+.shift-admin-day b{display:block;color:var(--gray);font-size:11px;margin-bottom:3px}
+.shift-admin-notes{margin-top:10px;color:var(--gray);font-size:13px;white-space:pre-wrap;line-height:1.5}
+.shift-admin-empty{padding:20px;text-align:center;color:var(--gray)}
+.shift-admin-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.employee-list .roster-item{align-items:flex-start}
+.staffing-panel{background:#faf9f6;border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;text-align:left}
+.staffing-panel h3{margin:0 0 8px;font-size:17px}
+.staffing-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.staffing-results{display:grid;gap:10px;margin-top:12px}
+.staffing-day-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;text-align:left}
+.staffing-day-card h3{margin:0 0 9px;font-size:16px}
+.staffing-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.staffing-metric{background:#f8f7f5;border-radius:9px;padding:9px;font-size:12px;color:var(--gray)}
+.staffing-metric strong{display:block;margin-top:3px;font-size:15px;color:var(--black)}
+.staffing-gap-bad{color:#b42318!important}.staffing-gap-good{color:#176b3a!important}
+.staffing-upload-preview{font-size:13px;line-height:1.55;margin-top:8px;white-space:pre-wrap}
+.device-delete-btn{border:1px solid #b42318!important;background:#fff0ee!important;color:#b42318!important}
+@media(min-width:700px){.shift-admin-toolbar{grid-template-columns:minmax(200px,1fr) minmax(150px,.7fr) auto auto}.shift-admin-grid{grid-template-columns:repeat(7,minmax(0,1fr))}.staffing-grid{grid-template-columns:1fr 1fr}.staffing-results{grid-template-columns:repeat(2,minmax(0,1fr))}.staffing-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 </style>
 </head>
 
@@ -983,6 +1014,10 @@ button{cursor:pointer}
   <button id="rosterModeBtn" class="admin-mode-btn" type="button">
     <span class="icon">👥</span>
     在職名單
+  </button>
+  <button id="shiftModeBtn" class="admin-mode-btn" type="button">
+    <span class="icon">🗓️</span>
+    指休管理
   </button>
 </div>
 
@@ -1200,7 +1235,25 @@ button{cursor:pointer}
 <section id="rosterModePage" class="admin-mode-page">
   <div class="mode-back-row"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
-    <div class="section-title">在職名單</div>
+    <div class="section-title">在職員工與 A–K 區域</div>
+    <div class="hint">新員工由管理員新增；設定後，員工指休表會依在職狀態與區域驗證。停用不會刪除舊指休資料。</div>
+    <div class="search-box" style="margin-top:12px">
+      <input id="employeeNameInput" class="search-input" type="text" maxlength="60" placeholder="輸入員工姓名" autocomplete="name">
+      <select id="employeeAreaInput" class="search-input" style="margin-top:10px" aria-label="新員工區域">
+        <option value="">選擇 A–K 區</option>
+        <option value="A">A 區</option><option value="B">B 區</option><option value="C">C 區</option>
+        <option value="D">D 區</option><option value="E">E 區</option><option value="F">F 區</option>
+        <option value="G">G 區</option><option value="H">H 區</option><option value="I">I 區</option>
+        <option value="J">J 區</option><option value="K">K 區</option>
+      </select>
+      <button id="employeeAddBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增在職員工</button>
+      <div id="employeeMessage" class="hint" style="margin-top:8px" role="status" aria-live="polite"></div>
+    </div>
+    <div id="employeeDirectoryList" class="roster-list employee-list" style="margin-top:12px"><div class="loading">載入員工資料中…</div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">問卷／訓練名單（既有功能）</div>
     <div class="search-box">
       <input id="surveyTargetNameInput" class="search-input" type="text" placeholder="輸入新人姓名" autocomplete="name">
       <button id="surveyTargetAddBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增在職員工</button>
@@ -1208,7 +1261,7 @@ button{cursor:pointer}
     </div>
   </section>
   <section class="section">
-    <div class="section-title">目前在職員工</div>
+    <div class="section-title">目前問卷／訓練名單</div>
     <div id="rosterList" class="roster-list">
       <div class="loading">尚未載入在職名單</div>
     </div>
@@ -1220,6 +1273,51 @@ button{cursor:pointer}
   <div id="surveyIncompleteList" style="display:none"></div>
   <div id="surveyFailedList" style="display:none"></div>
 </section>
+<section id="shiftModePage" class="admin-mode-page">
+  <div class="mode-back-row"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
+  <section class="section">
+    <div class="section-title">指休管理與人力建議</div>
+    <div class="hint">台灣時間週一 10:00 至週六 10:00 開放員工填寫下一週。TPLH 目標 2.5 以總 TC 計算；第三方使用率上限 20% 為獨立指標。</div>
+    <div class="shift-admin-toolbar">
+      <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次"></select>
+      <select id="shiftAreaFilter" class="search-input" aria-label="依區域篩選"><option value="">全部 A-K 區</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>I</option><option>J</option><option>K</option></select>
+      <button id="shiftRefreshBtn" class="action-btn" type="button">↻ 重新整理</button>
+      <button id="shiftExportBtn" class="action-btn" type="button">📊 匯出所選週 Excel</button>
+    </div>
+    <div id="shiftAdminSummary" class="hint" style="margin-top:10px"></div>
+  </section>
+  <section class="section">
+    <div class="section-title">下週每日可排人力與建議工時</div>
+    <div class="hint">TC 以相同星期最近八週的平均值估算。餐期資料是 11–13 與 18–20 合計，只作餐期總量參考；不會與整天 TC 重複相加。</div>
+    <div id="staffingRecommendationSummary" class="summary"></div>
+    <div id="staffingRecommendationList" class="staffing-results"><div class="loading">載入歷史資料與指休資料中…</div></div>
+  </section>
+  <section class="section">
+    <div class="section-title">匯入歷史資料</div>
+    <div class="staffing-grid">
+      <div class="staffing-panel">
+        <h3>① 匯入 TC 活頁簿</h3>
+        <div class="hint">需含整天與餐期兩個分頁；欄位使用 STR_SN、DATE、DATE PY、去年單數、實際外送TC、扣除第三方TC。Total 彙總列會略過。</div>
+        <input id="tcHistoryFile" class="search-input" type="file" accept=".xlsx,.xls">
+        <button id="tcHistoryImportBtn" class="action-btn" type="button" style="width:100%;margin-top:10px">預覽並匯入 TC</button>
+        <div id="tcHistoryImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
+      </div>
+      <div class="staffing-panel">
+        <h3>② 匯入工時與第三方資料</h3>
+        <div class="hint">第一個分頁需含 STR_SN、DATE、實際工時、實際TPLH、第三方使用率；每間餐廳每天一列。</div>
+        <input id="staffingActualsFile" class="search-input" type="file" accept=".xlsx,.xls">
+        <button id="staffingActualsImportBtn" class="action-btn" type="button" style="width:100%;margin-top:10px">預覽並匯入工時</button>
+        <div id="staffingActualsImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="hint">空白或負數數值按 0 匯入。重複餐廳／日期／類型會更新既有資料；上傳前會先檢查店名與日期。</div>
+  </section>
+  <section class="section">
+    <div class="section-title">指休提交狀況</div>
+    <div id="shiftAdminList" class="vehicle-list"><div class="loading">載入在職員工與提交狀態中…</div></div>
+  </section>
+</section>
+
 </div>
 
 <!-- 快速清單 -->
@@ -4548,6 +4646,329 @@ db.auth.getSession().then(({data}) => unlockAdmin(data.session)).catch(() => loc
 
 
 showAdminMode("home");
+
+/* =========================================================
+   T995 員工區域、指休管理、人力資料匯入與設備永久刪除
+========================================================= */
+const t995EmployeeNameInput=$("employeeNameInput");
+const t995EmployeeAreaInput=$("employeeAreaInput");
+const t995EmployeeAddBtn=$("employeeAddBtn");
+const t995EmployeeMessage=$("employeeMessage");
+const t995EmployeeDirectoryList=$("employeeDirectoryList");
+const t995ShiftModePage=$("shiftModePage");
+const t995ShiftModeBtn=$("shiftModeBtn");
+const t995ShiftBackBtn=$("shiftBackBtn");
+const t995ShiftWeekSelect=$("shiftWeekSelect");
+const t995ShiftAreaFilter=$("shiftAreaFilter");
+const t995ShiftRefreshBtn=$("shiftRefreshBtn");
+const t995ShiftExportBtn=$("shiftExportBtn");
+const t995ShiftSummary=$("shiftAdminSummary");
+const t995ShiftAdminList=$("shiftAdminList");
+const t995StaffingSummary=$("staffingRecommendationSummary");
+const t995StaffingList=$("staffingRecommendationList");
+const t995TcFile=$("tcHistoryFile");
+const t995TcImportBtn=$("tcHistoryImportBtn");
+const t995TcImportMessage=$("tcHistoryImportMessage");
+const t995ActualsFile=$("staffingActualsFile");
+const t995ActualsImportBtn=$("staffingActualsImportBtn");
+const t995ActualsImportMessage=$("staffingActualsImportMessage");
+let t995Employees=[];
+let t995ShiftRows=[];
+let t995ShiftExportRows=[];
+let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8};
+let t995AreaMap=new Map();
+let t995AreaMapLoaded=false;
+
+function t995RenderEmployeeDirectory(){
+  if(!t995Employees.length){t995EmployeeDirectoryList.innerHTML='<div class="empty">目前沒有員工資料</div>';return;}
+  const areas=['A','B','C','D','E','F','G','H','I','J','K'];
+  t995EmployeeDirectoryList.innerHTML=t995Employees.map(row=>{
+    const options=['<option value="">未設定</option>',...areas.map(a=>`<option value="${a}" ${row.area_code===a?'selected':''}>${a} 區</option>`)].join('');
+    return `<div class="roster-item"><span><strong>${esc(row.full_name)}</strong><span class="employee-badge">${esc(row.area_code?`${row.area_code} 區`:"未分類")}</span><small class="employee-status" style="display:block">${row.is_active?"在職":"已停用"}</small></span><div class="employee-area-card"><select aria-label="${esc(row.full_name)} 區域" data-t995-employee-area="${esc(row.id)}">${options}</select><button type="button" class="action-btn ${row.is_active?'danger':''}" data-t995-employee-toggle="${esc(row.id)}" data-active="${row.is_active?'true':'false'}">${row.is_active?'停用':'重新啟用'}</button></div></div>`;
+  }).join('');
+}
+async function t995LoadEmployees(){
+  t995EmployeeDirectoryList.innerHTML='<div class="loading">載入員工名單中…</div>';
+  try{const r=await db.from("employee_directory").select("id,full_name,area_code,is_active,updated_at").order("full_name",{ascending:true});if(r.error)throw r.error;t995Employees=r.data||[];t995RenderEmployeeDirectory();}
+  catch(e){t995EmployeeDirectoryList.innerHTML=`<div class="empty">員工名單讀取失敗：${esc(e.message||"請確認管理員權限與 SQL 更新")}</div>`;}
+}
+async function t995AddEmployee(){
+  const name=t995EmployeeNameInput.value.trim();const area=t995EmployeeAreaInput.value;
+  if(!name){t995EmployeeMessage.textContent="請輸入員工姓名。";t995EmployeeNameInput.focus();return;}
+  if(!area){t995EmployeeMessage.textContent="請選擇 A–K 區。";t995EmployeeAreaInput.focus();return;}
+  t995EmployeeAddBtn.disabled=true;t995EmployeeMessage.textContent="新增中…";
+  try{
+    const existing=await db.from("employee_directory").select("id,is_active,area_code").eq("full_name",name).maybeSingle();if(existing.error)throw existing.error;
+    if(existing.data){t995EmployeeMessage.textContent=existing.data.is_active?`「${name}」已在職名單中，請在員工卡片修改區域。`:`「${name}」已停用，請使用卡片上的重新啟用。`;return;}
+    const r=await db.from("employee_directory").insert({full_name:name,area_code:area,is_active:true});if(r.error)throw r.error;
+    t995EmployeeNameInput.value="";t995EmployeeAreaInput.value="";t995EmployeeMessage.textContent=`✅ 已新增 ${name}｜${area} 區`;await t995LoadEmployees();
+  }catch(e){t995EmployeeMessage.textContent=`新增失敗：${e.message||"請確認管理員權限"}`;}
+  finally{t995EmployeeAddBtn.disabled=false;}
+}
+async function t995UpdateEmployeeArea(id,newArea){
+  const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
+  const next=newArea||null;if((row.area_code||null)===next)return;
+  const oldLabel=row.area_code?`${row.area_code} 區`:"未分類";const newLabel=next?`${next} 區`:"未分類";
+  if(!confirm(`確定將「${row.full_name}」區域由 ${oldLabel} 改為 ${newLabel}？`)){t995RenderEmployeeDirectory();return;}
+  try{const r=await db.from("employee_directory").update({area_code:next,updated_at:new Date().toISOString()}).eq("id",id);if(r.error)throw r.error;await t995LoadEmployees();}
+  catch(e){alert(`更新員工區域失敗：${e.message||"請確認管理員權限"}`);await t995LoadEmployees();}
+}
+async function t995ToggleEmployeeActive(id,currentlyActive){
+  const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
+  const next=!currentlyActive;const text=next?`確定重新啟用「${row.full_name}」？`:`確定停用「${row.full_name}」？停用後不能提交新指休資料，舊資料會保留。`;
+  if(!confirm(text))return;
+  try{const r=await db.from("employee_directory").update({is_active:next,updated_at:new Date().toISOString()}).eq("id",id);if(r.error)throw r.error;await t995LoadEmployees();}
+  catch(e){alert(`更新在職狀態失敗：${e.message||"請確認管理員權限"}`);}
+}
+
+function t995TaipeiNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const y=Number(p.year),m=Number(p.month),d=Number(p.day);return {y,m,d,dow:new Date(Date.UTC(y,m-1,d)).getUTCDay(),minute:Number(p.hour)*60+Number(p.minute)};
+}
+function t995DateISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
+function t995DateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return t995DateISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
+function t995WeekChoices(){
+  const p=t995TaipeiNow();const monday=t995DateAdd(t995DateISO(p.y,p.m,p.d),-((p.dow+6)%7));
+  const open=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
+  const target=t995DateAdd(monday,(open||(p.dow===1&&p.minute<600))?7:14);
+  return [0,1,2,3].map(i=>{const start=t995DateAdd(target,-7*i);return {start,label:`${start} 至 ${t995DateAdd(start,6)}`};});
+}
+function t995ParseRanges(value){
+  const s=String(value||"").trim();if(!s)return [];
+  const out=[];for(const part of s.split(/[，,、;；/\n]+/).map(x=>x.trim()).filter(Boolean)){
+    const m=part.match(/^(\d{1,2})(?::(\d{2}))?\s*[-~～至]\s*(\d{1,2})(?::(\d{2}))?$/);if(!m)return null;
+    const sh=+m[1],sm=+(m[2]||0),eh=+m[3],em=+(m[4]||0),a=sh*60+sm,b=eh*60+em;
+    if(sh>23||eh>24||sm>59||em>59||a>=b||b>1440)return null;out.push([a,b]);
+  }return out;
+}
+function t995RangeHours(ranges,start,end){return (ranges||[]).reduce((sum,[a,b])=>sum+Math.max(0,Math.min(b,end)-Math.max(a,start))/60,0);}
+function t995DayLabel(iso){const [y,m,d]=iso.split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));return `${m}/${d} ${['日','一','二','三','四','五','六'][dt.getUTCDay()]}`;}
+function t995IsAllBlank(row){return ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].every(k=>!String(row[k]||'').trim());}
+function t995LatestShiftByEmployee(rows){const map=new Map();for(const r of [...(rows||[])].sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||''))))if(!map.has(String(r.employee_id)))map.set(String(r.employee_id),r);return map;}
+async function t995LoadShiftAdmin(){
+  const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;t995ShiftWeekSelect.innerHTML=weeks.map(w=>`<option value="${w.start}">${w.label}</option>`).join('');if(weeks.some(w=>w.start===old))t995ShiftWeekSelect.value=old;
+  t995ShiftAdminList.innerHTML='<div class="loading">載入員工與指休狀態中…</div>';t995ShiftSummary.textContent="";t995StaffingList.innerHTML='<div class="loading">計算各區人力建議中…</div>';
+  try{
+    const [er,sr,settings]=await Promise.all([
+      db.from("employee_directory").select("id,full_name,area_code,is_active").eq("is_active",true).order("area_code",{ascending:true}).order("full_name",{ascending:true}),
+      db.from("weekly_shift_availability").select("id,employee_id,employee_name,employee_area_code,week_start,monday,tuesday,wednesday,thursday,friday,saturday,sunday,notes,submitted_at").eq("week_start",t995ShiftWeekSelect.value).order("submitted_at",{ascending:false}),
+      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks").eq("singleton",true).maybeSingle()
+    ]);
+    if(er.error)throw er.error;if(sr.error)throw sr.error;if(settings.error)throw settings.error;
+    t995Employees=er.data||[];if(settings.data)t995StaffingSettings=settings.data;
+    const latest=t995LatestShiftByEmployee(sr.data||[]);
+    t995ShiftRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
+    t995RenderShiftAdmin();
+    await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,t995ShiftRows);
+  }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">指休資料讀取失敗：${esc(e.message||"請確認 SQL 權限")}</div>`;t995StaffingList.innerHTML=`<div class="empty">人力建議讀取失敗：${esc(e.message||"請先匯入 TC 資料")}</div>`;}
+}
+function t995RenderShiftAdmin(){
+  const filter=t995ShiftAreaFilter.value;const rows=t995ShiftRows.filter(x=>!filter||x.employee.area_code===filter);
+  const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
+  t995ShiftSummary.textContent=`${t995ShiftWeekSelect.options[t995ShiftWeekSelect.selectedIndex]?.text||"所選週次"}｜在職 ${active} 人｜已提交 ${submitted} 人｜未提交 ${missing} 人`;
+  if(!rows.length){t995ShiftAdminList.innerHTML='<div class="shift-admin-empty">目前沒有符合條件的在職員工。</div>';return;}
+  const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
+  t995ShiftAdminList.innerHTML=rows.map(({employee:e,shift:r})=>{
+    const allBlank=r&&t995IsAllBlank(r);const cls=!r?'is-missing':allBlank?'is-empty':'';
+    const status=!r?'未提交':allBlank?'已提交｜七天皆空白':'已提交';
+    const cells=r?days.map(([label,key])=>`<div class="shift-admin-day"><b>${label}</b>${esc(r[key]||"未提供")}</div>`).join(''):days.map(([label])=>`<div class="shift-admin-day"><b>${label}</b>—</div>`).join('');
+    const submittedAt=r?.submitted_at?new Date(r.submitted_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei"}):"—";
+    return `<article class="shift-admin-card ${cls}"><h3>${esc(e.full_name)}<span class="employee-badge">${esc(e.area_code||"未分類")} 區</span></h3><div class="employee-status">${status}｜最後送出：${esc(submittedAt)}</div><div class="shift-admin-grid">${cells}</div>${r?.notes?`<div class="shift-admin-notes"><strong>備註：</strong>${esc(r.notes)}</div>`:''}</article>`;
+  }).join('');
+}
+function t995BuildShiftExportRows(){
+  const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
+  return t995ShiftRows.map(({employee:e,shift:r})=>({週次:t995ShiftWeekSelect.value,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",提交狀態:!r?"未提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
+}
+function t995ExportShiftWeek(){
+  const rows=t995BuildShiftExportRows();if(!rows.length){alert("目前沒有在職員工資料可匯出。");return;}
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"指休表");XLSX.writeFile(wb,`T995_指休_${t995ShiftWeekSelect.value}.xlsx`);
+}
+async function t995LoadAllPaged(table,select,fromDate,toDate,periodCode){
+  const out=[];const pageSize=1000;for(let offset=0;;offset+=pageSize){
+    let q=db.from(table).select(select).gte("record_date",fromDate).lt("record_date",toDate).order("record_date",{ascending:true}).order("restaurant_name",{ascending:true});
+    if(periodCode)q=q.eq("period_code",periodCode);q=q.range(offset,offset+pageSize-1);
+    const r=await q;if(r.error)throw r.error;out.push(...(r.data||[]));if(!r.data||r.data.length<pageSize)break;
+  }return out;
+}
+function t995MapAdd(map,key,value){map.set(key,(map.get(key)||0)+Number(value||0));}
+function t995SampleAverage(map,area,weekStart,dayOffset,weeks){
+  const vals=[];for(let w=1;w<=weeks;w++){const day=t995DateAdd(weekStart,dayOffset-7*w);const k=`${area}|${day}`;if(map.has(k))vals.push(map.get(k));}
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+async function t995RenderStaffingRecommendation(weekStart,shiftRows){
+  const weeks=Math.max(1,Number(t995StaffingSettings.forecast_weeks)||8);const first=t995DateAdd(weekStart,-7*weeks);
+  const [fullRows,mealRows,actualRows]=await Promise.all([
+    t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,period_code",first,weekStart,"full_day"),
+    t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,period_code",first,weekStart,"meal_period"),
+    t995LoadAllPaged("staffing_daily_actuals","record_date,restaurant_name,area_code,actual_work_hours,actual_tplh,third_party_usage_pct",first,weekStart,null)
+  ]);
+  if(!fullRows.length){t995StaffingSummary.innerHTML='<div class="summary-card"><div class="summary-label">可用歷史週數</div><div class="summary-number">0</div></div>';t995StaffingList.innerHTML='<div class="shift-admin-empty">尚未匯入整天 TC 資料；先匯入 TC 活頁簿後即可計算。</div>';return;}
+  const fullByAreaDate=new Map(),mealByAreaDate=new Map(),fullByStoreDate=new Map(),hoursByArea=new Map(),tpWeightedByAreaDate=new Map();
+  for(const r of fullRows){const date=String(r.record_date).slice(0,10);const area=r.area_code;const tc=Number(r.total_tc||0);t995MapAdd(fullByAreaDate,`${area}|${date}`,tc);fullByStoreDate.set(`${r.restaurant_name}|${date}`,tc);}
+  for(const r of mealRows){const date=String(r.record_date).slice(0,10);t995MapAdd(mealByAreaDate,`${r.area_code}|${date}`,Number(r.total_tc||0));}
+  for(const r of actualRows){const date=String(r.record_date).slice(0,10);const area=r.area_code;const key=`${r.restaurant_name}|${date}`;const tc=fullByStoreDate.get(key)||0;const h=Number(r.actual_work_hours||0);const pct=Number(r.third_party_usage_pct||0);const a=hoursByArea.get(area)||{hours:0,tc:0};a.hours+=h;a.tc+=tc;hoursByArea.set(area,a);if(tc>0){const k=`${area}|${date}`;const v=tpWeightedByAreaDate.get(k)||{num:0,den:0};v.num+=tc*pct;v.den+=tc;tpWeightedByAreaDate.set(k,v);}}
+  const tpByAreaDate=new Map([...tpWeightedByAreaDate].map(([k,v])=>[k,v.den?v.num/v.den:0]));
+  const byArea=new Map();for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
+  const areas=['A','B','C','D','E','F','G','H','I','J','K'];const target=Number(t995StaffingSettings.target_tplh)||2.5;const cap=Number(t995StaffingSettings.max_third_party_usage_pct)||20;const dayNames=['週一','週二','週三','週四','週五','週六','週日'];
+  const output=areas.map(area=>{
+    const days=dayNames.map((day,offset)=>{
+      const date=t995DateAdd(weekStart,offset);const totalTc=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks);const mealTc=t995SampleAverage(mealByAreaDate,area,weekStart,offset,weeks);const tp=t995SampleAverage(tpByAreaDate,area,weekStart,offset,weeks);
+      const recommended=totalTc===null?null:totalTc/target;const mealHours=mealTc===null?null:mealTc/target;
+      let availableHours=0,mealAvailable=0,people=0;
+      for(const x of byArea.get(area)||[]){if(!x.shift)continue;const key=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][offset];const intervals=t995ParseRanges(x.shift[key]);if(intervals===null||!intervals.length)continue;people++;availableHours+=intervals.reduce((s,[a,b])=>s+(b-a)/60,0);mealAvailable+=t995RangeHours(intervals,11*60,13*60)+t995RangeHours(intervals,18*60,20*60);}
+      return {day,date,totalTc,mealTc,tp,recommended,mealHours,availableHours,mealAvailable,people,gap:recommended===null?null:availableHours-recommended};
+    });
+    return {area,days};
+  });
+  const validTargets=output.flatMap(x=>x.days).filter(d=>d.recommended!==null);const totalNeeded=validTargets.reduce((s,d)=>s+d.recommended,0);const totalAvail=validTargets.reduce((s,d)=>s+d.availableHours,0);const actual= [...hoursByArea.values()].reduce((s,x)=>({hours:s.hours+x.hours,tc:s.tc+x.tc}),{hours:0,tc:0});const actualTplh=actual.hours>0?actual.tc/actual.hours:null;
+  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">回看週數</div><div class="summary-number">${weeks}</div></div><div class="summary-card"><div class="summary-label">TPLH 目標</div><div class="summary-number">${target.toFixed(2)}</div></div><div class="summary-card"><div class="summary-label">預估所需工時</div><div class="summary-number">${totalNeeded.toFixed(1)}</div></div><div class="summary-card ${totalAvail>=totalNeeded?'done':'abnormal'}"><div class="summary-label">指休可排工時</div><div class="summary-number">${totalAvail.toFixed(1)}</div></div>${actualTplh!==null?`<div class="summary-card"><div class="summary-label">歷史實際 TPLH（總 TC／工時）</div><div class="summary-number">${actualTplh.toFixed(2)}</div></div>`:''}`;
+  t995StaffingList.innerHTML=output.map(({area,days})=>`<article class="staffing-day-card"><h3>${area} 區</h3><div class="staffing-metrics">${days.map(d=>{
+    const gapClass=d.gap===null?'':d.gap<0?'staffing-gap-bad':'staffing-gap-good';const gapText=d.gap===null?'缺少 TC 資料':`${d.gap>=0?'+':''}${d.gap.toFixed(1)} 小時`;
+    const tpText=d.tp===null?'—':`${d.tp.toFixed(1)}%${d.tp>cap?' ⚠':''}`;
+    return `<div class="staffing-metric"><strong>${d.day}｜${t995DayLabel(d.date)}</strong><span>預估總 TC：${d.totalTc===null?'—':d.totalTc.toFixed(1)}</span><br><span>TPLH 2.5 工時：${d.recommended===null?'—':d.recommended.toFixed(1)}</span><br><span>可排 ${d.people} 人／${d.availableHours.toFixed(1)} 小時</span><br><span class="${gapClass}">工時差：${gapText}</span><br><span>餐期 TC：${d.mealTc===null?'—':d.mealTc.toFixed(1)}｜餐期可排 ${d.mealAvailable.toFixed(1)} 小時</span><br><span>預估第三方率：${tpText}</span></div>`;
+  }).join('')}</div></article>`).join('');
+}
+function t995RenderStaffingFromCurrent(){
+  const filter=t995ShiftAreaFilter.value;t995StaffingList.querySelectorAll('.staffing-day-card').forEach(card=>{card.style.display=!filter||card.querySelector('h3')?.textContent.startsWith(filter+' 區')?'':'none';});
+}
+function t995RenderShiftAndForecast(){t995RenderShiftAdmin();t995RenderStaffingFromCurrent();}
+
+function t995ExcelDateToISO(value){
+  if(value instanceof Date&&!Number.isNaN(value.getTime()))return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
+  if(typeof value==='number'&&Number.isFinite(value)){const d=XLSX.SSF.parse_date_code(value);if(!d)return null;return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
+  const s=String(value??'').trim();if(!s)return null;
+  let m=s.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/);if(m)return `${m[1]}-${String(+m[2]).padStart(2,'0')}-${String(+m[3]).padStart(2,'0')}`;
+  const parsed=new Date(s);if(!Number.isNaN(parsed.getTime()))return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;return null;
+}
+function t995NumericZero(value,counter){
+  if(value===null||value===undefined||String(value).trim()===''){counter.count++;return 0;}
+  let n;if(typeof value==='number')n=value;else n=Number(String(value).replace(/,/g,'').replace(/%/g,'').trim());
+  if(!Number.isFinite(n)||n<0){counter.count++;return 0;}return n;
+}
+function t995PercentValue(value,counter){
+  if(value===null||value===undefined||String(value).trim()===''){counter.count++;return 0;}
+  const raw=String(value).trim();let n=typeof value==='number'?value:Number(raw.replace(/%/g,'').replace(/,/g,''));
+  if(!Number.isFinite(n)||n<0){counter.count++;return 0;}
+  if(typeof value==='number'&&n>0&&n<=1)n*=100;
+  else if(typeof value!=='number'&&raw.includes('%'))n=Number(raw.replace(/%/g,'').replace(/,/g,''));
+  else if(typeof value!=='number'&&n>0&&n<=1)n*=100;
+  return n;
+}
+function t995MinMaxDates(rows){const ds=rows.map(x=>x.record_date).filter(Boolean).sort();return {start:ds[0]||null,end:ds[ds.length-1]||null};}
+async function t995LoadAreaMap(){
+  const r=await db.from("tc_restaurant_area_map").select("restaurant_name,area_code").eq("is_active",true);if(r.error)throw r.error;t995AreaMap=new Map((r.data||[]).map(x=>[String(x.restaurant_name).trim(),x.area_code]));t995AreaMapLoaded=true;
+}
+function t995RowsFromSheet(workbook,sheetName,period,counter,unmapped){
+  const sheet=workbook.Sheets[sheetName];const rawRows=XLSX.utils.sheet_to_json(sheet,{defval:null,raw:true});const out=[];
+  rawRows.forEach((row,index)=>{
+    const store=String(row.STR_SN??row['餐廳']??'').trim();if(!store||store.toLowerCase()==='total')return;
+    const area=t995AreaMap.get(store);if(!area){unmapped.add(store);return;}
+    const date=t995ExcelDateToISO(row.DATE??row['日期']);if(!date){counter.badDates++;return;}
+    const priorDate=t995ExcelDateToISO(row['DATE PY']??row['去年日期']);
+    out.push({restaurant_name:store,area_code:area,record_date:date,prior_year_date:priorDate,period_code:period,prior_year_tc:t995NumericZero(row['去年單數']??row['去年TC'],counter),total_tc:t995NumericZero(row['實際外送TC']??row['今年TC']??row['TC(System)'],counter),tc_ex_third_party:t995NumericZero(row['扣除第三方TC'],counter),source_sheet:sheetName,source_row:index+2});
+  });return out;
+}
+async function t995CreateImportBatch(fileName,rows,note){
+  const dates=t995MinMaxDates(rows);const user=await db.auth.getUser();const email=user?.data?.user?.email||null;
+  const r=await db.from("staffing_import_batches").insert({file_name:fileName,period_start:dates.start,period_end:dates.end,imported_by:email,note}).select("id").single();if(r.error)throw r.error;return r.data.id;
+}
+async function t995UpsertChunks(table,rows,onConflict,messageNode){
+  const size=250;for(let i=0;i<rows.length;i+=size){const r=await db.from(table).upsert(rows.slice(i,i+size),{onConflict});if(r.error)throw r.error;if(messageNode)messageNode.textContent=`匯入中… ${Math.min(i+size,rows.length)} / ${rows.length}`;}
+}
+async function t995ImportTcWorkbook(){
+  const file=t995TcFile.files?.[0];if(!file){t995TcImportMessage.textContent="請先選擇 TC 活頁簿。";return;}
+  t995TcImportBtn.disabled=true;t995TcImportMessage.textContent="讀取分頁與檢查餐廳名稱中…";let batchId=null;
+  try{
+    if(!t995AreaMapLoaded)await t995LoadAreaMap();const workbook=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});
+    const fullSheet=workbook.SheetNames.find(n=>n.includes("整天"));const mealSheet=workbook.SheetNames.find(n=>n.includes("餐期"));
+    if(!fullSheet||!mealSheet)throw new Error("找不到「整天」及「餐期」分頁；請使用包含兩種資料的活頁簿。要求欄位：STR_SN、DATE、DATE PY、去年單數、實際外送TC、扣除第三方TC。");
+    const counter={count:0,badDates:0};const unmapped=new Set();
+    const rows=[...t995RowsFromSheet(workbook,fullSheet,"full_day",counter,unmapped),...t995RowsFromSheet(workbook,mealSheet,"meal_period",counter,unmapped)];
+    if(counter.badDates)throw new Error(`${counter.badDates} 列日期無法辨識，請檢查 DATE 欄。`);
+    if(unmapped.size)throw new Error(`以下店名不在 A–K 對照表，未匯入：${[...unmapped].slice(0,15).join("、")}${unmapped.size>15?"…":""}`);
+    if(!rows.length)throw new Error("沒有可匯入的餐廳資料列。請確認是否只有 Total 總計列。");
+    const unique=new Set(rows.map(r=>`${r.restaurant_name}|${r.record_date}|${r.period_code}`));if(unique.size!==rows.length)throw new Error("檔案內有重複餐廳／日期／整天或餐期資料；請先整理後再匯入。");
+    const dates=t995MinMaxDates(rows);t995TcImportMessage.textContent=`預覽完成：${rows.length} 列｜${dates.start} 至 ${dates.end}｜整天與餐期分開保存｜Total 列已略過｜空白／負數歸零 ${counter.count} 個欄位。重複的餐廳／日期／類型會更新。`;
+    if(!confirm(`即將匯入 ${rows.length} 列 TC 資料（${dates.start} 至 ${dates.end}）。重複資料將依餐廳＋日期＋類型更新。確定繼續？`))return;
+    batchId=await t995CreateImportBatch(file.name,rows,"TC Excel 上傳；整天與餐期分頁分開匯入；Total 彙總列略過");
+    rows.forEach(r=>r.import_batch_id=batchId);
+    await t995UpsertChunks("staffing_tc_history",rows,"restaurant_name,record_date,period_code",t995TcImportMessage);
+    t995TcImportMessage.textContent=`✅ 已匯入 ${rows.length} 列 TC 資料。空白／負數歸零 ${counter.count} 個欄位。`;
+    await t995LoadShiftAdmin();
+  }catch(e){t995TcImportMessage.textContent=`匯入失敗：${e.message||"請稍後重試"}${batchId?"；若部分批次已送出，請重新上傳同一完整檔案以覆寫補齊。":""}`;}
+  finally{t995TcImportBtn.disabled=false;}
+}
+function t995ActualField(row,names){for(const n of names)if(Object.prototype.hasOwnProperty.call(row,n))return row[n];return null;}
+async function t995ImportActualsWorkbook(){
+  const file=t995ActualsFile.files?.[0];if(!file){t995ActualsImportMessage.textContent="請先選擇工時／TPLH 活頁簿。";return;}
+  t995ActualsImportBtn.disabled=true;t995ActualsImportMessage.textContent="讀取並檢查餐廳名稱中…";let batchId=null;
+  try{
+    if(!t995AreaMapLoaded)await t995LoadAreaMap();const workbook=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});const name=workbook.SheetNames[0];if(!name)throw new Error("活頁簿沒有工作表。");
+    const rowsRaw=XLSX.utils.sheet_to_json(workbook.Sheets[name],{defval:null,raw:true});const counter={count:0,badDates:0};const unmapped=new Set();const rows=[];
+    rowsRaw.forEach((row,i)=>{
+      const store=String(t995ActualField(row,["STR_SN","餐廳","餐廳名稱"])??"").trim();if(!store||store.toLowerCase()==='total')return;
+      const area=t995AreaMap.get(store);if(!area){unmapped.add(store);return;}
+      const date=t995ExcelDateToISO(t995ActualField(row,["DATE","日期"]));if(!date){counter.badDates++;return;}
+      const rate=t995PercentValue(t995ActualField(row,["第三方使用率","第三方使用率%","FA使用率%","第三方率"]),counter);
+      if(rate>100)throw new Error(`第 ${i+2} 列第三方使用率超過 100%。`);
+      rows.push({restaurant_name:store,area_code:area,record_date:date,actual_work_hours:t995NumericZero(t995ActualField(row,["實際工時","實際安排工時","工時"]),counter),actual_tplh:t995NumericZero(t995ActualField(row,["實際TPLH","實際 TPLH","實際TPLH (FA)","實際 TPLH (FA)"]),counter),third_party_usage_pct:rate});
+    });
+    if(counter.badDates)throw new Error(`${counter.badDates} 列日期無法辨識，請檢查 DATE 欄。`);
+    if(unmapped.size)throw new Error(`以下店名不在 A–K 對照表：${[...unmapped].slice(0,15).join("、")}${unmapped.size>15?"…":""}`);
+    if(!rows.length)throw new Error("沒有可匯入的餐廳資料列。Total 列會略過。");
+    const keys=new Set(rows.map(r=>`${r.restaurant_name}|${r.record_date}`));if(keys.size!==rows.length)throw new Error("檔案內有重複餐廳／日期資料，請先整理。");
+    const dates=t995MinMaxDates(rows);t995ActualsImportMessage.textContent=`預覽完成：${rows.length} 列｜${dates.start} 至 ${dates.end}｜空白／負數歸零 ${counter.count} 個欄位。`;
+    if(!confirm(`即將匯入 ${rows.length} 列工時／TPLH／第三方資料（${dates.start} 至 ${dates.end}）。確定繼續？`))return;
+    batchId=await t995CreateImportBatch(file.name,rows,"每日實際工時、TPLH、第三方使用率上傳");rows.forEach(r=>r.import_batch_id=batchId);
+    await t995UpsertChunks("staffing_daily_actuals",rows,"restaurant_name,record_date",t995ActualsImportMessage);
+    t995ActualsImportMessage.textContent=`✅ 已匯入 ${rows.length} 列工時／TPLH／第三方資料。空白／負數歸零 ${counter.count} 個欄位。`;
+    await t995LoadShiftAdmin();
+  }catch(e){t995ActualsImportMessage.textContent=`匯入失敗：${e.message||"請稍後重試"}${batchId?"；若部分批次已送出，請重新上傳同一完整檔案以覆寫補齊。":""}`;}
+  finally{t995ActualsImportBtn.disabled=false;}
+}
+async function t995DeleteDeviceCard(type,id,number){
+  const label=type==="recorder"?"行車紀錄器":"電池";
+  if(!confirm(`確定永久刪除${label}小卡「${number}」？\n\n只有沒有任何異常回報歷史的設備可以刪除；此操作無法復原。`))return;
+  try{
+    const table=type==="recorder"?"recorders":"batteries";const r=await db.from(table).delete().eq("id",id);if(r.error)throw r.error;
+    if(type==="recorder"){recorderInventory=(recorderInventory||[]).filter(x=>String(x.id)!==String(id));renderRecorderSummary();renderRecorderReports();}
+    else{batteryInventory=(batteryInventory||[]).filter(x=>String(x.id)!==String(id));renderBatterySummary();renderBatteryReports();}
+    alert(`✅ ${label}小卡已永久刪除。`);
+  }catch(e){alert(`無法刪除${label}小卡：${e.message||"請確認權限或異常歷史"}\n\n若設備有任何異常回報，請使用報廢功能保留紀錄。`);}
+}
+function t995AttachDeviceDeleteButtons(type){
+  const isRecorder=type==="recorder";const list=batteryReportList;const inventory=isRecorder?(recorderInventory||[]):(batteryInventory||[]);const reports=isRecorder?(recorderReports||[]):(batteryReports||[]);const keyFn=isRecorder?recorderKey:batteryKey;const prop=isRecorder?"recorder_number":"battery_number";const icon=isRecorder?"📹":"🔋";
+  list.querySelectorAll(".survey-card").forEach(card=>{
+    const label=card.querySelector(".survey-name");if(!label)return;const number=label.textContent.replace(icon,"").trim();const row=inventory.find(x=>keyFn(x[prop])===keyFn(number));if(!row)return;
+    const hasHistory=reports.some(x=>keyFn(x[prop])===keyFn(number));let actions=card.querySelector(".record-actions");if(!actions){actions=document.createElement("div");actions.className="record-actions";card.appendChild(actions);}
+    if(hasHistory){const note=document.createElement("div");note.className="hint";note.textContent="已有異常回報歷史，保留歷史；如停用請使用報廢。";actions.appendChild(note);return;}
+    const button=document.createElement("button");button.type="button";button.className="action-btn device-delete-btn";button.dataset.t995DeviceDelete="true";button.dataset.deviceType=type;button.dataset.deviceId=row.id;button.dataset.deviceNumber=row[prop];button.textContent="🗑 永久刪除小卡";actions.appendChild(button);
+  });
+}
+const t995OriginalRenderBatteryReports=renderBatteryReports;
+renderBatteryReports=function(){t995OriginalRenderBatteryReports();t995AttachDeviceDeleteButtons("battery");};
+const t995OriginalRenderRecorderReports=renderRecorderReports;
+renderRecorderReports=function(){t995OriginalRenderRecorderReports();t995AttachDeviceDeleteButtons("recorder");};
+const t995OriginalShowAdminMode=showAdminMode;
+showAdminMode=function(mode){
+  t995OriginalShowAdminMode(mode);t995ShiftModePage.style.display=mode==="shift"?"block":"none";
+  if(mode==="roster")t995LoadEmployees();
+  if(mode==="shift")t995LoadShiftAdmin();
+};
+t995EmployeeAddBtn.onclick=t995AddEmployee;
+t995EmployeeDirectoryList.onchange=e=>{const s=e.target.closest("[data-t995-employee-area]");if(s)t995UpdateEmployeeArea(s.dataset.t995EmployeeArea,s.value);};
+t995EmployeeDirectoryList.onclick=e=>{const b=e.target.closest("[data-t995-employee-toggle]");if(b)t995ToggleEmployeeActive(b.dataset.t995EmployeeToggle,b.dataset.active==="true");};
+t995ShiftModeBtn.onclick=()=>showAdminMode("shift");
+t995ShiftBackBtn.onclick=()=>showAdminMode("home");
+t995ShiftWeekSelect.onchange=()=>t995LoadShiftAdmin();
+t995ShiftAreaFilter.onchange=()=>{t995RenderShiftAdmin();t995RenderStaffingFromCurrent();};
+t995ShiftRefreshBtn.onclick=()=>t995LoadShiftAdmin();
+t995ShiftExportBtn.onclick=t995ExportShiftWeek;
+t995TcImportBtn.onclick=t995ImportTcWorkbook;
+t995ActualsImportBtn.onclick=t995ImportActualsWorkbook;
+const t995OldDeviceCardClick=batteryReportList.onclick;
+batteryReportList.onclick=e=>{const b=e.target.closest("[data-t995-device-delete]");if(b){e.preventDefault();e.stopPropagation();t995DeleteDeviceCard(b.dataset.deviceType,b.dataset.deviceId,b.dataset.deviceNumber);return;}if(t995OldDeviceCardClick)t995OldDeviceCardClick(e);};
 
 </script>
 
