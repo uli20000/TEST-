@@ -4420,6 +4420,9 @@ const shiftSuccessData = document.getElementById("shiftSuccessData");
 const shiftHomeTitle = document.getElementById("pageTitle").textContent;
 let verifiedShiftEmployee = null;
 let shiftVerifySerial = 0;
+let shiftLookupSerial = 0;
+let shiftLookupTimer = null;
+let shiftEmployeeSearchResults = [];
 
 function taipeiShiftNow(){
   const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
@@ -4504,37 +4507,54 @@ async function submitShiftAvailability(){
   finally{try{await loadShiftTestMode();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
 }
 function resetShiftForm(){
+  clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftEmployeeSearchResults=[];
   shiftNameInput.value="";verifiedShiftEmployee=null;shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
   for(const id of Object.values(shiftDayFields))document.getElementById(id).value="";
   document.getElementById("shiftNotes").value="";shiftSubmitMessage.textContent="";shiftForm.style.display="block";shiftSuccess.classList.remove("show");updateShiftWindow();
 }
-function renderShiftEmployeeSuggestions(){
-  const keyword=shiftNameInput.value.trim().toLocaleLowerCase();
+function renderShiftEmployeeSuggestions(matches,keyword){
   if(!keyword){shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
-  const matches=(activeEmployeeDirectory||[]).filter(row=>String(row.full_name||"").toLocaleLowerCase().includes(keyword)).slice(0,8);
   if(!matches.length){shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#777">查無符合的在職姓名</div>';shiftNameSuggestions.classList.add("show");return;}
   shiftNameSuggestions.innerHTML=matches.map(row=>`<button type="button" class="name-suggestion" data-shift-employee-id="${escapeHtml(row.id)}">${escapeHtml(row.full_name)}${row.area_code?`｜${escapeHtml(row.area_code)} 區`:"｜尚未設定區域"}</button>`).join("");
   shiftNameSuggestions.classList.add("show");
+}
+async function searchShiftEmployeeSuggestions(keyword,serial){
+  try{
+    const result=await db.from("employee_directory").select("id,full_name,area_code,is_active")
+      .eq("is_active",true).ilike("full_name",`%${keyword}%`).order("full_name",{ascending:true}).limit(8);
+    if(serial!==shiftLookupSerial||keyword!==shiftNameInput.value.trim())return;
+    if(result.error)throw result.error;
+    shiftEmployeeSearchResults=(result.data||[]).filter(row=>row.is_active!==false&&row.full_name);
+    renderShiftEmployeeSuggestions(shiftEmployeeSearchResults,keyword);
+    const exact=shiftEmployeeSearchResults.find(row=>String(row.full_name||"").trim()===keyword);
+    if(exact)setShiftEmployeeSuggestion(exact);
+  }catch(error){
+    if(serial!==shiftLookupSerial||keyword!==shiftNameInput.value.trim())return;
+    shiftEmployeeSearchResults=[];
+    shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#b42318">名單查詢失敗，請稍後重試</div>';
+    shiftNameSuggestions.classList.add("show");
+    shiftEmployeeStatus.textContent="名單查詢失敗，請稍後重試或找店長確認。";shiftEmployeeStatus.className="shift-state bad";
+  }
 }
 function setShiftEmployeeSuggestion(row){
   verifiedShiftEmployee=row;
   shiftEmployeeStatus.textContent=row.area_code?`✅ 已確認在職｜${row.area_code} 區`:"已在職名單中，但尚未設定區域；請找店長確認後再填寫。";
   shiftEmployeeStatus.className=row.area_code?"shift-state ok":"shift-state bad";
 }
-shiftNameInput.addEventListener("focus",async()=>{await loadTargetNames();renderShiftEmployeeSuggestions();});
-shiftNameInput.addEventListener("input",async()=>{
-  const serial=++shiftVerifySerial;verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
-  if(!shiftNameInput.value.trim()){shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
-  await loadTargetNames();if(serial!==shiftVerifySerial)return;renderShiftEmployeeSuggestions();
-  const exact=activeEmployeeDirectory.find(row=>String(row.full_name||"").trim()===shiftNameInput.value.trim());if(exact)setShiftEmployeeSuggestion(exact);
+shiftNameInput.addEventListener("input",()=>{
+  const keyword=shiftNameInput.value.trim();++shiftVerifySerial;verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  clearTimeout(shiftLookupTimer);const serial=++shiftLookupSerial;
+  if(!keyword){shiftEmployeeSearchResults=[];shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
+  shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#777">搜尋中…</div>';shiftNameSuggestions.classList.add("show");
+  shiftLookupTimer=setTimeout(()=>searchShiftEmployeeSuggestions(keyword,serial),180);
 });
 shiftNameSuggestions.addEventListener("pointerdown",event=>{if(event.target.closest("[data-shift-employee-id]"))event.preventDefault();});
 shiftNameSuggestions.addEventListener("click",event=>{
   const button=event.target.closest("[data-shift-employee-id]");if(!button)return;
-  const row=activeEmployeeDirectory.find(item=>String(item.id)===String(button.dataset.shiftEmployeeId));if(!row)return;
-  shiftNameInput.value=row.full_name;setShiftEmployeeSuggestion(row);shiftNameSuggestions.classList.remove("show");
+  const row=shiftEmployeeSearchResults.find(item=>String(item.id)===String(button.dataset.shiftEmployeeId));if(!row)return;
+  clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftNameInput.value=row.full_name;setShiftEmployeeSuggestion(row);shiftNameSuggestions.classList.remove("show");
 });
-shiftNameInput.addEventListener("blur",()=>setTimeout(()=>{shiftNameSuggestions.classList.remove("show");verifyShiftEmployee();},100));
+shiftNameInput.addEventListener("blur",()=>setTimeout(()=>{clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftNameSuggestions.classList.remove("show");verifyShiftEmployee();},100));
 shiftSubmitBtn.addEventListener("click",submitShiftAvailability);
 document.getElementById("shiftEditAgainBtn").addEventListener("click",()=>{shiftSuccess.classList.remove("show");shiftForm.style.display="block";shiftSubmitMessage.textContent="重新送出後，後台將以最後一次內容為準。";window.scrollTo({top:0,behavior:"smooth"});});
 const baseShowModeForShift=showMode;
