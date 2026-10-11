@@ -1069,6 +1069,43 @@ button{cursor:pointer}
 .staffing-file-picker{position:relative;display:grid;place-items:center;min-height:46px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font-size:14px;font-weight:700;overflow:hidden;cursor:pointer}
 .staffing-file-picker span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .staffing-file-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+/* Forecast view: weekly summary, weekday tabs, aligned area table/cards. */
+.staffing-results{display:block!important;margin-top:10px}
+.forecast-week-gap{margin-top:8px;padding:10px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;font-weight:800}
+.forecast-week-gap.is-short{border-color:#e2aaa4;background:var(--danger-bg);color:var(--danger)}
+.forecast-week-gap.is-surplus{border-color:#c9ddcf;background:var(--green-bg);color:var(--green)}
+.staffing-day-tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px}
+.staffing-day-tab{min-width:0;min-height:46px;padding:6px 4px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.staffing-day-tab span,.staffing-day-tab small{display:block}
+.staffing-day-tab small{margin-top:2px;color:var(--gray);font-size:11px;font-weight:600}
+.staffing-day-tab.active{border-color:var(--red);background:var(--red);color:#fff;box-shadow:0 3px 9px rgba(200,16,46,.13)}
+.staffing-day-tab.active small{color:#fff}
+.staffing-day-tab:focus-visible{outline:3px solid rgba(200,16,46,.25);outline-offset:2px}
+.forecast-day-panel{margin-top:9px;background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.forecast-day-heading{padding:11px 13px;background:#f7f5f1;border-bottom:1px solid var(--line);font-size:15px;font-weight:800}
+.forecast-area-table-wrap{overflow-x:auto}
+.forecast-area-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+.forecast-area-table th,.forecast-area-table td{padding:10px 7px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+.forecast-area-table th{background:#faf9f6;color:var(--gray);font-size:12px;font-weight:800}
+.forecast-area-table tr:last-child td{border-bottom:0}
+.forecast-area-table td:first-child{font-weight:800}
+.forecast-area-table .forecast-gap{font-weight:800;white-space:nowrap}
+.forecast-gap.is-short{color:var(--danger)}.forecast-gap.is-surplus{color:var(--green)}
+.forecast-area-cards{display:none}
+@media(max-width:699px){
+ .staffing-day-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .staffing-day-tab{min-height:44px;font-size:12px}
+ .forecast-day-heading{padding:10px 11px}
+ .forecast-area-table-wrap{display:none}
+ .forecast-area-cards{display:grid;gap:7px;padding:8px}
+ .forecast-area-card{padding:10px;background:#faf9f6;border:1px solid var(--line);border-radius:10px}
+ .forecast-area-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:14px;font-weight:800}
+ .forecast-area-card-head .forecast-gap{font-size:12px}
+ .forecast-area-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .forecast-area-stat{min-width:0;padding:7px 8px;background:#fff;border-radius:8px;text-align:center}
+ .forecast-area-stat span{display:block;color:var(--gray);font-size:11px;line-height:1.35}
+ .forecast-area-stat strong{display:block;margin-top:3px;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+}
 </style>
 </head>
 
@@ -1232,8 +1269,6 @@ button{cursor:pointer}
     <button id="exportExcelBtn" class="action-btn" style="width:100%;margin-top:12px">📊 匯出 Excel</button>
   </div>
 </section>
-
-</div>
 
 <section id="surveyModePage" class="admin-mode-page">
   <div class="mode-back-row"><button id="surveyBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
@@ -1399,7 +1434,7 @@ button{cursor:pointer}
   <div class="mode-back-row protected-mode-actions"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="shiftPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
   <section class="section">
     <div class="section-title">指休管理</div>
-    <div class="hint">週一 10:00–週六 10:00｜TPLH 2.5｜第三方 ≤20%</div>
+    <div class="hint">TPLH 2.5｜第三方 ≤20%</div>
     <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox" aria-label="測試開放模式"><span>測試</span></label>
     <div class="shift-admin-toolbar">
       <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次" hidden></select>
@@ -1415,8 +1450,10 @@ button{cursor:pointer}
   </section>
   <section class="section">
     <div class="section-title">下週人力建議</div>
-    <div class="hint">最近八週同星期平均 TC｜餐期 TC 不與整天重複加總</div>
+    <div class="hint">最近 8 週同星期平均｜TPLH 2.5｜第三方 ≤20%</div>
     <div id="staffingRecommendationSummary" class="summary"></div>
+    <div id="staffingWeekGap" class="forecast-week-gap" hidden></div>
+    <div id="staffingDayTabs" class="staffing-day-tabs" role="tablist" aria-label="選擇預測日期"></div>
     <div id="staffingRecommendationList" class="staffing-results"><div class="loading">載入歷史資料與指休資料中…</div></div>
   </section>
   <section class="section">
@@ -4804,6 +4841,11 @@ const t995ShiftSummary=$("shiftAdminSummary");
 const t995ShiftAdminList=$("shiftAdminList");
 const t995StaffingSummary=$("staffingRecommendationSummary");
 const t995StaffingList=$("staffingRecommendationList");
+const t995StaffingWeekGap=$("staffingWeekGap");
+const t995StaffingDayTabs=$("staffingDayTabs");
+let t995StaffingForecastData=[];
+let t995StaffingDayOffset=0;
+t995StaffingDayTabs.onclick=e=>{const b=e.target.closest("[data-t995-forecast-day]");if(!b)return;t995StaffingDayOffset=Number(b.dataset.t995ForecastDay)||0;t995RenderStaffingDay();};
 const t995TcFile=$("staffingImportFile");
 const t995TcImportBtn=$("staffingImportBtn");
 const t995TcImportMessage=$("staffingImportMessage");
@@ -5006,40 +5048,52 @@ function t995SampleAverage(map,area,weekStart,dayOffset,weeks){
   return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
 }
 async function t995RenderStaffingRecommendation(weekStart,shiftRows){
-  const weeks=Math.max(1,Number(t995StaffingSettings.forecast_weeks)||8);const first=t995DateAdd(weekStart,-7*weeks);
-  const [fullRows,mealRows,actualRows,centerRows]=await Promise.all([
-    t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,tc_ex_third_party,period_code",first,weekStart,"full_day"),
-    t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,tc_ex_third_party,period_code",first,weekStart,"meal_period"),
-    t995LoadAllPaged("staffing_daily_actuals","record_date,restaurant_name,area_code,actual_work_hours,actual_tplh,third_party_usage_pct",first,weekStart,null),
-    t995LoadAllPaged("staffing_center_daily_actuals","record_date,center_name,total_tc,third_party_tc,actual_work_hours,actual_tplh,actual_tplh_ex_third_party",first,weekStart,null,"center_name")
-  ]);
-  if(!fullRows.length){t995StaffingSummary.innerHTML='<div class="summary-card"><div class="summary-label">可用歷史週數</div><div class="summary-number">0</div></div>';t995StaffingList.innerHTML='<div class="shift-admin-empty">尚未匯入整天 TC 資料；先匯入 TC 活頁簿後即可計算。</div>';return;}
-  const fullByAreaDate=new Map(),excludedByAreaDate=new Map(),mealByAreaDate=new Map(),fullByStoreDate=new Map(),hoursByArea=new Map(),tpCountByAreaDate=new Map();
-  for(const r of fullRows){const date=String(r.record_date).slice(0,10);const area=r.area_code;const tc=Number(r.total_tc||0);const excluded=Math.min(tc,Number(r.tc_ex_third_party||0));const tp=Math.max(0,tc-excluded);const k=`${area}|${date}`;t995MapAdd(fullByAreaDate,k,tc);t995MapAdd(excludedByAreaDate,k,excluded);t995MapAdd(tpCountByAreaDate,k,tp);fullByStoreDate.set(`${r.restaurant_name}|${date}`,tc);}
-  for(const r of mealRows){const date=String(r.record_date).slice(0,10);t995MapAdd(mealByAreaDate,`${r.area_code}|${date}`,Number(r.total_tc||0));}
-  const tpByAreaDate=new Map([...fullByAreaDate].map(([k,total])=>[k,total?Math.min(100,(tpCountByAreaDate.get(k)||0)/total*100):0]));
-  for(const r of actualRows){const date=String(r.record_date).slice(0,10);const area=r.area_code;if(!area)continue;const key=`${r.restaurant_name}|${date}`;const tc=fullByStoreDate.get(key)||0;const h=Number(r.actual_work_hours||0);const a=hoursByArea.get(area)||{hours:0,tc:0};a.hours+=h;a.tc+=tc;hoursByArea.set(area,a);}
-  const byArea=new Map();for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area||shift?.is_test)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
-  const areas=['A','B','C','D','E','F','G','H','I','J','K'];const target=Number(t995StaffingSettings.target_tplh)||2.5;const cap=Number(t995StaffingSettings.max_third_party_usage_pct)||20;const dayNames=['週一','週二','週三','週四','週五','週六','週日'];
-  const output=areas.map(area=>{
-    const days=dayNames.map((day,offset)=>{
-      const date=t995DateAdd(weekStart,offset);const totalTc=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks);const excludedTc=t995SampleAverage(excludedByAreaDate,area,weekStart,offset,weeks);const mealTc=t995SampleAverage(mealByAreaDate,area,weekStart,offset,weeks);const tp=t995SampleAverage(tpByAreaDate,area,weekStart,offset,weeks);
-      const recommended=totalTc===null?null:totalTc/target;const mealHours=mealTc===null?null:mealTc/target;
-      let availableHours=0,mealAvailable=0,people=0;
-      for(const x of byArea.get(area)||[]){if(!x.shift)continue;const key=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][offset];const intervals=t995ParseRanges(x.shift[key]);if(intervals===null||!intervals.length)continue;people++;availableHours+=intervals.reduce((s,[a,b])=>s+(b-a)/60,0);mealAvailable+=t995RangeHours(intervals,11*60,13*60)+t995RangeHours(intervals,18*60,20*60);}
-      return {day,date,totalTc,excludedTc,mealTc,tp,recommended,mealHours,availableHours,mealAvailable,people,gap:recommended===null?null:availableHours-recommended};
-    });
-    return {area,days};
+  const weeks=Math.max(1,Number(t995StaffingSettings.forecast_weeks)||8);
+  const first=t995DateAdd(weekStart,-7*weeks);
+  const fullRows=await t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,period_code",first,weekStart,"full_day");
+  if(!fullRows.length){
+    t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingDayTabs.innerHTML="";
+    t995StaffingList.innerHTML='<div class="shift-admin-empty">尚未匯入整天 TC，無法預測。</div>';return;
+  }
+  const fullByAreaDate=new Map();
+  for(const r of fullRows){const date=String(r.record_date).slice(0,10);t995MapAdd(fullByAreaDate,`${r.area_code}|${date}`,Number(r.total_tc||0));}
+  const byArea=new Map();
+  for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area||shift?.is_test)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
+  const areas=['A','B','C','D','E','F','G','H','I','J','K'];
+  const target=Math.max(0.01,Number(t995StaffingSettings.target_tplh)||2.5);
+  const cap=Math.max(0,Math.min(100,Number(t995StaffingSettings.max_third_party_usage_pct??20)));
+  const dayNames=['週一','週二','週三','週四','週五','週六','週日'];
+  const output=areas.map(area=>({area,days:dayNames.map((day,offset)=>{
+    const date=t995DateAdd(weekStart,offset);const totalTc=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks);
+    const recommended=totalTc===null?null:totalTc/target;
+    const thirdPartyCap=totalTc===null?null:Math.floor(totalTc*cap/100);
+    let availableHours=0,people=0;
+    for(const x of byArea.get(area)||[]){if(!x.shift)continue;const key=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][offset];const intervals=t995ParseRanges(x.shift[key]);if(intervals===null||!intervals.length)continue;people++;availableHours+=intervals.reduce((sum,[a,b])=>sum+(b-a)/60,0);}
+    return {day,date,totalTc,recommended,thirdPartyCap,availableHours,people,gap:recommended===null?null:availableHours-recommended};
+  })}));
+  const allDays=output.flatMap(x=>x.days);const forecastDays=allDays.filter(d=>d.totalTc!==null);
+  const weeklyTc=forecastDays.reduce((sum,d)=>sum+d.totalTc,0);
+  const weeklyNeeded=forecastDays.reduce((sum,d)=>sum+d.recommended,0);
+  const weeklyAvailable=allDays.reduce((sum,d)=>sum+d.availableHours,0);
+  const weeklyThirdParty=forecastDays.reduce((sum,d)=>sum+d.thirdPartyCap,0);
+  const weeklyGap=weeklyAvailable-weeklyNeeded;
+  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">預估整週 TC</div><div class="summary-number">${weeklyTc.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">預估需求工時</div><div class="summary-number">${weeklyNeeded.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">可安排工時</div><div class="summary-number">${weeklyAvailable.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">第三方可派單上限</div><div class="summary-number">${weeklyThirdParty.toLocaleString('zh-TW')}</div></div>`;
+  t995StaffingWeekGap.hidden=false;t995StaffingWeekGap.className=`forecast-week-gap ${weeklyGap<0?'is-short':'is-surplus'}`;
+  t995StaffingWeekGap.textContent=`整週工時差：${weeklyGap>=0?'+':''}${weeklyGap.toFixed(1)} 小時｜${weeklyGap<0?'人力不足':'人力有餘裕'}`;
+  t995StaffingForecastData=output;
+  t995StaffingDayOffset=Math.max(0,Math.min(6,t995StaffingDayOffset));
+  t995StaffingDayTabs.innerHTML=dayNames.map((day,i)=>{const date=t995DateAdd(weekStart,i);return `<button type="button" class="staffing-day-tab ${i===t995StaffingDayOffset?'active':''}" data-t995-forecast-day="${i}" role="tab" aria-selected="${i===t995StaffingDayOffset?'true':'false'}"><span>${day}</span><small>${date.slice(5).replace('-','/')}</small></button>`;}).join('');
+  t995RenderStaffingDay();
+}
+function t995RenderStaffingDay(){
+  const areas=t995StaffingForecastData||[];if(!areas.length){t995StaffingList.innerHTML='<div class="shift-admin-empty">目前沒有可顯示的預測資料。</div>';return;}
+  const offset=t995StaffingDayOffset;const day=areas[0]?.days[offset];if(!day)return;
+  const gap=(value)=>value===null?{text:'—',cls:''}:{text:`${value>=0?'+':''}${value.toFixed(1)} 小時`,cls:value<0?'is-short':'is-surplus'};
+  const metric=(label,value)=>`<div class="forecast-area-stat"><span>${label}</span><strong>${value}</strong></div>`;
+  const rows=areas.map(({area,days})=>{const d=days[offset];const delta=gap(d.gap);const tc=d.totalTc===null?'—':d.totalTc.toFixed(1);const needed=d.recommended===null?'—':d.recommended.toFixed(1);const third=d.thirdPartyCap===null?'—':d.thirdPartyCap.toLocaleString('zh-TW');const availability=`${d.people} 人／${d.availableHours.toFixed(1)} 小時`;
+    return {area,tc,needed,third,availability,delta};
   });
-  const validTargets=output.flatMap(x=>x.days).filter(d=>d.recommended!==null);const totalNeeded=validTargets.reduce((s,d)=>s+d.recommended,0);const totalAvail=validTargets.reduce((s,d)=>s+d.availableHours,0);
-  const centerHours=centerRows.reduce((s,r)=>s+Number(r.actual_work_hours||0),0);const centerTc=centerRows.reduce((s,r)=>s+Number(r.total_tc||0),0);const centerTplhHours=centerRows.reduce((s,r)=>s+Number(r.actual_work_hours||0),0);const centerTplhWeighted=centerRows.reduce((s,r)=>s+Number(r.actual_tplh||0)*Number(r.actual_work_hours||0),0);const centerExTplhWeighted=centerRows.reduce((s,r)=>s+Number(r.actual_tplh_ex_third_party||0)*Number(r.actual_work_hours||0),0);
-  const areaActual=[...hoursByArea.values()].reduce((s,x)=>({hours:s.hours+x.hours,tc:s.tc+x.tc}),{hours:0,tc:0});const globalHours=centerRows.length?centerHours:areaActual.hours;const globalTc=centerRows.length?centerTc:areaActual.tc;const actualTplh=globalHours>0?globalTc/globalHours:null;const providedTplh=centerTplhHours>0?centerTplhWeighted/centerTplhHours:null;const providedExTplh=centerTplhHours>0?centerExTplhWeighted/centerTplhHours:null;
-  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">回看週數</div><div class="summary-number">${weeks}</div></div><div class="summary-card"><div class="summary-label">TPLH 目標</div><div class="summary-number">${target.toFixed(2)}</div></div><div class="summary-card"><div class="summary-label">預估所需工時</div><div class="summary-number">${totalNeeded.toFixed(1)}</div></div><div class="summary-card ${totalAvail>=totalNeeded?'done':'abnormal'}"><div class="summary-label">指休可排工時</div><div class="summary-number">${totalAvail.toFixed(1)}</div></div>${globalHours>0?`<div class="summary-card"><div class="summary-label">${centerRows.length?'中心實際工時':'歷史實際工時'}</div><div class="summary-number">${globalHours.toFixed(1)}</div></div>`:''}${actualTplh!==null?`<div class="summary-card"><div class="summary-label">${centerRows.length?'中心 TC／工時 TPLH':'TC／工時 TPLH'}</div><div class="summary-number">${actualTplh.toFixed(2)}</div></div>`:''}${providedTplh!==null?`<div class="summary-card"><div class="summary-label">中心實際 TPLH（工時加權）</div><div class="summary-number">${providedTplh.toFixed(2)}</div></div>`:''}${providedExTplh!==null?`<div class="summary-card"><div class="summary-label">中心扣三方 TPLH</div><div class="summary-number">${providedExTplh.toFixed(2)}</div></div>`:''}`;
-  t995StaffingList.innerHTML=output.map(({area,days})=>`<article class="staffing-day-card"><h3>${area} 區</h3><div class="staffing-metrics">${days.map(d=>{
-    const gapClass=d.gap===null?'':d.gap<0?'staffing-gap-bad':'staffing-gap-good';const gapText=d.gap===null?'缺少 TC 資料':`${d.gap>=0?'+':''}${d.gap.toFixed(1)} 小時`;
-    const tpText=d.tp===null?'—':`${d.tp.toFixed(1)}%${d.tp>cap?' ⚠':''}`;
-    return `<div class="staffing-metric"><strong>${d.day}｜${t995DayLabel(d.date)}</strong><span>預估總 TC：${d.totalTc===null?'—':d.totalTc.toFixed(1)}</span><br><span>扣除第三方 TC：${d.excludedTc===null?'—':d.excludedTc.toFixed(1)}</span><br><span>TPLH 2.5 工時：${d.recommended===null?'—':d.recommended.toFixed(1)}</span><br><span>可排 ${d.people} 人／${d.availableHours.toFixed(1)} 小時</span><br><span class="${gapClass}">工時差：${gapText}</span><br><span>餐期 TC：${d.mealTc===null?'—':d.mealTc.toFixed(1)}｜餐期可排 ${d.mealAvailable.toFixed(1)} 小時</span><br><span>預估第三方率：${tpText}</span></div>`;
-  }).join('')}</div></article>`).join('');
+  t995StaffingList.innerHTML=`<div class="forecast-day-panel"><div class="forecast-day-heading">${day.day}｜${day.date}</div><div class="forecast-area-table-wrap"><table class="forecast-area-table" aria-label="${day.day}各區人力預測"><thead><tr><th>區域</th><th>預估總 TC</th><th>需求工時</th><th>第三方可派單</th><th>可排人數／工時</th><th>工時差</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.area} 區</td><td>${r.tc}</td><td>${r.needed}</td><td>${r.third}</td><td>${r.availability}</td><td class="forecast-gap ${r.delta.cls}">${r.delta.text}</td></tr>`).join('')}</tbody></table></div><div class="forecast-area-cards">${rows.map(r=>`<article class="forecast-area-card"><div class="forecast-area-card-head"><span>${r.area} 區</span><span class="forecast-gap ${r.delta.cls}">${r.delta.text}</span></div><div class="forecast-area-card-grid">${metric('預估總 TC',r.tc)}${metric('預估需求工時',r.needed)}${metric('第三方可派單',r.third)}${metric('可排人數／工時',r.availability)}</div></article>`).join('')}</div></div>`;
 }
 function t995RenderStaffingFromCurrent(){t995StaffingList.querySelectorAll('.staffing-day-card').forEach(card=>{card.style.display='';});}
 function t995RenderShiftAndForecast(){t995RenderShiftAdmin();t995RenderStaffingFromCurrent();}
