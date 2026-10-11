@@ -854,17 +854,20 @@
 .device-type-btn:focus-visible{outline:3px solid rgba(22,131,223,.35);outline-offset:2px}
 .shift-note{border:1px solid #f0c36d;background:#fff8e8;color:#754f00;border-radius:14px;padding:13px 15px;line-height:1.6;font-size:14px;margin:12px 0}
 .shift-week-label{font-weight:900;font-size:17px;margin:8px 0;color:var(--black)}
-.shift-days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.shift-day{background:#fbfaf7;border:1px solid var(--line);border-radius:13px;padding:11px}
-.shift-day label{display:block;font-weight:800;margin-bottom:6px}
+.shift-days{display:grid;grid-template-columns:1fr;gap:10px}
+.shift-day{display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:10px;background:#fbfaf7;border:1px solid var(--line);border-radius:13px;padding:10px 11px}
+.shift-day label{display:block;font-weight:800;margin:0}
 .shift-day input{width:100%;height:46px;border:1px solid #d8d3ca;border-radius:10px;padding:0 11px;font:inherit;background:#fff}
 .shift-day input:focus{outline:3px solid rgba(200,16,46,.16);border-color:var(--red)}
 .shift-state{margin-top:8px;font-size:14px;line-height:1.55;font-weight:700}
 .shift-state.ok{color:#176b3a}.shift-state.bad{color:#a52a2a}
 .shift-window-closed{opacity:.65}
 .shift-helper{font-size:14px;line-height:1.6;color:var(--gray);margin-top:10px}
-@media(min-width:620px){.shift-days{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
+
+/* 指休測試模式與電池領用欄位 */
+.shift-window-test{background:#fff4dd;border:1px solid #e9b95e;border-radius:12px;padding:10px 12px;color:#76500c}
+#claimBatteryNumber{width:100%;height:48px;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit}
 </style>
 </head>
 
@@ -1067,7 +1070,14 @@
 
 
       <section class="card">
-        <div class="section-number">05・油卡</div>
+        <div class="section-number">05・電池</div>
+        <label class="label" for="claimBatteryNumber">使用電池編號（選填）</label>
+        <input id="claimBatteryNumber" class="search-input" type="text" maxlength="100" placeholder="若有領用電池，請輸入編號" autocomplete="off">
+        <div id="claimBatteryStatus" class="hint" style="display:none;margin-top:8px"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-number">06・油卡</div>
 
         <label class="label">
           油卡確認
@@ -1519,7 +1529,10 @@
         <div id="shiftWeekLabel" class="shift-week-label">查詢開放週次中…</div>
         <div id="shiftWindowMessage" class="hint"></div>
         <label class="label" for="shiftEmployeeName" style="margin-top:20px">姓名</label>
-        <input id="shiftEmployeeName" type="text" maxlength="60" autocomplete="off" placeholder="輸入姓名">
+        <div class="name-search-wrap">
+          <input id="shiftEmployeeName" type="text" maxlength="60" autocomplete="off" placeholder="輸入任一字搜尋在職名單">
+          <div id="shiftEmployeeNameSuggestions" class="name-suggestions"></div>
+        </div>
         <div id="shiftEmployeeStatus" class="shift-state" role="status" aria-live="polite"></div>
       </section>
       <section class="card">
@@ -2657,6 +2670,8 @@ let defensivePdfOpenedAt = null;
 let defensiveExistingResponse = null;
 let defensiveTargetNames = [];
 let defensiveTargetNamesLoaded = false;
+let activeEmployeeDirectory = [];
+let nameListLoadPromise = null;
 
 
 const pageTitle =
@@ -2717,6 +2732,8 @@ const recorderNumber =
   document.getElementById(
     "recorderNumber"
   );
+const claimBatteryNumber = document.getElementById("claimBatteryNumber");
+const claimBatteryStatus = document.getElementById("claimBatteryStatus");
 
 const recorderNumberWrap =
   document.getElementById(
@@ -3046,6 +3063,9 @@ function resetClaimForm() {
   claimPlate.value = "";
 
   recorderNumber.value = "";
+  claimBatteryNumber.value = "";
+  claimBatteryStatus.style.display = "none";
+  claimBatteryStatus.textContent = "";
   recorderNumberWrap.classList.remove("show");
   recorderHealthInfo.style.display = "none";
   recorderHealthInfo.textContent = "";
@@ -3162,6 +3182,16 @@ async function saveClaim() {
     }
   }
 
+  const batteryNumber = claimBatteryNumber.value.trim();
+  if(batteryNumber){
+    try{
+      const batteryResult=await db.from("batteries").select("status,health_status").eq("battery_number",batteryNumber).maybeSingle();
+      if(batteryResult.error)throw batteryResult.error;
+      if(!batteryResult.data){alert("查無此電池編號，請確認設備已建檔或清空此欄位。");claimBatteryNumber.focus();return;}
+      if(batteryResult.data.status==="scrapped"){alert("此電池已報廢，請勿領用。");claimBatteryNumber.focus();return;}
+    }catch(e){alert(`電池查詢失敗：${e.message||"請確認資料庫更新後重試"}`);return;}
+  }
+
   const oilCard =
     document.querySelector(
       'input[name="oilCardStatus"]:checked'
@@ -3203,6 +3233,9 @@ async function saveClaim() {
 
           recorder_number:
             recorder,
+
+          battery_number:
+            batteryNumber || null,
 
           oil_card_status:
             oilCard.value
@@ -3752,11 +3785,15 @@ async function saveSurvey() {
   surveySaveBtn.textContent = "送出中…";
 
   try {
+    const respondentName = surveyRespondentNameInput.value.trim();
+    const employeeCheck = await db.from("employee_directory").select("id").eq("full_name", respondentName).eq("is_active", true).maybeSingle();
+    if(employeeCheck.error) throw employeeCheck.error;
+    if(!employeeCheck.data){alert("目前查無在職名單或員工已停用，無法填寫意向調查，請找店長確認。");return;}
     const behaviorScore = Object.values(surveyAnswers.behavior).reduce((sum, value) => sum + value, 0);
     const attitudeScore = Object.values(surveyAnswers.attitude).reduce((sum, value) => sum + value, 0);
     const accident = document.querySelector('input[name="accidentWithinYear"]:checked');
     const result = await db.from("driver_survey_responses").insert({
-      respondent_name: surveyRespondentNameInput.value.trim(),
+      respondent_name: respondentName,
       survey_round: CURRENT_SURVEY_ROUND,
       part1_answers: {
         violation_points: Number(violationPointsInput.value),
@@ -3832,12 +3869,20 @@ renderSurvey();
 
 async function loadTargetNames(){
   if(defensiveTargetNamesLoaded) return;
-  try{
-    const result = await db.from("driver_survey_targets").select("respondent_name");
-    if(result.error) throw result.error;
-    defensiveTargetNames = [...new Set((result.data || []).map(row => String(row.respondent_name || "").trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, "zh-Hant"));
+  if(nameListLoadPromise) return nameListLoadPromise;
+  nameListLoadPromise = (async()=>{
+    const employeeResult = await db.from("employee_directory")
+      .select("id,full_name,area_code,is_active")
+      .eq("is_active", true);
+    if(employeeResult.error) throw employeeResult.error;
+    activeEmployeeDirectory = (employeeResult.data || []).filter(row => row.is_active !== false && row.full_name);
+    defensiveTargetNames = [...new Set(activeEmployeeDirectory.map(row => String(row.full_name || "").trim()).filter(Boolean))]
+      .sort((a,b) => a.localeCompare(b, "zh-Hant"));
     defensiveTargetNamesLoaded = true;
-  }catch(e){
+  })();
+  try{ await nameListLoadPromise; }
+  catch(e){
+    nameListLoadPromise = null;
     console.error("姓名名單讀取失敗", e);
   }
 }
@@ -3849,7 +3894,8 @@ function renderNameSuggestions(input, container){
     container.innerHTML = "";
     return;
   }
-  const matches = defensiveTargetNames.filter(name => name.startsWith(keyword)).slice(0, 8);
+  const normalizedKeyword = keyword.toLocaleLowerCase();
+  const matches = defensiveTargetNames.filter(name => name.toLocaleLowerCase().includes(normalizedKeyword)).slice(0, 8);
   container.innerHTML = matches.map(name => `<button type="button" class="name-suggestion" data-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("");
   container.classList.toggle("show", matches.length > 0);
 }
@@ -3872,9 +3918,7 @@ function setupNameAutocomplete(input, container){
 }
 
 function closeAllNameSuggestions(){
-  [claimantNameSuggestions, reporterNameSuggestions, surveyRespondentNameSuggestions, defensiveNameSuggestions].forEach(item => {
-    item.classList.remove("show");
-  });
+  document.querySelectorAll(".name-suggestions.show").forEach(item => item.classList.remove("show"));
 }
 
 
@@ -3928,6 +3972,15 @@ async function loadDefensiveLesson(){
   defensiveLoadBtn.textContent = "載入中…";
   defensiveStatus.style.display = "block";
   try{
+    const employeeCheck = await db.from("employee_directory").select("id").eq("full_name", name).eq("is_active", true).maybeSingle();
+    if(employeeCheck.error) throw employeeCheck.error;
+    if(!employeeCheck.data){
+      defensiveStatus.className = "training-message";
+      defensiveStatus.textContent = "此員工目前已停用或不在職，無法填寫防禦駕駛，請找店長確認。";
+      defensiveLessonPanel.style.display = "none";
+      defensiveQuestions.style.display = "none";
+      return;
+    }
     const targetResult = await db.from("driver_survey_targets").select("id").eq("respondent_name", name).limit(1);
     if(targetResult.error) throw targetResult.error;
     if(!targetResult.data?.length){
@@ -4358,6 +4411,7 @@ const shiftForm = document.getElementById("shiftForm");
 const shiftSuccess = document.getElementById("shiftSuccess");
 const shiftNameInput = document.getElementById("shiftEmployeeName");
 const shiftEmployeeStatus = document.getElementById("shiftEmployeeStatus");
+const shiftNameSuggestions = document.getElementById("shiftEmployeeNameSuggestions");
 const shiftWeekLabel = document.getElementById("shiftWeekLabel");
 const shiftWindowMessage = document.getElementById("shiftWindowMessage");
 const shiftSubmitBtn = document.getElementById("shiftSubmitBtn");
@@ -4375,17 +4429,28 @@ function taipeiShiftNow(){
 function shiftISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
 function shiftDateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return shiftISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
 function shiftRangeLabel(start){return `${start} 至 ${shiftDateAdd(start,6)}`;}
-function getShiftSubmissionCycle(){
+let shiftTestModeEnabled=false;
+function getShiftSubmissionCycle(testMode=shiftTestModeEnabled){
   const p=taipeiShiftNow();const today=shiftISO(p.y,p.m,p.d);const monday=shiftDateAdd(today,-((p.dow+6)%7));
-  const open=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
-  const weekStart=shiftDateAdd(monday,(open||(p.dow===1&&p.minute<600))?7:14);
-  return {open,weekStart};
+  const normalOpen=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
+  const open=Boolean(testMode)||normalOpen;
+  const weekStart=shiftDateAdd(monday,(normalOpen||(p.dow===1&&p.minute<600))?7:14);
+  return {open,normalOpen,weekStart,testMode:Boolean(testMode)};
+}
+async function loadShiftTestMode(){
+  const r=await db.rpc("shift_test_mode_enabled");if(r.error)throw r.error;
+  shiftTestModeEnabled=Boolean(r.data);return shiftTestModeEnabled;
 }
 function updateShiftWindow(){
   const cycle=getShiftSubmissionCycle();shiftWeekLabel.textContent=`填寫週次：${shiftRangeLabel(cycle.weekStart)}`;
-  if(cycle.open){shiftWindowMessage.textContent="目前開放中：週一 10:00 至週六 10:00（台灣時間）。";shiftWindowMessage.className="hint";}
+  if(cycle.testMode){shiftWindowMessage.textContent="測試開放中：目前任何時間皆可填寫（仍需在職名單驗證）。";shiftWindowMessage.className="hint shift-window-test";}
+  else if(cycle.normalOpen){shiftWindowMessage.textContent="目前開放中：週一 10:00 至週六 10:00（台灣時間）。";shiftWindowMessage.className="hint";}
   else{shiftWindowMessage.textContent="目前未開放；請於每週一 10:00 至週六 10:00 填寫。";shiftWindowMessage.className="hint shift-window-closed";}
   shiftSubmitBtn.disabled=!cycle.open;return cycle;
+}
+async function enterShiftMode(){
+  try{await loadShiftTestMode();const cycle=getShiftSubmissionCycle();if(!cycle.open){alert("指休表目前未開放。請於每週一 10:00 至週六 10:00（台灣時間）再進入填寫。");return;}showMode("shift");}
+  catch(e){alert(`目前無法確認指休表開放狀態：${e.message||"請稍後再試"}`);}
 }
 function parseAvailabilityRanges(value){
   const text=String(value||"").trim();if(!text)return [];
@@ -4415,6 +4480,7 @@ async function verifyShiftEmployee(){
 }
 const shiftDayFields={monday:"shiftMon",tuesday:"shiftTue",wednesday:"shiftWed",thursday:"shiftThu",friday:"shiftFri",saturday:"shiftSat",sunday:"shiftSun"};
 async function submitShiftAvailability(){
+  try{await loadShiftTestMode();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
   const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="目前不在開放時間，無法送出。";return;}
   if(!await verifyShiftEmployee())return;
   const values={};let hasAvailability=false;
@@ -4435,15 +4501,40 @@ async function submitShiftAvailability(){
     shiftSuccessData.textContent=`${verifiedShiftEmployee.full_name}｜${verifiedShiftEmployee.area_code} 區｜${shiftRangeLabel(cycle.weekStart)}`;
     shiftForm.style.display="none";shiftSuccess.classList.add("show");shiftSubmitMessage.textContent="";
   }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認開放時間並稍後重試。"}`;}
-  finally{shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
+  finally{try{await loadShiftTestMode();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
 }
 function resetShiftForm(){
-  shiftNameInput.value="";verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  shiftNameInput.value="";verifiedShiftEmployee=null;shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
   for(const id of Object.values(shiftDayFields))document.getElementById(id).value="";
   document.getElementById("shiftNotes").value="";shiftSubmitMessage.textContent="";shiftForm.style.display="block";shiftSuccess.classList.remove("show");updateShiftWindow();
 }
-shiftNameInput.addEventListener("blur",verifyShiftEmployee);
-shiftNameInput.addEventListener("input",()=>{shiftVerifySerial++;verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";});
+function renderShiftEmployeeSuggestions(){
+  const keyword=shiftNameInput.value.trim().toLocaleLowerCase();
+  if(!keyword){shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
+  const matches=(activeEmployeeDirectory||[]).filter(row=>String(row.full_name||"").toLocaleLowerCase().includes(keyword)).slice(0,8);
+  if(!matches.length){shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#777">查無符合的在職姓名</div>';shiftNameSuggestions.classList.add("show");return;}
+  shiftNameSuggestions.innerHTML=matches.map(row=>`<button type="button" class="name-suggestion" data-shift-employee-id="${escapeHtml(row.id)}">${escapeHtml(row.full_name)}${row.area_code?`｜${escapeHtml(row.area_code)} 區`:"｜尚未設定區域"}</button>`).join("");
+  shiftNameSuggestions.classList.add("show");
+}
+function setShiftEmployeeSuggestion(row){
+  verifiedShiftEmployee=row;
+  shiftEmployeeStatus.textContent=row.area_code?`✅ 已確認在職｜${row.area_code} 區`:"已在職名單中，但尚未設定區域；請找店長確認後再填寫。";
+  shiftEmployeeStatus.className=row.area_code?"shift-state ok":"shift-state bad";
+}
+shiftNameInput.addEventListener("focus",async()=>{await loadTargetNames();renderShiftEmployeeSuggestions();});
+shiftNameInput.addEventListener("input",async()=>{
+  const serial=++shiftVerifySerial;verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  if(!shiftNameInput.value.trim()){shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
+  await loadTargetNames();if(serial!==shiftVerifySerial)return;renderShiftEmployeeSuggestions();
+  const exact=activeEmployeeDirectory.find(row=>String(row.full_name||"").trim()===shiftNameInput.value.trim());if(exact)setShiftEmployeeSuggestion(exact);
+});
+shiftNameSuggestions.addEventListener("pointerdown",event=>{if(event.target.closest("[data-shift-employee-id]"))event.preventDefault();});
+shiftNameSuggestions.addEventListener("click",event=>{
+  const button=event.target.closest("[data-shift-employee-id]");if(!button)return;
+  const row=activeEmployeeDirectory.find(item=>String(item.id)===String(button.dataset.shiftEmployeeId));if(!row)return;
+  shiftNameInput.value=row.full_name;setShiftEmployeeSuggestion(row);shiftNameSuggestions.classList.remove("show");
+});
+shiftNameInput.addEventListener("blur",()=>setTimeout(()=>{shiftNameSuggestions.classList.remove("show");verifyShiftEmployee();},100));
 shiftSubmitBtn.addEventListener("click",submitShiftAvailability);
 document.getElementById("shiftEditAgainBtn").addEventListener("click",()=>{shiftSuccess.classList.remove("show");shiftForm.style.display="block";shiftSubmitMessage.textContent="重新送出後，後台將以最後一次內容為準。";window.scrollTo({top:0,behavior:"smooth"});});
 const baseShowModeForShift=showMode;
@@ -4456,7 +4547,7 @@ showMode=function(mode){
 };
 const baseShowHomeForShift=showHome;
 showHome=function(){baseShowHomeForShift();shiftPage.style.display="none";document.getElementById("shiftBackTop").style.display="none";resetShiftForm();};
-document.getElementById("shiftModeBtn").addEventListener("click",()=>showMode("shift"));
+document.getElementById("shiftModeBtn").addEventListener("click",enterShiftMode);
 document.getElementById("shiftBackBtn").addEventListener("click",showHome);
 document.getElementById("shiftSuccessHomeBtn").addEventListener("click",showHome);
 
