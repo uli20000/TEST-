@@ -1052,7 +1052,7 @@ button{cursor:pointer}
  .shift-admin-toolbar{grid-template-columns:minmax(200px,1fr) minmax(240px,.8fr) auto}
  .shift-week-buttons{grid-template-columns:repeat(4,minmax(0,1fr))}
  .shift-status-tabs{grid-column:2}
- .shift-admin-actions{grid-column:3;grid-template-columns:1fr 1fr}
+ .shift-admin-actions{grid-column:3;grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:699px){
  .admin-mode-page .protected-mode-actions{grid-template-columns:1fr 1fr}
@@ -1092,19 +1092,40 @@ button{cursor:pointer}
 .forecast-area-table .forecast-gap{font-weight:800;white-space:nowrap}
 .forecast-gap.is-short{color:var(--danger)}.forecast-gap.is-surplus{color:var(--green)}
 .forecast-area-cards{display:none}
+#staffingRecommendationSummary.summary{gap:7px;margin-top:7px}
+#staffingRecommendationSummary .summary-card{padding:11px 7px;border-radius:12px}
+#staffingRecommendationSummary .summary-label{font-size:12px;margin-bottom:3px}
+#staffingRecommendationSummary .summary-number{font-size:22px}
+.shift-week-btn span,.shift-week-btn small{display:block}
+.shift-week-btn small{margin-top:2px;color:var(--gray);font-size:11px;font-weight:600}
+.shift-week-btn.active small{color:#fff}
+.forecast-day-total-wrap{padding:8px;border-bottom:1px solid var(--line);background:#fff}
+.forecast-day-total-title{margin:0 0 7px;font-size:13px;font-weight:800;text-align:center}
+.forecast-day-total-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.forecast-day-total-card{min-width:0;padding:8px 6px;border:1px solid var(--line);border-radius:10px;background:#faf9f6;text-align:center}
+.forecast-day-total-card span{display:block;color:var(--gray);font-size:12px;line-height:1.3}
+.forecast-day-total-card strong{display:block;margin-top:3px;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
+.shift-test-delete-btn{border-color:#e2aaa4!important;background:var(--danger-bg)!important;color:var(--danger)!important}
 @media(max-width:699px){
  .staffing-day-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
  .staffing-day-tab{min-height:44px;font-size:12px}
  .forecast-day-heading{padding:10px 11px}
  .forecast-area-table-wrap{display:none}
  .forecast-area-cards{display:grid;gap:7px;padding:8px}
- .forecast-area-card{padding:10px;background:#faf9f6;border:1px solid var(--line);border-radius:10px}
- .forecast-area-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:14px;font-weight:800}
+ .forecast-area-card{padding:8px;background:#faf9f6;border:1px solid var(--line);border-radius:10px}
+ .forecast-area-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:13px;font-weight:800}
  .forecast-area-card-head .forecast-gap{font-size:12px}
- .forecast-area-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
- .forecast-area-stat{min-width:0;padding:7px 8px;background:#fff;border-radius:8px;text-align:center}
- .forecast-area-stat span{display:block;color:var(--gray);font-size:11px;line-height:1.35}
- .forecast-area-stat strong{display:block;margin-top:3px;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+ .forecast-area-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+ .forecast-area-stat{min-width:0;padding:6px;background:#fff;border-radius:8px;text-align:center}
+ .forecast-area-stat span{display:block;color:var(--gray);font-size:12px;line-height:1.3}
+ .forecast-area-stat strong{display:block;margin-top:2px;font-size:14px;line-height:1.2;overflow-wrap:anywhere}
+ #staffingRecommendationSummary .summary-card{padding:9px 5px;border-radius:11px}
+ #staffingRecommendationSummary .summary-label{font-size:12px;margin-bottom:2px}
+ #staffingRecommendationSummary .summary-number{font-size:20px}
+ .forecast-day-total-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+ .forecast-day-total-card{padding:7px 5px}
+ .shift-admin-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shift-admin-actions button:last-child:nth-child(3){grid-column:1/-1}
 }
 </style>
 </head>
@@ -1444,6 +1465,7 @@ button{cursor:pointer}
       <div id="shiftStatusTabs" class="shift-status-tabs" role="tablist" aria-label="指休提交狀態"></div>
       <div class="shift-admin-actions">
         <button id="shiftRefreshBtn" class="action-btn" type="button">重新整理</button>
+        <button id="shiftDeleteTestBtn" class="action-btn shift-test-delete-btn" type="button" hidden>刪除測試資料</button>
         <button id="shiftExportBtn" class="action-btn" type="button">匯出 Excel</button>
       </div>
     </div>
@@ -1451,7 +1473,7 @@ button{cursor:pointer}
   </section>
   <section class="section">
     <div class="section-title">下週人力建議</div>
-    <div class="hint">最近 8 週同星期平均｜TPLH 2.5｜第三方 ≤20%</div>
+    <div class="hint">最近 8 週同星期平均｜各區 TC 無條件進位｜TPLH 2.5｜第三方 ≤20%</div>
     <div id="staffingRecommendationSummary" class="summary"></div>
     <div id="staffingWeekGap" class="forecast-week-gap" hidden></div>
     <div id="staffingDayTabs" class="staffing-day-tabs" role="tablist" aria-label="選擇預測日期"></div>
@@ -4838,6 +4860,7 @@ const t995ShiftNameSearch=$("shiftNameSearch");
 const t995ShiftStatusTabs=$("shiftStatusTabs");
 const t995ShiftRefreshBtn=$("shiftRefreshBtn");
 const t995ShiftExportBtn=$("shiftExportBtn");
+const t995ShiftDeleteTestBtn=$("shiftDeleteTestBtn");
 const t995ShiftSummary=$("shiftAdminSummary");
 const t995ShiftAdminList=$("shiftAdminList");
 const t995StaffingSummary=$("staffingRecommendationSummary");
@@ -4846,7 +4869,15 @@ const t995StaffingWeekGap=$("staffingWeekGap");
 const t995StaffingDayTabs=$("staffingDayTabs");
 let t995StaffingForecastData=[];
 let t995StaffingDayOffset=0;
-t995StaffingDayTabs.onclick=e=>{const b=e.target.closest("[data-t995-forecast-day]");if(!b)return;t995StaffingDayOffset=Number(b.dataset.t995ForecastDay)||0;t995RenderStaffingDay();};
+t995StaffingDayTabs.onclick=e=>{
+  const b=e.target.closest("[data-t995-forecast-day]");if(!b)return;
+  t995StaffingDayOffset=Number(b.dataset.t995ForecastDay)||0;
+  t995StaffingDayTabs.querySelectorAll("[data-t995-forecast-day]").forEach(tab=>{
+    const active=Number(tab.dataset.t995ForecastDay)===t995StaffingDayOffset;
+    tab.classList.toggle("active",active);tab.setAttribute("aria-selected",active?"true":"false");
+  });
+  t995RenderStaffingDay();
+};
 const t995TcFile=$("staffingImportFile");
 const t995TcImportBtn=$("staffingImportBtn");
 const t995TcImportMessage=$("staffingImportMessage");
@@ -4858,6 +4889,7 @@ let t995EmployeeAreaFilter="ALL";
 let t995ShiftRows=[];
 let t995ShiftExportRows=[];
 let t995ShiftStatusFilter="all";
+let t995ShiftTestRecordCount=0;
 let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_test_mode:true};
 let t995AreaMap=new Map();
 let t995AreaMapLoaded=false;
@@ -4969,7 +5001,8 @@ function t995WeekChoices(){
   const p=t995TaipeiNow();const monday=t995DateAdd(t995DateISO(p.y,p.m,p.d),-((p.dow+6)%7));
   const open=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
   const target=t995DateAdd(monday,(open||(p.dow===1&&p.minute<600))?7:14);
-  return [0,1,2,3].map(i=>{const start=t995DateAdd(target,-7*i);return {start,label:`${start} 至 ${t995DateAdd(start,6)}`};});
+  const labels=["本週","下週","下下週","下下下週"];
+  return [0,1,2,3].map(i=>{const start=t995DateAdd(target,7*i);const dates=`${start} 至 ${t995DateAdd(start,6)}`;return {start,weekLabel:labels[i],dateLabel:dates,label:`${labels[i]}｜${dates}`};});
 }
 function t995ParseRanges(value){
   const s=String(value||"").trim();if(!s)return [];
@@ -4985,7 +5018,7 @@ function t995IsAllBlank(row){return ['monday','tuesday','wednesday','thursday','
 function t995LatestShiftByEmployee(rows){const map=new Map();for(const r of [...(rows||[])].sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||''))))if(!map.has(String(r.employee_id)))map.set(String(r.employee_id),r);return map;}
 function t995RenderShiftWeekButtons(weeks){
   const selected=t995ShiftWeekSelect.value;
-  t995ShiftWeekButtons.innerHTML=weeks.map(w=>`<button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}">${w.label}</button>`).join('');
+  t995ShiftWeekButtons.innerHTML=weeks.map(w=>`<button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}"><span>${w.weekLabel}</span><small>${w.dateLabel}</small></button>`).join('');
 }
 async function t995LoadShiftAdmin(){
   const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;
@@ -5000,15 +5033,16 @@ async function t995LoadShiftAdmin(){
     ]);
     if(er.error)throw er.error;if(sr.error)throw sr.error;if(settings.error)throw settings.error;
     t995Employees=er.data||[];if(settings.data)t995StaffingSettings=settings.data;
-    const latest=t995LatestShiftByEmployee(sr.data||[]);const latestFormal=t995LatestShiftByEmployee((sr.data||[]).filter(r=>!r.is_test));
+    const latest=t995LatestShiftByEmployee(sr.data||[]);t995ShiftTestRecordCount=(sr.data||[]).filter(r=>r.is_test).length;
     t995ShiftRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
-    const forecastRows=t995Employees.map(e=>({employee:e,shift:latestFormal.get(String(e.id))||null}));
+    const forecastRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
     const testToggle=document.getElementById("shiftTestModeToggle");if(testToggle)testToggle.checked=Boolean(t995StaffingSettings.shift_test_mode);
     t995RenderShiftAdmin();await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,forecastRows);
   }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">讀取失敗：${esc(e.message||"請確認權限")}</div>`;t995StaffingList.innerHTML='<div class="empty">人力資料讀取失敗</div>';}
 }
 function t995RenderShiftAdmin(){
-  const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;const testCount=t995ShiftRows.filter(x=>x.shift?.is_test).length;
+  const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
+  if(t995ShiftDeleteTestBtn)t995ShiftDeleteTestBtn.hidden=t995ShiftTestRecordCount===0;
   const choices=[['all',`全部 ${active}`],['submitted',`已提交 ${submitted}`],['missing',`未提交 ${missing}`]];
   t995ShiftStatusTabs.innerHTML=choices.map(([key,label])=>`<button type="button" class="shift-status-btn ${t995ShiftStatusFilter===key?'active':''}" data-t995-shift-status="${key}" role="tab" aria-selected="${t995ShiftStatusFilter===key?'true':'false'}">${label}</button>`).join('');
   const weekLabel=t995ShiftWeekSelect.options[t995ShiftWeekSelect.selectedIndex]?.text||"";const term=t995ShiftNameSearch.value.trim().toLocaleLowerCase('zh-Hant');
@@ -5016,7 +5050,7 @@ function t995RenderShiftAdmin(){
     if(t995ShiftStatusFilter==='submitted'&&!shift)return false;if(t995ShiftStatusFilter==='missing'&&shift)return false;
     return !term||String(employee.full_name||'').toLocaleLowerCase('zh-Hant').includes(term);
   });
-  t995ShiftSummary.textContent=`${weekLabel}｜在職 ${active}｜已提交 ${submitted}（測試 ${testCount}）｜未提交 ${missing}｜顯示 ${rows.length}`;
+  t995ShiftSummary.textContent=`${weekLabel}｜在職 ${active}｜已提交 ${submitted}｜測試資料 ${t995ShiftTestRecordCount} 筆｜未提交 ${missing}｜顯示 ${rows.length}`;
   if(!rows.length){t995ShiftAdminList.innerHTML='<div class="shift-admin-empty">沒有符合資料</div>';return;}
   const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
   const body=rows.map(({employee:e,shift:r})=>{
@@ -5029,11 +5063,24 @@ function t995RenderShiftAdmin(){
 }
 function t995BuildShiftExportRows(){
   const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
-  return t995ShiftRows.map(({employee:e,shift:r})=>({週次:t995ShiftWeekSelect.value,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",資料類型:r?.is_test?"測試資料（不納入人力建議）":"正式資料",提交狀態:!r?"未提交":r.is_test?"測試提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
+  return t995ShiftRows.map(({employee:e,shift:r})=>({週次:t995ShiftWeekSelect.value,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",資料類型:r?.is_test?"測試資料（納入人力建議）":"正式資料",提交狀態:!r?"未提交":r.is_test?"測試提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
 }
 function t995ExportShiftWeek(){
   const rows=t995BuildShiftExportRows();if(!rows.length){alert("目前沒有在職員工資料可匯出。");return;}
   const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(rows);if(ws["!ref"])ws["!autofilter"]={ref:ws["!ref"]};XLSX.utils.book_append_sheet(wb,ws,"指休表");XLSX.writeFile(wb,`T995_指休_${t995ShiftWeekSelect.value}.xlsx`);
+}
+async function t995DeleteShiftTestData(){
+  const week=t995ShiftWeekSelect.value;const count=t995ShiftTestRecordCount;
+  if(!count){alert("本週沒有測試資料。");return;}
+  if(!confirm(`確定刪除本週 ${count} 筆測試指休資料？正式提交資料不會刪除。`))return;
+  t995ShiftDeleteTestBtn.disabled=true;
+  try{
+    const r=await db.from("weekly_shift_availability").delete().eq("week_start",week).eq("is_test",true).select("id");
+    if(r.error)throw r.error;
+    alert(`已刪除 ${(r.data||[]).length} 筆測試資料。`);
+    await t995LoadShiftAdmin();
+  }catch(e){alert(`刪除測試資料失敗：${e.message||"請確認管理員權限"}`);}
+  finally{t995ShiftDeleteTestBtn.disabled=false;}
 }
 async function t995LoadAllPaged(table,select,fromDate,toDate,periodCode,orderColumn="restaurant_name"){
   const out=[];const pageSize=1000;for(let offset=0;;offset+=pageSize){
@@ -5059,13 +5106,13 @@ async function t995RenderStaffingRecommendation(weekStart,shiftRows){
   const fullByAreaDate=new Map();
   for(const r of fullRows){const date=String(r.record_date).slice(0,10);t995MapAdd(fullByAreaDate,`${r.area_code}|${date}`,Number(r.total_tc||0));}
   const byArea=new Map();
-  for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area||shift?.is_test)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
+  for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
   const areas=['A','B','C','D','E','F','G','H','I','J','K'];
   const target=Math.max(0.01,Number(t995StaffingSettings.target_tplh)||2.5);
   const cap=Math.max(0,Math.min(100,Number(t995StaffingSettings.max_third_party_usage_pct??20)));
   const dayNames=['週一','週二','週三','週四','週五','週六','週日'];
   const output=areas.map(area=>({area,days:dayNames.map((day,offset)=>{
-    const date=t995DateAdd(weekStart,offset);const totalTc=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks);
+    const date=t995DateAdd(weekStart,offset);const rawTc=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks);const totalTc=rawTc===null?null:Math.ceil(rawTc-1e-9);
     const recommended=totalTc===null?null:totalTc/target;
     const thirdPartyCap=totalTc===null?null:Math.floor(totalTc*cap/100);
     let availableHours=0,people=0;
@@ -5078,7 +5125,7 @@ async function t995RenderStaffingRecommendation(weekStart,shiftRows){
   const weeklyAvailable=allDays.reduce((sum,d)=>sum+d.availableHours,0);
   const weeklyThirdParty=forecastDays.reduce((sum,d)=>sum+d.thirdPartyCap,0);
   const weeklyGap=weeklyAvailable-weeklyNeeded;
-  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">預估整週 TC</div><div class="summary-number">${weeklyTc.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">預估需求工時</div><div class="summary-number">${weeklyNeeded.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">可安排工時</div><div class="summary-number">${weeklyAvailable.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">第三方可派單上限</div><div class="summary-number">${weeklyThirdParty.toLocaleString('zh-TW')}</div></div>`;
+  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">預估整週 TC</div><div class="summary-number">${weeklyTc.toLocaleString('zh-TW')}</div></div><div class="summary-card"><div class="summary-label">預估需求工時</div><div class="summary-number">${weeklyNeeded.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">可安排工時</div><div class="summary-number">${weeklyAvailable.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">第三方可派單上限</div><div class="summary-number">${weeklyThirdParty.toLocaleString('zh-TW')}</div></div>`;
   t995StaffingWeekGap.hidden=false;t995StaffingWeekGap.className=`forecast-week-gap ${weeklyGap<0?'is-short':'is-surplus'}`;
   t995StaffingWeekGap.textContent=`整週工時差：${weeklyGap>=0?'+':''}${weeklyGap.toFixed(1)} 小時｜${weeklyGap<0?'人力不足':'人力有餘裕'}`;
   t995StaffingForecastData=output;
@@ -5091,10 +5138,18 @@ function t995RenderStaffingDay(){
   const offset=t995StaffingDayOffset;const day=areas[0]?.days[offset];if(!day)return;
   const gap=(value)=>value===null?{text:'—',cls:''}:{text:`${value>=0?'+':''}${value.toFixed(1)} 小時`,cls:value<0?'is-short':'is-surplus'};
   const metric=(label,value)=>`<div class="forecast-area-stat"><span>${label}</span><strong>${value}</strong></div>`;
-  const rows=areas.map(({area,days})=>{const d=days[offset];const delta=gap(d.gap);const tc=d.totalTc===null?'—':d.totalTc.toFixed(1);const needed=d.recommended===null?'—':d.recommended.toFixed(1);const third=d.thirdPartyCap===null?'—':d.thirdPartyCap.toLocaleString('zh-TW');const availability=`${d.people} 人／${d.availableHours.toFixed(1)} 小時`;
+  const dayData=areas.map(x=>x.days[offset]);const forecastAreas=dayData.filter(d=>d.totalTc!==null);
+  const totalTc=forecastAreas.length?forecastAreas.reduce((sum,d)=>sum+d.totalTc,0):null;
+  const totalNeeded=forecastAreas.length?forecastAreas.reduce((sum,d)=>sum+d.recommended,0):null;
+  const totalThird=forecastAreas.length?forecastAreas.reduce((sum,d)=>sum+d.thirdPartyCap,0):null;
+  const totalPeople=dayData.reduce((sum,d)=>sum+d.people,0);const totalAvailable=dayData.reduce((sum,d)=>sum+d.availableHours,0);
+  const totalGap=totalNeeded===null?null:totalAvailable-totalNeeded;const totalDelta=gap(totalGap);
+  const totalText=(value,digits=1)=>value===null?'—':Number(value).toLocaleString('zh-TW',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+  const totals=`<div class="forecast-day-total-wrap"><div class="forecast-day-total-title">當日預估合計（各區 TC 無條件進位後加總）</div><div class="forecast-day-total-grid"><div class="forecast-day-total-card"><span>預估總 TC</span><strong>${totalTc===null?'—':totalTc.toLocaleString('zh-TW')}</strong></div><div class="forecast-day-total-card"><span>需求工時</span><strong>${totalText(totalNeeded)}</strong></div><div class="forecast-day-total-card"><span>第三方可派單</span><strong>${totalThird===null?'—':totalThird.toLocaleString('zh-TW')}</strong></div><div class="forecast-day-total-card"><span>可排人數／工時</span><strong>${totalPeople} 人／${totalText(totalAvailable)} 小時</strong></div><div class="forecast-day-total-card"><span>工時差</span><strong class="forecast-gap ${totalDelta.cls}">${totalDelta.text}</strong></div></div></div>`;
+  const rows=areas.map(({area,days})=>{const d=days[offset];const delta=gap(d.gap);const tc=d.totalTc===null?'—':d.totalTc.toLocaleString('zh-TW');const needed=d.recommended===null?'—':d.recommended.toFixed(1);const third=d.thirdPartyCap===null?'—':d.thirdPartyCap.toLocaleString('zh-TW');const availability=`${d.people} 人／${d.availableHours.toFixed(1)} 小時`;
     return {area,tc,needed,third,availability,delta};
   });
-  t995StaffingList.innerHTML=`<div class="forecast-day-panel"><div class="forecast-day-heading">${day.day}｜${day.date}</div><div class="forecast-area-table-wrap"><table class="forecast-area-table" aria-label="${day.day}各區人力預測"><thead><tr><th>區域</th><th>預估總 TC</th><th>需求工時</th><th>第三方可派單</th><th>可排人數／工時</th><th>工時差</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.area} 區</td><td>${r.tc}</td><td>${r.needed}</td><td>${r.third}</td><td>${r.availability}</td><td class="forecast-gap ${r.delta.cls}">${r.delta.text}</td></tr>`).join('')}</tbody></table></div><div class="forecast-area-cards">${rows.map(r=>`<article class="forecast-area-card"><div class="forecast-area-card-head"><span>${r.area} 區</span><span class="forecast-gap ${r.delta.cls}">${r.delta.text}</span></div><div class="forecast-area-card-grid">${metric('預估總 TC',r.tc)}${metric('預估需求工時',r.needed)}${metric('第三方可派單',r.third)}${metric('可排人數／工時',r.availability)}</div></article>`).join('')}</div></div>`;
+  t995StaffingList.innerHTML=`<div class="forecast-day-panel"><div class="forecast-day-heading">${day.day}｜${day.date}</div>${totals}<div class="forecast-area-table-wrap"><table class="forecast-area-table" aria-label="${day.day}各區人力預測"><thead><tr><th>區域</th><th>預估總 TC</th><th>需求工時</th><th>第三方可派單</th><th>可排人數／工時</th><th>工時差</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.area} 區</td><td>${r.tc}</td><td>${r.needed}</td><td>${r.third}</td><td>${r.availability}</td><td class="forecast-gap ${r.delta.cls}">${r.delta.text}</td></tr>`).join('')}</tbody></table></div><div class="forecast-area-cards">${rows.map(r=>`<article class="forecast-area-card"><div class="forecast-area-card-head"><span>${r.area} 區</span><span class="forecast-gap ${r.delta.cls}">${r.delta.text}</span></div><div class="forecast-area-card-grid">${metric('預估總 TC',r.tc)}${metric('預估需求工時',r.needed)}${metric('第三方可派單',r.third)}${metric('可排人數／工時',r.availability)}</div></article>`).join('')}</div></div>`;
 }
 function t995RenderStaffingFromCurrent(){t995StaffingList.querySelectorAll('.staffing-day-card').forEach(card=>{card.style.display='';});}
 function t995RenderShiftAndForecast(){t995RenderShiftAdmin();t995RenderStaffingFromCurrent();}
@@ -5258,6 +5313,7 @@ t995ShiftNameSearch.oninput=()=>t995RenderShiftAdmin();
 t995ShiftStatusTabs.onclick=e=>{const b=e.target.closest("[data-t995-shift-status]");if(!b)return;t995ShiftStatusFilter=b.dataset.t995ShiftStatus;t995RenderShiftAdmin();};
 t995ShiftRefreshBtn.onclick=()=>t995LoadShiftAdmin();
 t995ShiftExportBtn.onclick=t995ExportShiftWeek;
+t995ShiftDeleteTestBtn.onclick=t995DeleteShiftTestData;
 t995TcImportBtn.onclick=t995ImportCompleteWorkbookV4;
 t995TcFile.addEventListener("change",()=>{const label=document.getElementById("staffingImportFileLabel");if(label){const names=[...t995TcFile.files||[]].map(f=>f.name);label.textContent=names.length?names.join("、"):("選擇 Excel（可多選）");}});
 const t995OldDeviceCardClick=batteryReportList.onclick;
