@@ -1106,6 +1106,12 @@ button{cursor:pointer}
 .forecast-day-total-card span{display:block;color:var(--gray);font-size:12px;line-height:1.3}
 .forecast-day-total-card strong{display:block;margin-top:3px;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
 .shift-test-delete-btn{border-color:#e2aaa4!important;background:var(--danger-bg)!important;color:var(--danger)!important}
+.shift-fold>summary{display:flex;align-items:center;justify-content:center;gap:9px;list-style:none;cursor:pointer}
+.shift-fold>summary::-webkit-details-marker{display:none}
+.shift-fold>summary::after{content:"＋";display:inline-grid;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--gray);font-size:14px;line-height:1}
+.shift-fold[open]>summary::after{content:"−";color:var(--red);border-color:#e2aaa4;background:var(--danger-bg)}
+.shift-fold:not([open])>summary{margin-bottom:0}
+.shift-fold-content{padding-top:1px}
 @media(max-width:699px){
  .staffing-day-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
  .staffing-day-tab{min-height:44px;font-size:12px}
@@ -1472,21 +1478,29 @@ button{cursor:pointer}
     <div id="shiftAdminSummary" class="hint" style="margin-top:10px"></div>
   </section>
   <section class="section">
-    <div class="section-title">下週人力建議</div>
-    <div class="hint">最近 8 週同星期平均｜各區 TC 無條件進位｜TPLH 2.5｜第三方 ≤20%</div>
-    <div id="staffingRecommendationSummary" class="summary"></div>
-    <div id="staffingWeekGap" class="forecast-week-gap" hidden></div>
-    <div id="staffingDayTabs" class="staffing-day-tabs" role="tablist" aria-label="選擇預測日期"></div>
-    <div id="staffingRecommendationList" class="staffing-results"><div class="loading">載入歷史資料與指休資料中…</div></div>
+    <details class="shift-fold">
+      <summary class="section-title">下週人力建議</summary>
+      <div class="shift-fold-content">
+        <div class="hint">最近 8 週同星期平均｜各區 TC 無條件進位｜TPLH 2.5｜第三方 ≤20%</div>
+        <div id="staffingRecommendationSummary" class="summary"></div>
+        <div id="staffingWeekGap" class="forecast-week-gap" hidden></div>
+        <div id="staffingDayTabs" class="staffing-day-tabs" role="tablist" aria-label="選擇預測日期"></div>
+        <div id="staffingRecommendationList" class="staffing-results"><div class="loading">載入歷史資料與指休資料中…</div></div>
+      </div>
+    </details>
   </section>
   <section class="section">
-    <div class="section-title">匯入歷史資料</div>
-    <div class="staffing-panel" style="width:100%">
-      <label class="staffing-file-picker" for="staffingImportFile"><span id="staffingImportFileLabel">選擇 Excel（可多選）</span><input id="staffingImportFile" type="file" accept=".xlsx,.xls" multiple aria-label="一次選取 TC 與中心實際資料 Excel"></label>
-      <button id="staffingImportBtn" class="action-btn" type="button" style="width:100%;margin-top:9px">分析並匯入</button>
-      <div id="staffingImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
-    </div>
-    <div class="hint">空白／負數以 0 計</div>
+    <details class="shift-fold">
+      <summary class="section-title">匯入歷史資料</summary>
+      <div class="shift-fold-content">
+        <div class="staffing-panel" style="width:100%">
+          <label class="staffing-file-picker" for="staffingImportFile"><span id="staffingImportFileLabel">選擇 Excel（可多選）</span><input id="staffingImportFile" type="file" accept=".xlsx,.xls" multiple aria-label="一次選取 TC 與中心實際資料 Excel"></label>
+          <button id="staffingImportBtn" class="action-btn" type="button" style="width:100%;margin-top:9px">分析並匯入</button>
+          <div id="staffingImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
+        </div>
+        <div class="hint">空白／負數以 0 計</div>
+      </div>
+    </details>
   </section>
   <section class="section">
     <div class="section-title">提交狀況</div>
@@ -4999,10 +5013,8 @@ function t995DateISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d
 function t995DateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return t995DateISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
 function t995WeekChoices(){
   const p=t995TaipeiNow();const monday=t995DateAdd(t995DateISO(p.y,p.m,p.d),-((p.dow+6)%7));
-  const open=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
-  const target=t995DateAdd(monday,(open||(p.dow===1&&p.minute<600))?7:14);
-  const labels=["本週","下週","下下週","下下下週"];
-  return [0,1,2,3].map(i=>{const start=t995DateAdd(target,7*i);const dates=`${start} 至 ${t995DateAdd(start,6)}`;return {start,weekLabel:labels[i],dateLabel:dates,label:`${labels[i]}｜${dates}`};});
+  const shortDate=iso=>iso.slice(5).replace("-","/");
+  return [0,7,21,28].map(offset=>{const start=t995DateAdd(monday,offset);const dateLabel=`${shortDate(start)}-${shortDate(t995DateAdd(start,6))}`;return {start,dateLabel,label:dateLabel};});
 }
 function t995ParseRanges(value){
   const s=String(value||"").trim();if(!s)return [];
@@ -5018,7 +5030,7 @@ function t995IsAllBlank(row){return ['monday','tuesday','wednesday','thursday','
 function t995LatestShiftByEmployee(rows){const map=new Map();for(const r of [...(rows||[])].sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||''))))if(!map.has(String(r.employee_id)))map.set(String(r.employee_id),r);return map;}
 function t995RenderShiftWeekButtons(weeks){
   const selected=t995ShiftWeekSelect.value;
-  t995ShiftWeekButtons.innerHTML=weeks.map(w=>`<button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}"><span>${w.weekLabel}</span><small>${w.dateLabel}</small></button>`).join('');
+  t995ShiftWeekButtons.innerHTML=weeks.map(w=>`<button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}">${w.dateLabel}</button>`).join('');
 }
 async function t995LoadShiftAdmin(){
   const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;
