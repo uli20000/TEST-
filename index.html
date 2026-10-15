@@ -883,8 +883,8 @@
 .shift-day-error{grid-column:2;color:var(--danger);font-size:12px;line-height:1.4}
 @media(max-width:500px){.shift-day-structured{grid-template-columns:42px minmax(0,1fr);gap:7px;padding:9px}.shift-time-slot,.shift-time-slot-extra{grid-template-columns:minmax(0,1fr) 10px minmax(0,1fr);gap:4px}.shift-time-input{font-size:14px!important}.shift-unavailable,.shift-add-slot{font-size:12px;padding:5px 8px}}
 
-/* 指休測試模式與電池領用欄位 */
-.shift-window-test{background:#fff4dd;border:1px solid #e9b95e;border-radius:12px;padding:10px 12px;color:#76500c}
+/* 指休開放狀態與電池領用欄位 */
+.shift-window-open{background:#edf5ef;border:1px solid #c9ddcf;border-radius:12px;padding:10px 12px;color:#2f6c47}
 #claimBatteryNumber{width:100%;height:48px;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit}
 </style>
 </head>
@@ -4450,27 +4450,25 @@ function taipeiShiftNow(){
 function shiftISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
 function shiftDateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return shiftISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
 function shiftRangeLabel(start){return `${start} 至 ${shiftDateAdd(start,6)}`;}
-let shiftTestModeEnabled=false;
-function getShiftSubmissionCycle(testMode=shiftTestModeEnabled){
+let shiftSubmissionOpen=false;
+function getShiftSubmissionCycle(isOpen=shiftSubmissionOpen){
   const p=taipeiShiftNow();const today=shiftISO(p.y,p.m,p.d);const monday=shiftDateAdd(today,-((p.dow+6)%7));
-  const normalOpen=(p.dow===1&&p.minute>=600)||(p.dow>=2&&p.dow<=5)||(p.dow===6&&p.minute<600);
-  const open=Boolean(testMode)||normalOpen;
-  const weekStart=shiftDateAdd(monday,(normalOpen||(p.dow===1&&p.minute<600))?7:14);
-  return {open,normalOpen,weekStart,testMode:Boolean(testMode)};
+  const beforeWeekCutoff=(p.dow>=1&&p.dow<=5)||(p.dow===6&&p.minute<600);
+  const weekStart=shiftDateAdd(monday,beforeWeekCutoff?7:14);
+  return {open:Boolean(isOpen),weekStart,submissionOpen:Boolean(isOpen)};
 }
-async function loadShiftTestMode(){
-  const r=await db.rpc("shift_test_mode_enabled");if(r.error)throw r.error;
-  shiftTestModeEnabled=Boolean(r.data);return shiftTestModeEnabled;
+async function loadShiftSubmissionOpen(){
+  const r=await db.rpc("shift_submission_open_enabled");if(r.error)throw r.error;
+  shiftSubmissionOpen=Boolean(r.data);return shiftSubmissionOpen;
 }
 function updateShiftWindow(){
   const cycle=getShiftSubmissionCycle();shiftWeekLabel.textContent=`填寫週次：${shiftRangeLabel(cycle.weekStart)}`;
-  if(cycle.testMode){shiftWindowMessage.textContent="測試開放中：目前任何時間皆可填寫（仍需在職名單驗證）。";shiftWindowMessage.className="hint shift-window-test";}
-  else if(cycle.normalOpen){shiftWindowMessage.textContent="目前開放中：週一 10:00 至週六 10:00（台灣時間）。";shiftWindowMessage.className="hint";}
-  else{shiftWindowMessage.textContent="目前未開放；請於每週一 10:00 至週六 10:00 填寫。";shiftWindowMessage.className="hint shift-window-closed";}
+  if(cycle.open){shiftWindowMessage.textContent="目前已開放｜任何時間皆可填寫，提交視為正式資料。";shiftWindowMessage.className="hint shift-window-open";}
+  else{shiftWindowMessage.textContent="目前未開放，請留意後台公告。";shiftWindowMessage.className="hint shift-window-closed";}
   shiftSubmitBtn.disabled=!cycle.open;return cycle;
 }
 async function enterShiftMode(){
-  try{await loadShiftTestMode();const cycle=getShiftSubmissionCycle();if(!cycle.open){alert("指休表目前未開放。請於每週一 10:00 至週六 10:00（台灣時間）再進入填寫。");return;}showMode("shift");}
+  try{await loadShiftSubmissionOpen();const cycle=getShiftSubmissionCycle();if(!cycle.open){alert("指休表目前未開放，請留意後台公告。");return;}showMode("shift");}
   catch(e){alert(`目前無法確認指休表開放狀態：${e.message||"請稍後再試"}`);}
 }
 function parseAvailabilityRanges(value){
@@ -4541,8 +4539,8 @@ function readShiftDayValue(dayKey){
   return {value:intervals.map(([start,end])=>`${start/60}-${end/60}`).join("/"),intervals};
 }
 async function submitShiftAvailability(){
-  try{await loadShiftTestMode();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
-  const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="目前不在開放時間，無法送出。";return;}
+  try{await loadShiftSubmissionOpen();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
+  const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="指休表目前已關閉，無法送出。";return;}
   if(!await verifyShiftEmployee())return;
   const values={},dayResults={};
   for(const key of Object.keys(shiftDayLabels)){
@@ -4560,8 +4558,8 @@ async function submitShiftAvailability(){
     const r=await db.from("weekly_shift_availability").insert(payload);if(r.error)throw r.error;
     shiftSuccessData.textContent=`${verifiedShiftEmployee.full_name}｜${verifiedShiftEmployee.area_code} 區｜${shiftRangeLabel(cycle.weekStart)}`;
     shiftForm.style.display="none";shiftSuccess.classList.add("show");shiftSubmitMessage.textContent="";
-  }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認開放時間並稍後重試。"}`;}
-  finally{try{await loadShiftTestMode();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
+  }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認指休表仍為開放狀態並稍後重試。"}`;}
+  finally{try{await loadShiftSubmissionOpen();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
 }
 function resetShiftForm(){
   clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftEmployeeSearchResults=[];
