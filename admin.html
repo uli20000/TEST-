@@ -4121,7 +4121,11 @@ async function loadDefensiveAdminData(){
     const uniqueNames = [...new Set((employeeResult.data || []).map(row => String(row.full_name || "").trim()).filter(Boolean))];
     defensiveTargets = uniqueNames;
     defensiveResponses = responseResult.data || [];
-    const completed = new Set(defensiveResponses.filter(row => row.status === "completed").map(row => row.respondent_name));
+    const activeNameSet = new Set(uniqueNames);
+    const completed = new Set(defensiveResponses
+      .filter(row => row.status === "completed")
+      .map(row => String(row.respondent_name || "").trim())
+      .filter(name => name && activeNameSet.has(name)));
     const incomplete = uniqueNames.filter(name => !completed.has(name));
     renderDefensiveSummary(uniqueNames, completed, incomplete);
   }catch(e){
