@@ -965,9 +965,9 @@ button{cursor:pointer}
 
 /* T995 v3 — protected modules and equal-height administrative cards */
 .protected-mode-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.shift-open-toggle{display:flex;align-items:center;gap:12px;margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:left;cursor:pointer}
-.shift-open-toggle input{width:22px;height:22px;accent-color:var(--red);flex:none}
-.shift-open-toggle span{display:grid;gap:3px}.shift-open-toggle small{color:var(--gray);line-height:1.45}
+.shift-test-toggle{display:flex;align-items:center;gap:12px;margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:left;cursor:pointer}
+.shift-test-toggle input{width:22px;height:22px;accent-color:var(--red);flex:none}
+.shift-test-toggle span{display:grid;gap:3px}.shift-test-toggle small{color:var(--gray);line-height:1.45}
 .admin-fixed-card{height:300px;min-height:300px;max-height:300px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;overflow:hidden;padding:14px;background:#fff;border:1px solid var(--line);border-radius:16px;text-align:left}
 .admin-fixed-card .admin-card-head{min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow:hidden}
 .admin-fixed-card .admin-card-body{flex:1;min-height:0;overflow:hidden}
@@ -1022,8 +1022,8 @@ button{cursor:pointer}
 .employee-directory-card .employee-area-save-btn,.employee-directory-card .permanent-delete-employee{width:100%;height:42px;min-height:42px;padding:4px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font:inherit;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
 .employee-directory-card .permanent-delete-employee,.vehicle-card-admin-actions .permanent-delete-vehicle,.device-delete-btn{border-color:#e2aaa4!important;background:var(--danger-bg)!important;color:var(--danger)!important}
 .employee-directory-card .employee-area-save-btn:focus-visible,.employee-directory-card .permanent-delete-employee:focus-visible{outline:3px solid rgba(200,16,46,.25);outline-offset:2px}
-.shift-open-toggle{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin:7px 0 0;padding:4px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font-size:12px;font-weight:800;cursor:pointer}
-.shift-open-toggle input{width:16px;height:16px;margin:0;accent-color:var(--red)}
+.shift-test-toggle{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin:7px 0 0;padding:4px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font-size:12px;font-weight:800;cursor:pointer}
+.shift-test-toggle input{width:16px;height:16px;margin:0;accent-color:var(--red)}
 .shift-admin-toolbar{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
 .shift-week-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;grid-column:1/-1}
 .shift-week-btn,.shift-status-btn{min-width:0;min-height:42px;padding:7px 8px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font:inherit;font-size:12px;font-weight:800;cursor:pointer}
@@ -1070,7 +1070,7 @@ button{cursor:pointer}
 .staffing-file-picker{position:relative;display:grid;place-items:center;min-height:46px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font-size:14px;font-weight:700;overflow:hidden;cursor:pointer}
 .staffing-file-picker span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .staffing-file-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-/* Forecast model: 20% TC growth and equal, responsive presentation. */
+/* Forecast view: explicit 20% uplift, aligned summary, and mobile card rhythm. */
 .forecast-formula{max-width:820px;margin:0 auto 8px!important;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#5f5a53;font-size:13px;line-height:1.55;text-align:center}
 .forecast-summary-grid{width:100%;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
 .forecast-summary-grid .summary-card{min-width:0;min-height:88px;display:flex;flex-direction:column;justify-content:center;align-items:center}
@@ -1150,70 +1150,68 @@ button{cursor:pointer}
  .shift-admin-actions button:last-child:nth-child(3){grid-column:1/-1}
 }
 
-/* T995 UI consistency pass: align every admin module to vehicle-management shell. */
-.admin-mode-page [hidden]{display:none!important}
-#adminApp.page{width:100%;max-width:900px;margin:0 auto;padding:0 0 50px;box-sizing:border-box}
-#adminApp .header{width:100%;box-sizing:border-box;text-align:center}
-.admin-mode-page{width:100%;box-sizing:border-box;text-align:center}
-.admin-mode-page .mode-back-row{width:auto;max-width:none;margin:16px 16px 0;padding:0;box-sizing:border-box}
-.admin-mode-page .mode-back-row .action-btn{width:100%;min-width:0;height:48px;min-height:48px;border-radius:13px}
-.admin-mode-page .protected-mode-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.admin-mode-page > .section{width:100%;max-width:none;margin:0;padding:22px 16px 0;box-sizing:border-box}
-.admin-mode-page .section-title{margin:0 0 14px;font-size:20px;line-height:1.35;font-weight:800;text-align:center}
-.admin-mode-page .hint{max-width:100%;text-align:center}
-.admin-mode-page .summary{width:100%;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;box-sizing:border-box}
-.admin-mode-page .summary-card{min-width:0;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;border-radius:16px;box-sizing:border-box}
-.admin-mode-page .summary-label{line-height:1.35}
-.admin-mode-page .search-box,.admin-mode-page .staffing-panel,.admin-mode-page .claim-panel,.admin-mode-page .health-panel{width:100%;max-width:none;margin-left:auto;margin-right:auto;box-sizing:border-box;border-radius:16px}
-.admin-mode-page .search-input,.admin-mode-page input:not([type=checkbox]):not([type=file]),.admin-mode-page select{max-width:100%;box-sizing:border-box}
-.admin-mode-page .action-btn{min-height:48px;box-sizing:border-box;border-radius:12px}
-.admin-mode-page .action-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.admin-mode-page .summary-with-refresh{grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:10px}
-.admin-mode-page .summary-with-refresh .survey-summary{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.admin-mode-page .summary-refresh-btn{grid-column:1/-1;width:100%;min-height:48px;height:48px;border-radius:12px}
-.admin-mode-page .survey-card,.admin-mode-page .defensive-admin-card,.admin-mode-page .device-card,.admin-mode-page .employee-directory-card,.admin-mode-page .vehicle-card,.admin-mode-page .staffing-day-card{box-sizing:border-box}
-.admin-mode-page .device-admin-type-buttons{width:100%;max-width:620px;margin:0 auto;gap:10px}
-.admin-mode-page .device-admin-type-btn{min-height:58px;border-radius:14px}
-.admin-mode-page .employee-add-panel{width:100%;max-width:760px;margin:12px auto 0;box-sizing:border-box}
-.admin-mode-page .employee-area-tabs{width:100%;box-sizing:border-box}
-.admin-mode-page .employee-directory-summary{margin:8px auto;text-align:center}
-.admin-mode-page .survey-status-list,.admin-mode-page .survey-grid,.admin-mode-page .roster-list{width:100%;box-sizing:border-box}
-.admin-mode-page .shift-admin-toolbar{width:100%;box-sizing:border-box}
-.admin-mode-page .shift-week-btn,.admin-mode-page .shift-status-btn,.admin-mode-page .shift-admin-actions .action-btn{min-height:48px;height:48px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:12px}
-.admin-mode-page .shift-admin-actions{grid-auto-rows:48px;align-content:start}
-.admin-mode-page .shift-admin-actions button{width:100%;min-width:0;height:48px;min-height:48px;margin:0}
-.admin-mode-page .shift-open-toggle{min-height:36px;margin:8px auto 0}
-.admin-mode-page .shift-fold{width:100%;box-sizing:border-box}
-.admin-mode-page .shift-fold>summary.section-title{min-height:44px;margin:0 auto 12px}
-.admin-mode-page .shift-fold-content{width:100%;box-sizing:border-box}
-.admin-mode-page .forecast-formula,.admin-mode-page .forecast-data-warning,.admin-mode-page .forecast-week-gap{width:100%;box-sizing:border-box}
-.admin-mode-page .staffing-day-tabs{width:100%;box-sizing:border-box}
-.admin-mode-page .forecast-day-panel{width:100%;box-sizing:border-box}
-.admin-mode-page .shift-admin-scroll{width:100%;box-sizing:border-box}
-.admin-mode-page .shift-data-table th,.admin-mode-page .shift-data-table td{text-align:center}
+/* T996 指休工具列：固定三列，各列格子等寬等高 */
+.shift-admin-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important;margin-top:10px!important;align-items:stretch}
+.shift-toolbar-week-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;min-width:0}
+.shift-week-buttons{display:grid;grid-column:span 4!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;min-width:0}
+.shift-week-btn,.shift-toolbar-week-row>button,.shift-status-btn,.shift-name-search,.shift-toolbar-search-row>button,.shift-open-toggle,.shift-test-control{width:100%;min-width:0;height:44px;min-height:44px;box-sizing:border-box}
+.shift-week-btn{padding:5px 3px;font-size:12px;white-space:nowrap}
+.shift-toolbar-week-row>button{padding:5px 3px;font-size:12px;white-space:nowrap}
+.shift-toolbar-status-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;min-width:0}
+.shift-status-tabs{display:grid;grid-column:span 3!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;align-items:stretch;min-width:0}
+.shift-status-btn{height:44px;min-height:44px;align-self:stretch;padding:5px 3px;font-size:12px;white-space:nowrap}
+.shift-open-toggle,.shift-test-toggle{display:flex;align-items:center;justify-content:center;gap:5px;height:44px;min-height:44px;box-sizing:border-box;margin:0;padding:4px 5px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.shift-open-toggle input,.shift-test-toggle input{width:16px;height:16px;margin:0;accent-color:var(--red);flex:none}
+.shift-name-search{padding:0 9px;font-size:14px;text-align:center}
+.shift-toolbar-search-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;align-items:stretch;min-width:0}
+.shift-toolbar-search-row>button,.shift-open-toggle{height:48px;min-height:48px;box-sizing:border-box}
+.shift-toolbar-search-row>button{height:44px;min-height:44px;padding:4px 3px;font-size:12px;white-space:nowrap}
+.shift-test-control{display:grid;grid-template-rows:1fr 1fr;gap:2px;align-items:stretch;min-width:0;height:48px;min-height:48px;box-sizing:border-box}
+.shift-test-control .shift-test-toggle{width:100%;height:23px;min-height:23px;margin:0;padding:1px 3px;box-sizing:border-box}
+.shift-admin-toolbar .shift-mini-delete{position:static;width:100%;height:23px!important;min-height:23px!important;padding:1px 2px;border:1px solid #e2aaa4;border-radius:7px;background:var(--danger-bg);color:var(--danger);font-size:10px;line-height:1;white-space:nowrap;cursor:pointer}
+.shift-admin-toolbar .shift-mini-delete:disabled{opacity:.48;cursor:not-allowed}
+.shift-open-toggle.is-checked,.shift-test-toggle.is-checked{border-color:var(--red)!important;background:var(--danger-bg)!important;color:var(--danger)!important;box-shadow:0 0 0 1px rgba(200,16,46,.08)}
+.shift-open-toggle input,.shift-test-toggle input{accent-color:var(--red)}
 @media(max-width:699px){
- #adminApp.page{padding-bottom:32px}
- .admin-mode-page .mode-back-row{margin:14px 12px 0}
- .admin-mode-page > .section{padding:20px 12px 0}
- .admin-mode-page .section-title{font-size:20px;margin-bottom:12px}
- .admin-mode-page .summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- .admin-mode-page .summary-card{min-height:82px;padding:11px 6px;border-radius:14px}
- .admin-mode-page .summary-number{font-size:25px}
- .admin-mode-page .action-row{gap:8px}
- .admin-mode-page .summary-with-refresh .survey-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- .admin-mode-page .summary-refresh-btn{height:46px;min-height:46px}
- .admin-mode-page .protected-mode-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- .admin-mode-page .search-box{padding:12px;border-radius:15px}
- .admin-mode-page .device-admin-type-buttons{max-width:none}
- .admin-mode-page .employee-add-panel{padding:11px}
- .admin-mode-page .shift-admin-toolbar{gap:7px}
- .admin-mode-page .shift-week-buttons{gap:6px}
- .admin-mode-page .shift-week-btn,.admin-mode-page .shift-status-btn{font-size:12px;padding:6px 5px}
- .admin-mode-page .shift-admin-actions{gap:7px}
- .admin-mode-page .shift-admin-actions button{font-size:12px;padding:6px 5px}
- .admin-mode-page .forecast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .admin-mode-page .staffing-day-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
- .admin-mode-page .forecast-area-cards{gap:7px;padding:8px}
+ .shift-toolbar-week-row,.shift-toolbar-status-row,.shift-toolbar-search-row{gap:4px}
+ .shift-week-buttons,.shift-status-tabs{gap:4px}
+ .shift-week-btn,.shift-toolbar-week-row>button{padding:4px 1px;font-size:9px;letter-spacing:-.2px}
+ .shift-status-btn,.shift-toolbar-search-row>button{padding:3px 1px;font-size:10px;letter-spacing:-.2px}
+ .shift-name-search{padding:0 3px;font-size:12px}
+ .shift-open-toggle,.shift-test-toggle{gap:3px;padding:3px 2px;font-size:10px}
+ .shift-open-toggle input,.shift-test-toggle input{width:14px;height:14px}
+ .shift-toolbar-search-row>button,.shift-open-toggle{height:48px;min-height:48px}
+ .shift-test-control{height:48px;min-height:48px}
+ .shift-test-control .shift-test-toggle{height:23px;min-height:23px;padding:1px 2px}
+ .shift-mini-delete{height:23px;min-height:23px;font-size:9px}
+}
+
+
+/* Verified T995/996 control grid: 3 compact rows, equal-width cells and equal heights. */
+#shiftModePage .shift-toolbar-week-row,
+#shiftModePage .shift-toolbar-status-row,
+#shiftModePage .shift-toolbar-search-row{width:100%;min-width:0;align-items:stretch}
+#shiftModePage .shift-toolbar-week-row>button,
+#shiftModePage .shift-week-btn,
+#shiftModePage .shift-status-btn,
+#shiftModePage .shift-name-search,
+#shiftModePage .shift-toolbar-search-row>button,
+#shiftModePage .shift-test-control,
+#shiftModePage .shift-open-toggle{height:48px!important;min-height:48px!important;box-sizing:border-box}
+#shiftModePage .shift-test-control{position:relative;display:flex;align-items:center;justify-content:center;min-width:0}
+#shiftModePage .shift-test-control .shift-test-toggle{width:100%;height:48px!important;min-height:48px!important;padding-right:31px;box-sizing:border-box}
+#shiftModePage .shift-mini-delete{position:absolute;right:3px;top:9px;width:30px;height:30px;min-width:30px;min-height:30px;padding:0;border:1px solid #e2aaa4;border-radius:8px;background:var(--danger-bg);color:var(--danger);font-size:14px;cursor:pointer}
+#shiftModePage .shift-mini-delete[hidden]{display:none!important}
+#shiftModePage .shift-open-toggle.is-checked,
+#shiftModePage .shift-test-toggle.is-checked{border-color:var(--red)!important;background:var(--danger-bg)!important;color:var(--danger)!important;box-shadow:0 0 0 1px rgba(200,16,46,.08)}
+#shiftModePage .shift-open-toggle input,
+#shiftModePage .shift-test-toggle input{accent-color:var(--red)}
+@media(max-width:699px){
+  #shiftModePage .shift-toolbar-week-row,
+  #shiftModePage .shift-toolbar-status-row,
+  #shiftModePage .shift-toolbar-search-row{gap:4px}
+  #shiftModePage .shift-mini-delete{right:2px;width:25px;min-width:25px;height:26px;min-height:26px;font-size:12px}
+  #shiftModePage .shift-test-control .shift-test-toggle{padding-right:26px}
 }
 
 </style>
@@ -1386,8 +1384,11 @@ button{cursor:pointer}
   <section class="section">
     <div class="section-title">意向調查</div>
     <div class="search-box">
-      <label class="hint" for="surveyRoundSelect" style="display:block;margin-bottom:6px">意向調查期別</label>
-      <select id="surveyRoundSelect" class="search-input" aria-label="選擇意向調查期別"></select>
+      <select id="surveyRoundSelect" class="search-input" aria-label="意向調查期別">
+        <option value="M1">M1（1–6月）</option>
+        <option value="M7">M7（7–12月）</option>
+      </select>
+      <div id="surveyPeriodLabel" class="hint" style="margin-top:8px" aria-live="polite"></div>
       <input id="surveySearchInput" class="search-input" type="text" placeholder="搜尋姓名" style="margin-top:10px">
       <div class="mode-tools">
         <button id="surveyExportBtn" class="action-btn" type="button">📊 匯出意向調查</button>
@@ -1477,8 +1478,7 @@ button{cursor:pointer}
   <section class="section">
     <div class="section-title">防禦駕駛</div>
     <div class="search-box">
-      <select id="defensiveAdminYear" class="search-input" aria-label="選擇防禦駕駛年度"></select>
-      <select id="defensiveAdminMonth" class="search-input" aria-label="選擇防禦駕駛月份">
+      <select id="defensiveAdminMonth" class="search-input">
         <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option><option value="4">4 月</option>
         <option value="5">5 月</option><option value="6">6 月</option><option value="7">7 月</option><option value="8">8 月</option>
         <option value="9">9 月</option><option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
@@ -1545,17 +1545,24 @@ button{cursor:pointer}
   <section class="section">
     <div class="section-title">指休管理</div>
     <div class="hint">TPLH 2.5｜第三方 ≤20%</div>
-    <label class="shift-open-toggle"><input id="shiftOpenToggle" type="checkbox" aria-label="開放指休"><span>開放</span></label>
     <div class="shift-admin-toolbar">
       <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次" hidden></select>
-      <div id="shiftWeekButtons" class="shift-week-buttons" role="group" aria-label="選擇指休週次"></div>
-      <input id="shiftNameSearch" class="search-input shift-name-search" type="search" placeholder="搜尋姓名" autocomplete="off" aria-label="搜尋員工姓名">
-      <div id="shiftStatusTabs" class="shift-status-tabs" role="tablist" aria-label="指休提交狀態"></div>
-      <div class="shift-admin-actions">
+      <div class="shift-toolbar-week-row">
+        <div id="shiftWeekButtons" class="shift-week-buttons" role="group" aria-label="選擇指休週次"></div>
+        <button id="shiftPurgeOldBtn" class="action-btn shift-test-delete-btn" type="button" title="刪除一個月前指休資料" aria-label="刪除一個月前指休資料">刪除</button>
+      </div>
+      <div class="shift-toolbar-status-row">
+        <div id="shiftStatusTabs" class="shift-status-tabs" role="tablist" aria-label="指休提交狀態"></div>
+        <input id="shiftNameSearch" class="search-input shift-name-search" type="search" placeholder="搜尋姓名" autocomplete="off" aria-label="搜尋員工姓名">
+      </div>
+      <div class="shift-toolbar-search-row">
         <button id="shiftRefreshBtn" class="action-btn" type="button">重新整理</button>
-        <button id="shiftDeleteTestBtn" class="action-btn shift-test-delete-btn" type="button" hidden>刪除測試資料</button>
-        <button id="shiftPurgeOldBtn" class="action-btn shift-test-delete-btn" type="button">刪除一個月前資料</button>
-        <button id="shiftExportBtn" class="action-btn" type="button">匯出 Excel</button>
+        <button id="shiftExportBtn" class="action-btn" type="button">匯出</button>
+        <div class="shift-test-control" aria-label="測試模式與測試資料管理">
+          <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox" aria-label="測試模式"><span>測試</span></label>
+          <button id="shiftDeleteTestBtn" class="shift-mini-delete" type="button" hidden title="刪除所選週測試資料" aria-label="刪除所選週測試資料">🗑</button>
+        </div>
+        <label class="shift-open-toggle"><input id="shiftOpenToggle" type="checkbox" aria-label="開放指休"><span>開放</span></label>
       </div>
     </div>
     <div id="shiftAdminSummary" class="hint" style="margin-top:10px"></div>
@@ -1796,41 +1803,42 @@ const defensiveModePage = $("defensiveModePage");
 const defensiveModeBtn = $("defensiveModeBtn");
 const defensiveBackBtn = $("defensiveBackBtn");
 const defensiveAdminMonth = $("defensiveAdminMonth");
-const defensiveAdminYear = $("defensiveAdminYear");
 const defensiveRefreshBtn = $("defensiveRefreshBtn");
 const defensiveExportBtn = $("defensiveExportBtn");
 const defensiveSearchInput = $("defensiveSearchInput");
 const defensiveSummary = $("defensiveSummary");
 const defensiveAdminList = $("defensiveAdminList");
-const surveyRoundSelect = $("surveyRoundSelect");
-function trainingTaipeiParts(){
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Taipei", year: "numeric", month: "numeric"
-  }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
-  return {year: Number(values.year), month: Number(values.month)};
-}
-
-function populateTrainingPeriodSelectors(){
-  const {year, month} = trainingTaipeiParts();
-  defensiveAdminYear.innerHTML = [year + 1, year, year - 1]
-    .map(value => `<option value="${value}">${value} 年</option>`).join("");
-  defensiveAdminYear.value = String(year);
-  defensiveAdminMonth.value = String(month);
-  const currentRound = `${year}M${month >= 7 ? 7 : 1}`;
-  const rounds = [];
-  for(let roundYear = year + 2; roundYear >= year - 1; roundYear--){
-    for(const half of [7, 1]) rounds.push({value:`${roundYear}M${half}`, label:`${roundYear} M${half}（${half === 1 ? "1–6月" : "7–12月"}）`});
-  }
-  surveyRoundSelect.innerHTML = rounds.map(round => `<option value="${round.value}">${round.label}</option>`).join("");
-  surveyRoundSelect.value = currentRound;
-}
-
-populateTrainingPeriodSelectors();
+defensiveAdminMonth.value = String(trainingTaipeiParts().month);
 const newVehicleFullPlate = $("newVehicleFullPlate");
 const newVehicleCenter = $("newVehicleCenter");
 const addVehicleBtn = $("addVehicleBtn");
 const addVehicleMessage = $("addVehicleMessage");
+const surveyRoundSelect = $("surveyRoundSelect");
+const surveyPeriodLabel = $("surveyPeriodLabel");
+function trainingTaipeiParts(date = new Date()){
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "numeric", day: "numeric"
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return {year:Number(values.year), month:Number(values.month), day:Number(values.day)};
+}
+function surveyRoundInfo(round, year = trainingTaipeiParts().year){
+  const isM7 = round === "M7";
+  return {
+    round: isM7 ? "M7" : "M1",
+    year,
+    start: isM7 ? `${year}-07-01T00:00:00+08:00` : `${year}-01-01T00:00:00+08:00`,
+    end: isM7 ? `${year + 1}-01-01T00:00:00+08:00` : `${year}-07-01T00:00:00+08:00`,
+    label: isM7 ? `${year}/07–12` : `${year}/01–06`
+  };
+}
+function updateSurveyPeriodLabel(){
+  if(!surveyPeriodLabel) return;
+  const info = surveyRoundInfo(surveyRoundSelect.value);
+  surveyPeriodLabel.textContent = `目前檢視：${info.label}（${info.round}）`;
+}
+surveyRoundSelect.value = trainingTaipeiParts().month >= 7 ? "M7" : "M1";
+updateSurveyPeriodLabel();
 const surveyTargetNameInput = $("surveyTargetNameInput");
 const surveyTargetAddBtn = $("surveyTargetAddBtn");
 const surveyTargetMessage = $("surveyTargetMessage");
@@ -3872,7 +3880,8 @@ function exportSurveyResponses(){
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(rows);
   XLSX.utils.book_append_sheet(wb, ws, "駕駛意向調查");
-  XLSX.writeFile(wb, `KFC_駕駛意向調查_${new Date().toISOString().slice(0,10)}.xlsx`);
+  const period = surveyRoundInfo(surveyRoundSelect.value);
+  XLSX.writeFile(wb, `KFC_駕駛意向調查_${period.year}_${period.round}.xlsx`);
 }
 
 async function deleteSurveyResponse(id, name, submittedAt){
@@ -3943,7 +3952,7 @@ function renderSurveyRoster(){
   surveyIncompleteList.innerHTML = `
     <div class="roster-panel-title">${selectedRound} 未完成（${incomplete.length} 人）</div>
     <div class="roster-list">${incomplete.length ? incomplete.map(row => `
-      <div class="roster-item"><span>${esc(row.respondent_name)}<small style="display:block;color:var(--gray);">尚未提交問卷</small></span><button type="button" class="survey-target-delete-btn" data-name="${esc(row.respondent_name)}" data-round="${esc(row.survey_round)}">永久刪除</button></div>`).join("") : '<div class="empty">目前沒有未完成名單</div>'}</div>`;
+      <div class="roster-item"><span>${esc(row.respondent_name)}<small style="display:block;color:var(--gray);">尚未提交問卷</small></span></div>`).join("") : '<div class="empty">目前沒有未完成名單</div>'}</div>`;
   surveyFailedList.innerHTML = failed.length ? failed.map(row => `
     <button type="button" class="roster-item survey-failed-btn" data-name="${esc(row.respondent_name)}" style="width:100%;cursor:pointer;">
       <span>${esc(row.respondent_name || "未填姓名")}<small style="display:block;color:var(--danger);">第一部分：${esc(row.part1_result || "未判定")}｜第二部分：${esc(row.part2_result || "未判定")}</small></span><span>查看</span>
@@ -3951,12 +3960,11 @@ function renderSurveyRoster(){
 }
 
 async function addSurveyTarget(){
-  surveyTargetMessage.textContent = "調查與訓練對象自動依目前在職員工名單，不需另行加入。";
-  await loadRosterData();
+  if(surveyTargetMessage) surveyTargetMessage.textContent = "意向調查與防禦駕駛名單自動依目前在職員工，不需另行加入。";
 }
 
 async function deleteSurveyTarget(name){
-  alert(`「${name}」的調查／訓練資格由在職名單自動管理。請至在職員工區停用或管理員工；既有作答紀錄不會因此刪除。`);
+  alert(`「${name}」的調查／訓練資格由在職名單自動管理。請至在職員工區停用員工；既有紀錄依保留規則處理。`);
 }
 
 function renderActiveRoster(){
@@ -4050,13 +4058,13 @@ function renderDefensiveStatusList(status){
     const meta = completed
       ? `完成日期：${esc(fmt(response.completed_at))}｜答題 ${esc(response.attempt_count || 0)} 次`
       : (response ? `尚未完成｜最後作答：${esc(fmt(response.last_attempt_at))}` : "尚未開始");
-    const deleteButton = completed
-      ? `<button type="button" class="status-delete-btn defensive-status-delete" data-name="${esc(row.name)}" data-month="${esc(response.month_no)}" data-year="${esc(response.training_year)}">刪除紀錄</button>`
-      : "";
+    const deleteButton = activeDefensiveStatus === "active"
+      ? `<button type="button" class="status-delete-btn defensive-target-delete" data-name="${esc(row.name)}" data-round="${esc(surveyRoundSelect.value)}">永久刪除</button>`
+      : (completed ? `<button type="button" class="status-delete-btn defensive-status-delete" data-name="${esc(row.name)}" data-month="${esc(response.month_no)}" data-year="${esc(response.training_year)}">刪除紀錄</button>` : "");
     return `<div class="survey-status-card">
       <div class="status-name">${esc(row.name)}</div>
-      <div class="status-meta">${meta}</div>
-      <div class="status-result ${completed ? "status-pass" : "status-fail"}">${completed ? "已完成" : "未完成"}</div>
+      <div class="status-meta">${activeDefensiveStatus === "active" ? `${esc(surveyRoundSelect.value)}｜在職人員` : meta}</div>
+      <div class="status-result ${completed ? "status-pass" : "status-fail"}">${activeDefensiveStatus === "active" ? (completed ? "本月已完成" : "本月未完成") : (completed ? "已完成" : "未完成")}</div>
       ${deleteButton ? `<div class="status-card-actions">${deleteButton}</div>` : ""}
     </div>`;
   }).join("");
@@ -4080,10 +4088,10 @@ async function deleteDefensiveResponse(name, monthNo, year){
 async function loadDefensiveAdminData(){
   defensiveAdminList.innerHTML = '<div class="loading">載入防禦駕駛資料中…</div>';
   const monthNo = Number(defensiveAdminMonth.value);
-  const year = Number(defensiveAdminYear.value);
+  const year = trainingTaipeiParts().year;
   try{
     const [employeeResult, responseResult] = await Promise.all([
-      db.from("employee_directory").select("full_name").eq("is_active",true).order("full_name",{ascending:true}),
+      db.from("employee_directory").select("full_name,is_active").eq("is_active",true).order("full_name",{ascending:true}),
       db.from("defensive_driving_responses").select("*").eq("training_year", year).eq("month_no", monthNo)
     ]);
     if(employeeResult.error) throw employeeResult.error;
@@ -4091,19 +4099,16 @@ async function loadDefensiveAdminData(){
     const uniqueNames = [...new Set((employeeResult.data || []).map(row => String(row.full_name || "").trim()).filter(Boolean))];
     defensiveTargets = uniqueNames;
     defensiveResponses = responseResult.data || [];
-    const activeNameSet = new Set(uniqueNames);
-    const completed = new Set(defensiveResponses
-      .filter(row => row.status === "completed" && activeNameSet.has(String(row.respondent_name || "").trim()))
-      .map(row => String(row.respondent_name || "").trim()));
+    const completed = new Set(defensiveResponses.filter(row => row.status === "completed").map(row => row.respondent_name));
     const incomplete = uniqueNames.filter(name => !completed.has(name));
     renderDefensiveSummary(uniqueNames, completed, incomplete);
   }catch(e){
-    renderDefensiveEmptySummary(`防禦駕駛資料讀取失敗：${e.message || "請確認在職名單與訓練資料權限"}`);
+    renderDefensiveEmptySummary(`防禦駕駛資料讀取失敗：${e.message || "請確認在職名單、資料表與權限"}`);
   }
 }
 
 function exportDefensiveResponses(){
-  const year = Number(defensiveAdminYear.value);
+  const year = trainingTaipeiParts().year;
   const monthNo = Number(defensiveAdminMonth.value);
   const names = [...new Set((defensiveTargets || []).map(name => String(name || "").trim()).filter(Boolean))];
   if(!names.length){
@@ -4142,18 +4147,23 @@ function exportDefensiveResponses(){
 
 async function loadSurveyData(){
   surveyResponseList.innerHTML = '<div class="loading">載入問卷資料中…</div>';
+  updateSurveyPeriodLabel();
   try{
-    const round = surveyRoundSelect.value;
+    const info = surveyRoundInfo(surveyRoundSelect.value);
     const [employeeResult, responseResult] = await Promise.all([
       db.from("employee_directory").select("full_name,is_active").eq("is_active",true).order("full_name",{ascending:true}),
-      db.from("driver_survey_responses").select("*").eq("survey_round", round).order("submitted_at",{ascending:false})
+      db.from("driver_survey_responses").select("*")
+        .eq("survey_round", info.round)
+        .gte("submitted_at", info.start)
+        .lt("submitted_at", info.end)
+        .order("submitted_at",{ascending:false})
     ]);
     if(employeeResult.error) throw employeeResult.error;
     if(responseResult.error) throw responseResult.error;
     const targetMap = new Map();
     (employeeResult.data || []).forEach(row => {
       const name = String(row.full_name || "").trim();
-      if(name && !targetMap.has(name)) targetMap.set(name, {respondent_name:name, survey_round:round});
+      if(name && !targetMap.has(name)) targetMap.set(name, {respondent_name:name, survey_round:info.round});
     });
     surveyTargets = [...targetMap.values()];
     surveyResponses = responseResult.data || [];
@@ -4163,8 +4173,8 @@ async function loadSurveyData(){
   }catch(e){
     surveyIncompleteList.innerHTML = "";
     surveyFailedList.innerHTML = "";
-    renderSurveyEmptySummary(`問卷資料讀取失敗：${e.message || "請確認 anon SELECT 權限"}`);
-    surveyResponseList.innerHTML = `<div class="empty">問卷資料讀取失敗：${esc(e.message || "請確認 anon SELECT 權限")}</div>`;
+    renderSurveyEmptySummary(`問卷資料讀取失敗：${e.message || "請確認員工名單與問卷資料權限"}`);
+    surveyResponseList.innerHTML = `<div class="empty">問卷資料讀取失敗：${esc(e.message || "請確認員工名單與問卷資料權限")}</div>`;
   }
 }
 
@@ -4709,6 +4719,8 @@ defensiveAdminList.onclick = e => {
     deleteDefensiveResponse(recordButton.dataset.name, recordButton.dataset.month, recordButton.dataset.year);
     return;
   }
+  const targetButton = e.target.closest(".defensive-target-delete");
+  if(targetButton) deleteSurveyTarget(targetButton.dataset.name, targetButton.dataset.round);
 };
 
 surveySearchInput.oninput =
@@ -4754,13 +4766,12 @@ returnedCard.onclick =
 
 addVehicleBtn.onclick = addVehicleFromAdmin;
 surveyTargetAddBtn.onclick = addSurveyTarget;
-surveyRoundSelect.onchange = loadSurveyData;
+surveyRoundSelect.onchange = () => { updateSurveyPeriodLabel(); loadSurveyData(); };
 defensiveModeBtn.onclick = () => showAdminMode("defensive");
 defensiveBackBtn.onclick = () => showAdminMode("home");
 defensiveRefreshBtn.onclick = loadDefensiveAdminData;
 defensiveExportBtn.onclick = exportDefensiveResponses;
 defensiveAdminMonth.onchange = loadDefensiveAdminData;
-defensiveAdminYear.onchange = loadDefensiveAdminData;
 defensiveSearchInput.oninput = () => renderDefensiveStatusList(activeDefensiveStatus);
 const rosterDeleteHandler = e => {
   const button = e.target.closest(".survey-target-delete-btn");
@@ -4983,7 +4994,7 @@ let t995ShiftRows=[];
 let t995ShiftExportRows=[];
 let t995ShiftStatusFilter="all";
 let t995ShiftTestRecordCount=0;
-let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_submission_open:false};
+let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_submission_open:false,shift_test_mode:false};
 let t995AreaMap=new Map();
 let t995AreaMapLoaded=false;
 
@@ -5015,8 +5026,7 @@ async function t995LoadEmployees(){
     if(r.error)throw r.error;
     t995Employees=r.data||[];
     t995RenderEmployeeDirectory();
-    try{await loadRosterData();}
-    catch(rosterError){console.warn("更新在職員工名單快取失敗",rosterError);}
+    await loadRosterData();
   }catch(e){t995EmployeeDirectoryList.innerHTML=`<div class="empty">員工名單讀取失敗：${esc(e.message||"請確認管理員權限與 SQL 更新")}</div>`;}
 }
 async function t995AddEmployee(){
@@ -5046,7 +5056,7 @@ async function t995DeleteEmployeePermanently(id,button){
   const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
   const warning=`永久刪除「${row.full_name}」的全部員工紀錄？
 
-將刪除：員工主檔、意向調查作答、防禦駕駛紀錄、指休資料、領還車紀錄及該員工提交的車輛檢查紀錄。
+將刪除：員工主檔、意向調查名單與作答、防禦駕駛紀錄、指休資料、領還車紀錄及該員工提交的車輛檢查紀錄。
 
 車輛主檔本身不刪除；刪除領還車紀錄可能改變後台按最新領車資料顯示的狀態。此動作無法復原。`;
   if(!confirm(warning))return;
@@ -5109,20 +5119,27 @@ async function t995LoadShiftAdmin(){
     const [er,sr,settings]=await Promise.all([
       db.from("employee_directory").select("id,full_name,area_code,is_active").eq("is_active",true).order("area_code",{ascending:true}).order("full_name",{ascending:true}),
       db.from("weekly_shift_availability").select("id,employee_id,employee_name,employee_area_code,week_start,monday,tuesday,wednesday,thursday,friday,saturday,sunday,notes,submitted_at,is_test").eq("week_start",t995ShiftWeekSelect.value).order("submitted_at",{ascending:false}),
-      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks,shift_submission_open").eq("singleton",true).maybeSingle()
+      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks,shift_submission_open,shift_test_mode").eq("singleton",true).maybeSingle()
     ]);
     if(er.error)throw er.error;if(sr.error)throw sr.error;if(settings.error)throw settings.error;
     t995Employees=er.data||[];if(settings.data)t995StaffingSettings=settings.data;
     const latest=t995LatestShiftByEmployee(sr.data||[]);t995ShiftTestRecordCount=(sr.data||[]).filter(r=>r.is_test).length;
     t995ShiftRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
     const forecastRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
-    const openToggle=document.getElementById("shiftOpenToggle");if(openToggle)openToggle.checked=Boolean(t995StaffingSettings.shift_submission_open);
+    const openToggle=document.getElementById("shiftOpenToggle");if(openToggle){openToggle.checked=Boolean(t995StaffingSettings.shift_submission_open);t995SyncShiftToggleVisual(openToggle);}
+    const testToggle=document.getElementById("shiftTestModeToggle");if(testToggle){testToggle.checked=Boolean(t995StaffingSettings.shift_test_mode);t995SyncShiftToggleVisual(testToggle);}
     t995RenderShiftAdmin();await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,forecastRows);
   }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">讀取失敗：${esc(e.message||"請確認權限")}</div>`;t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="empty">人力資料讀取失敗</div>';}
 }
 function t995RenderShiftAdmin(){
   const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
-  if(t995ShiftDeleteTestBtn)t995ShiftDeleteTestBtn.hidden=t995ShiftTestRecordCount===0;
+  if(t995ShiftDeleteTestBtn){
+    const count=Number(t995ShiftTestRecordCount||0);
+    t995ShiftDeleteTestBtn.hidden=count===0;
+    t995ShiftDeleteTestBtn.disabled=count===0;
+    t995ShiftDeleteTestBtn.title=count?`刪除所選週 ${count} 筆測試資料`:"所選週沒有測試資料";
+    t995ShiftDeleteTestBtn.setAttribute("aria-label",count?`刪除所選週 ${count} 筆測試資料`:"刪除所選週測試資料");
+  }
   const choices=[['all',`全部 ${active}`],['submitted',`已提交 ${submitted}`],['missing',`未提交 ${missing}`]];
   t995ShiftStatusTabs.innerHTML=choices.map(([key,label])=>`<button type="button" class="shift-status-btn ${t995ShiftStatusFilter===key?'active':''}" data-t995-shift-status="${key}" role="tab" aria-selected="${t995ShiftStatusFilter===key?'true':'false'}">${label}</button>`).join('');
   const weekLabel=t995ShiftWeekSelect.options[t995ShiftWeekSelect.selectedIndex]?.text||"";const term=t995ShiftNameSearch.value.trim().toLocaleLowerCase('zh-Hant');
@@ -5593,6 +5610,8 @@ let t995ProtectedTargetMode=null;
 let t995DeviceClaimRecords=[];
 let t995DeviceClaimFetchError="";
 const t995ShiftOpenToggle=document.getElementById("shiftOpenToggle");
+const t995ShiftTestModeToggle=document.getElementById("shiftTestModeToggle");
+function t995SyncShiftToggleVisual(input){const label=input?.closest("label");if(label)label.classList.toggle("is-checked",Boolean(input.checked));}
 
 function t995ClearPasswordDialog(){
   [t995CurrentInput,t995NewInput,t995ConfirmInput,t995UnlockInput].forEach(input=>input.value="");
@@ -5669,7 +5688,7 @@ document.getElementById("shiftPasswordChangeBtn").onclick=()=>t995OpenPasswordDi
 
 if(t995ShiftOpenToggle){
   t995ShiftOpenToggle.addEventListener("change",async()=>{
-    const requested=t995ShiftOpenToggle.checked;
+    const requested=t995ShiftOpenToggle.checked;t995SyncShiftToggleVisual(t995ShiftOpenToggle);
     t995ShiftOpenToggle.disabled=true;
     try{
       const r=await db.from("staffing_settings").update({shift_submission_open:requested,updated_at:new Date().toISOString()}).eq("singleton",true);
@@ -5677,8 +5696,21 @@ if(t995ShiftOpenToggle){
       t995StaffingSettings={...t995StaffingSettings,shift_submission_open:requested};
       alert(requested?"指休表已開放，任何時間都可填寫；新提交會列為正式資料。":"指休表已關閉。" );
       await t995LoadShiftAdmin();
-    }catch(e){t995ShiftOpenToggle.checked=!requested;alert(`更新指休開放狀態失敗：${e.message||"請確認已執行開放開關 SQL 並重新登入。"}`);}
+    }catch(e){t995ShiftOpenToggle.checked=!requested;t995SyncShiftToggleVisual(t995ShiftOpenToggle);alert(`更新指休開放狀態失敗：${e.message||"請確認已執行開放開關 SQL 並重新登入。"}`);}
     finally{t995ShiftOpenToggle.disabled=false;}
+  });
+}
+if(t995ShiftTestModeToggle){
+  t995ShiftTestModeToggle.addEventListener("change",async()=>{
+    const requested=t995ShiftTestModeToggle.checked;t995SyncShiftToggleVisual(t995ShiftTestModeToggle);t995ShiftTestModeToggle.disabled=true;
+    try{
+      const r=await db.from("staffing_settings").update({shift_test_mode:requested,updated_at:new Date().toISOString()}).eq("singleton",true);
+      if(r.error)throw r.error;
+      t995StaffingSettings={...t995StaffingSettings,shift_test_mode:requested};
+      alert(requested?"測試模式已開啟；測試提交會標記為測試資料。":"測試模式已關閉；提交將列為正式資料。");
+      await t995LoadShiftAdmin();
+    }catch(e){t995ShiftTestModeToggle.checked=!requested;t995SyncShiftToggleVisual(t995ShiftTestModeToggle);alert(`更新測試模式失敗：${e.message||"請確認管理員權限。"}`);}
+    finally{t995ShiftTestModeToggle.disabled=false;}
   });
 }
 
