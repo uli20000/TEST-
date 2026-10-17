@@ -886,6 +886,8 @@
 /* 指休開放狀態與電池領用欄位 */
 .shift-window-open{background:#edf5ef;border:1px solid #c9ddcf;border-radius:12px;padding:10px 12px;color:#2f6c47}
 #claimBatteryNumber{width:100%;height:48px;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit}
+
+.shift-window-test{background:#fff7e8;border:1px solid #e1c66e;border-radius:12px;padding:10px 12px;color:#765800}
 </style>
 </head>
 
@@ -1657,12 +1659,15 @@ const db =
     SUPABASE_KEY
   );
 
-function trainingTaipeiParts(){
+function trainingTaipeiParts(date = new Date()){
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Taipei", year: "numeric", month: "numeric"
-  }).formatToParts(new Date());
+    timeZone: "Asia/Taipei", year: "numeric", month: "numeric", day: "numeric"
+  }).formatToParts(date);
   const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
-  return {year: Number(values.year), month: Number(values.month)};
+  return {year:Number(values.year), month:Number(values.month), day:Number(values.day)};
+}
+function currentSurveyRound(date = new Date()){
+  return trainingTaipeiParts(date).month >= 7 ? "M7" : "M1";
 }
 
 // 桃園 T995 安全月曆：與 index.html 同層的 pdf 資料夾
@@ -3836,9 +3841,12 @@ async function saveSurvey() {
       return;
     }
 
-    const submittedRound = result.data && typeof result.data === "object" ? result.data.survey_round : "";
+    const savedAt = result.data?.submitted_at ? new Date(result.data.submitted_at) : new Date();
+    const savedRound = result.data?.survey_round || currentSurveyRound(savedAt);
+    const savedYear = trainingTaipeiParts(savedAt).year;
+    const savedPeriod = savedRound === "M7" ? `${savedYear}/07–12` : `${savedYear}/01–06`;
     document.getElementById("surveySuccessData").innerHTML = `
-      ${submittedRound ? `<div><strong>調查期別：</strong>${escapeHtml(submittedRound)}</div>` : ""}
+      <div><strong>填寫期別：</strong>${escapeHtml(savedPeriod)}（${escapeHtml(savedRound)}）</div>
       <div><strong>填寫人：</strong>${escapeHtml(surveyRespondentNameInput.value.trim())}</div>
       <div><strong>違規記點：</strong>${Number(violationPointsInput.value)} 點</div>
       <div><strong>駕駛行為：</strong>${behaviorScore} 分，${behaviorScore <= 27 ? "合格" : "不合格"}</div>
@@ -4009,6 +4017,13 @@ async function loadDefensiveLesson(){
       defensiveQuestions.style.display = "none";
       return;
     }
+    const targetResult = await db.from("driver_survey_targets").select("id").eq("respondent_name", name).limit(1);
+    if(targetResult.error) throw targetResult.error;
+    if(!targetResult.data?.length){
+      defensiveStatus.className = "training-message";
+      defensiveStatus.textContent = "查無此姓名，請先由後台加入應完成人員名單。";
+      return;
+    }
     const lessonResult = await db.from("defensive_driving_lessons").select("*").eq("month_no", monthNo).maybeSingle();
     if(lessonResult.error) throw lessonResult.error;
     if(!lessonResult.data){
@@ -4101,7 +4116,7 @@ defensiveSubmitBtn.addEventListener("click", async () => {
       completed_at: isCorrect ? now : null,
       status: isCorrect ? "completed" : "incomplete"
     };
-    const result = await db.from("defensive_driving_responses").upsert(payload, {onConflict:"respondent_name,training_year,month_no"});
+    const result = await db.from("defensive_driving_responses").upsert(payload, {onConflict:"respondent_name,month_no"});
     if(result.error) throw result.error;
     if(!isCorrect){
       alert("本次答題未通過，請重新觀看影片後再回答兩題。\n目前仍未完成本月課程。");
@@ -4454,24 +4469,28 @@ function shiftISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).p
 function shiftDateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return shiftISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
 function shiftRangeLabel(start){return `${start} 至 ${shiftDateAdd(start,6)}`;}
 let shiftSubmissionOpen=false;
-function getShiftSubmissionCycle(isOpen=shiftSubmissionOpen){
+let shiftTestModeEnabled=false;
+function getShiftSubmissionCycle(){
   const p=taipeiShiftNow();const today=shiftISO(p.y,p.m,p.d);const monday=shiftDateAdd(today,-((p.dow+6)%7));
   const beforeWeekCutoff=(p.dow>=1&&p.dow<=5)||(p.dow===6&&p.minute<600);
   const weekStart=shiftDateAdd(monday,beforeWeekCutoff?7:14);
-  return {open:Boolean(isOpen),weekStart,submissionOpen:Boolean(isOpen)};
+  return {open:shiftSubmissionOpen||shiftTestModeEnabled,weekStart,testMode:shiftTestModeEnabled};
 }
-async function loadShiftSubmissionOpen(){
-  const r=await db.rpc("shift_submission_open_enabled");if(r.error)throw r.error;
-  shiftSubmissionOpen=Boolean(r.data);return shiftSubmissionOpen;
+async function loadShiftSubmissionSettings(){
+  const [openResult,testResult]=await Promise.all([db.rpc("shift_submission_open_enabled"),db.rpc("shift_test_mode_enabled")]);
+  if(openResult.error)throw openResult.error;if(testResult.error)throw testResult.error;
+  shiftSubmissionOpen=Boolean(openResult.data);shiftTestModeEnabled=Boolean(testResult.data);
+  return {open:shiftSubmissionOpen,testMode:shiftTestModeEnabled};
 }
 function updateShiftWindow(){
   const cycle=getShiftSubmissionCycle();shiftWeekLabel.textContent=`填寫週次：${shiftRangeLabel(cycle.weekStart)}`;
-  if(cycle.open){shiftWindowMessage.textContent="目前已開放｜任何時間皆可填寫，提交視為正式資料。";shiftWindowMessage.className="hint shift-window-open";}
+  if(cycle.testMode){shiftWindowMessage.textContent="測試模式開放｜提交會標記為測試資料。";shiftWindowMessage.className="hint shift-window-test";}
+  else if(cycle.open){shiftWindowMessage.textContent="目前已開放｜任何時間皆可填寫，提交視為正式資料。";shiftWindowMessage.className="hint shift-window-open";}
   else{shiftWindowMessage.textContent="目前未開放，請留意後台公告。";shiftWindowMessage.className="hint shift-window-closed";}
   shiftSubmitBtn.disabled=!cycle.open;return cycle;
 }
 async function enterShiftMode(){
-  try{await loadShiftSubmissionOpen();const cycle=getShiftSubmissionCycle();if(!cycle.open){alert("指休表目前未開放，請留意後台公告。");return;}showMode("shift");}
+  try{await loadShiftSubmissionSettings();const cycle=getShiftSubmissionCycle();if(!cycle.open){alert("指休表目前未開放，請留意後台公告。");return;}showMode("shift");}
   catch(e){alert(`目前無法確認指休表開放狀態：${e.message||"請稍後再試"}`);}
 }
 function parseAvailabilityRanges(value){
@@ -4542,7 +4561,7 @@ function readShiftDayValue(dayKey){
   return {value:intervals.map(([start,end])=>`${start/60}-${end/60}`).join("/"),intervals};
 }
 async function submitShiftAvailability(){
-  try{await loadShiftSubmissionOpen();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
+  try{await loadShiftSubmissionSettings();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
   const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="指休表目前已關閉，無法送出。";return;}
   if(!await verifyShiftEmployee())return;
   const values={},dayResults={};
@@ -4562,7 +4581,7 @@ async function submitShiftAvailability(){
     shiftSuccessData.textContent=`${verifiedShiftEmployee.full_name}｜${verifiedShiftEmployee.area_code} 區｜${shiftRangeLabel(cycle.weekStart)}`;
     shiftForm.style.display="none";shiftSuccess.classList.add("show");shiftSubmitMessage.textContent="";
   }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認指休表仍為開放狀態並稍後重試。"}`;}
-  finally{try{await loadShiftSubmissionOpen();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
+  finally{try{await loadShiftSubmissionSettings();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
 }
 function resetShiftForm(){
   clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftEmployeeSearchResults=[];
