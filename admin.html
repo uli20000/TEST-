@@ -1070,6 +1070,18 @@ button{cursor:pointer}
 .staffing-file-picker{position:relative;display:grid;place-items:center;min-height:46px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font-size:14px;font-weight:700;overflow:hidden;cursor:pointer}
 .staffing-file-picker span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .staffing-file-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+/* Forecast model: 20% TC growth and equal, responsive presentation. */
+.forecast-formula{max-width:820px;margin:0 auto 8px!important;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#5f5a53;font-size:13px;line-height:1.55;text-align:center}
+.forecast-summary-grid{width:100%;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
+.forecast-summary-grid .summary-card{min-width:0;min-height:88px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.forecast-summary-grid .summary-label{line-height:1.35;min-height:32px;display:flex;align-items:center;justify-content:center}
+.forecast-data-warning{margin:8px 0 0;padding:9px 11px;border:1px solid #e1c66e;border-radius:10px;background:var(--yellow-bg);color:#765800;font-size:12px;line-height:1.5;text-align:center}
+.forecast-data-warning[hidden]{display:none}
+.forecast-week-gap.is-warning{border-color:#e1c66e;background:var(--yellow-bg);color:#765800}
+.forecast-history-weeks{display:block;margin-top:2px;color:var(--gray);font-size:10px;line-height:1.2;font-weight:600}
+.forecast-day-total-card{min-height:62px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.forecast-area-table td:first-child strong{display:block}
+.forecast-area-table td:first-child .forecast-history-weeks{font-weight:600}
 /* Forecast view: weekly summary, weekday tabs, aligned area table/cards. */
 .staffing-results{display:block!important;margin-top:10px}
 .forecast-week-gap{margin-top:8px;padding:10px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;font-weight:800}
@@ -1126,14 +1138,84 @@ button{cursor:pointer}
  .forecast-area-stat{min-width:0;padding:6px;background:#fff;border-radius:8px;text-align:center}
  .forecast-area-stat span{display:block;color:var(--gray);font-size:12px;line-height:1.3}
  .forecast-area-stat strong{display:block;margin-top:2px;font-size:14px;line-height:1.2;overflow-wrap:anywhere}
- #staffingRecommendationSummary .summary-card{padding:9px 5px;border-radius:11px}
- #staffingRecommendationSummary .summary-label{font-size:12px;margin-bottom:2px}
- #staffingRecommendationSummary .summary-number{font-size:20px}
+ .forecast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #staffingRecommendationSummary .summary-card{padding:9px 5px;border-radius:11px;min-height:78px}
+ #staffingRecommendationSummary .summary-label{font-size:11px;line-height:1.25;min-height:28px;margin-bottom:2px}
+ #staffingRecommendationSummary .summary-number{font-size:20px;overflow-wrap:anywhere}
+ .forecast-formula{font-size:12px;padding:8px 9px}
  .forecast-day-total-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
- .forecast-day-total-card{padding:7px 5px}
+ .forecast-day-total-card{padding:7px 5px;min-height:58px}
+ .forecast-day-total-card:last-child{grid-column:span 2}
  .shift-admin-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
  .shift-admin-actions button:last-child:nth-child(3){grid-column:1/-1}
 }
+
+/* T995 UI consistency pass: align every admin module to vehicle-management shell. */
+.admin-mode-page [hidden]{display:none!important}
+#adminApp.page{width:100%;max-width:900px;margin:0 auto;padding:0 0 50px;box-sizing:border-box}
+#adminApp .header{width:100%;box-sizing:border-box;text-align:center}
+.admin-mode-page{width:100%;box-sizing:border-box;text-align:center}
+.admin-mode-page .mode-back-row{width:auto;max-width:none;margin:16px 16px 0;padding:0;box-sizing:border-box}
+.admin-mode-page .mode-back-row .action-btn{width:100%;min-width:0;height:48px;min-height:48px;border-radius:13px}
+.admin-mode-page .protected-mode-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-mode-page > .section{width:100%;max-width:none;margin:0;padding:22px 16px 0;box-sizing:border-box}
+.admin-mode-page .section-title{margin:0 0 14px;font-size:20px;line-height:1.35;font-weight:800;text-align:center}
+.admin-mode-page .hint{max-width:100%;text-align:center}
+.admin-mode-page .summary{width:100%;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;box-sizing:border-box}
+.admin-mode-page .summary-card{min-width:0;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;border-radius:16px;box-sizing:border-box}
+.admin-mode-page .summary-label{line-height:1.35}
+.admin-mode-page .search-box,.admin-mode-page .staffing-panel,.admin-mode-page .claim-panel,.admin-mode-page .health-panel{width:100%;max-width:none;margin-left:auto;margin-right:auto;box-sizing:border-box;border-radius:16px}
+.admin-mode-page .search-input,.admin-mode-page input:not([type=checkbox]):not([type=file]),.admin-mode-page select{max-width:100%;box-sizing:border-box}
+.admin-mode-page .action-btn{min-height:48px;box-sizing:border-box;border-radius:12px}
+.admin-mode-page .action-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-mode-page .summary-with-refresh{grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:10px}
+.admin-mode-page .summary-with-refresh .survey-summary{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.admin-mode-page .summary-refresh-btn{grid-column:1/-1;width:100%;min-height:48px;height:48px;border-radius:12px}
+.admin-mode-page .survey-card,.admin-mode-page .defensive-admin-card,.admin-mode-page .device-card,.admin-mode-page .employee-directory-card,.admin-mode-page .vehicle-card,.admin-mode-page .staffing-day-card{box-sizing:border-box}
+.admin-mode-page .device-admin-type-buttons{width:100%;max-width:620px;margin:0 auto;gap:10px}
+.admin-mode-page .device-admin-type-btn{min-height:58px;border-radius:14px}
+.admin-mode-page .employee-add-panel{width:100%;max-width:760px;margin:12px auto 0;box-sizing:border-box}
+.admin-mode-page .employee-area-tabs{width:100%;box-sizing:border-box}
+.admin-mode-page .employee-directory-summary{margin:8px auto;text-align:center}
+.admin-mode-page .survey-status-list,.admin-mode-page .survey-grid,.admin-mode-page .roster-list{width:100%;box-sizing:border-box}
+.admin-mode-page .shift-admin-toolbar{width:100%;box-sizing:border-box}
+.admin-mode-page .shift-week-btn,.admin-mode-page .shift-status-btn,.admin-mode-page .shift-admin-actions .action-btn{min-height:48px;height:48px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:12px}
+.admin-mode-page .shift-admin-actions{grid-auto-rows:48px;align-content:start}
+.admin-mode-page .shift-admin-actions button{width:100%;min-width:0;height:48px;min-height:48px;margin:0}
+.admin-mode-page .shift-open-toggle{min-height:36px;margin:8px auto 0}
+.admin-mode-page .shift-fold{width:100%;box-sizing:border-box}
+.admin-mode-page .shift-fold>summary.section-title{min-height:44px;margin:0 auto 12px}
+.admin-mode-page .shift-fold-content{width:100%;box-sizing:border-box}
+.admin-mode-page .forecast-formula,.admin-mode-page .forecast-data-warning,.admin-mode-page .forecast-week-gap{width:100%;box-sizing:border-box}
+.admin-mode-page .staffing-day-tabs{width:100%;box-sizing:border-box}
+.admin-mode-page .forecast-day-panel{width:100%;box-sizing:border-box}
+.admin-mode-page .shift-admin-scroll{width:100%;box-sizing:border-box}
+.admin-mode-page .shift-data-table th,.admin-mode-page .shift-data-table td{text-align:center}
+@media(max-width:699px){
+ #adminApp.page{padding-bottom:32px}
+ .admin-mode-page .mode-back-row{margin:14px 12px 0}
+ .admin-mode-page > .section{padding:20px 12px 0}
+ .admin-mode-page .section-title{font-size:20px;margin-bottom:12px}
+ .admin-mode-page .summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .admin-mode-page .summary-card{min-height:82px;padding:11px 6px;border-radius:14px}
+ .admin-mode-page .summary-number{font-size:25px}
+ .admin-mode-page .action-row{gap:8px}
+ .admin-mode-page .summary-with-refresh .survey-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .admin-mode-page .summary-refresh-btn{height:46px;min-height:46px}
+ .admin-mode-page .protected-mode-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .admin-mode-page .search-box{padding:12px;border-radius:15px}
+ .admin-mode-page .device-admin-type-buttons{max-width:none}
+ .admin-mode-page .employee-add-panel{padding:11px}
+ .admin-mode-page .shift-admin-toolbar{gap:7px}
+ .admin-mode-page .shift-week-buttons{gap:6px}
+ .admin-mode-page .shift-week-btn,.admin-mode-page .shift-status-btn{font-size:12px;padding:6px 5px}
+ .admin-mode-page .shift-admin-actions{gap:7px}
+ .admin-mode-page .shift-admin-actions button{font-size:12px;padding:6px 5px}
+ .admin-mode-page .forecast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .admin-mode-page .staffing-day-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .admin-mode-page .forecast-area-cards{gap:7px;padding:8px}
+}
+
 </style>
 </head>
 
@@ -1304,7 +1386,9 @@ button{cursor:pointer}
   <section class="section">
     <div class="section-title">意向調查</div>
     <div class="search-box">
-      <input id="surveySearchInput" class="search-input" type="text" placeholder="搜尋姓名">
+      <label class="hint" for="surveyRoundSelect" style="display:block;margin-bottom:6px">意向調查期別</label>
+      <select id="surveyRoundSelect" class="search-input" aria-label="選擇意向調查期別"></select>
+      <input id="surveySearchInput" class="search-input" type="text" placeholder="搜尋姓名" style="margin-top:10px">
       <div class="mode-tools">
         <button id="surveyExportBtn" class="action-btn" type="button">📊 匯出意向調查</button>
       </div>
@@ -1393,7 +1477,8 @@ button{cursor:pointer}
   <section class="section">
     <div class="section-title">防禦駕駛</div>
     <div class="search-box">
-      <select id="defensiveAdminMonth" class="search-input">
+      <select id="defensiveAdminYear" class="search-input" aria-label="選擇防禦駕駛年度"></select>
+      <select id="defensiveAdminMonth" class="search-input" aria-label="選擇防禦駕駛月份">
         <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option><option value="4">4 月</option>
         <option value="5">5 月</option><option value="6">6 月</option><option value="7">7 月</option><option value="8">8 月</option>
         <option value="9">9 月</option><option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
@@ -1452,10 +1537,6 @@ button{cursor:pointer}
       </div>
     </section>
   </div>
-  <select id="surveyRoundSelect" style="display:none">
-    <option value="2027M1">2027M1</option>
-    <option value="2027M7">2027M7</option>
-  </select>
   <div id="surveyIncompleteList" style="display:none"></div>
   <div id="surveyFailedList" style="display:none"></div>
 </section>
@@ -1483,8 +1564,9 @@ button{cursor:pointer}
     <details class="shift-fold">
       <summary class="section-title">下週人力建議</summary>
       <div class="shift-fold-content">
-        <div class="hint">最近 8 週同星期平均｜各區 TC 無條件進位｜TPLH 2.5｜第三方 ≤20%</div>
-        <div id="staffingRecommendationSummary" class="summary"></div>
+        <div class="hint forecast-formula">預估 TC＝前 8 週同星期「實際外送 TC」平均 × 1.2（各區無條件進位）｜需求工時＝預估 TC ÷ 2.5｜第三方提醒＝預估 TC × 20%</div>
+        <div id="staffingRecommendationSummary" class="summary forecast-summary-grid"></div>
+        <div id="staffingForecastDataWarning" class="forecast-data-warning" hidden role="status" aria-live="polite"></div>
         <div id="staffingWeekGap" class="forecast-week-gap" hidden></div>
         <div id="staffingDayTabs" class="staffing-day-tabs" role="tablist" aria-label="選擇預測日期"></div>
         <div id="staffingRecommendationList" class="staffing-results"><div class="loading">載入歷史資料與指休資料中…</div></div>
@@ -1714,19 +1796,41 @@ const defensiveModePage = $("defensiveModePage");
 const defensiveModeBtn = $("defensiveModeBtn");
 const defensiveBackBtn = $("defensiveBackBtn");
 const defensiveAdminMonth = $("defensiveAdminMonth");
+const defensiveAdminYear = $("defensiveAdminYear");
 const defensiveRefreshBtn = $("defensiveRefreshBtn");
 const defensiveExportBtn = $("defensiveExportBtn");
 const defensiveSearchInput = $("defensiveSearchInput");
 const defensiveSummary = $("defensiveSummary");
 const defensiveAdminList = $("defensiveAdminList");
-defensiveAdminMonth.value = String(new Date().getMonth() + 1);
+const surveyRoundSelect = $("surveyRoundSelect");
+function trainingTaipeiParts(){
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "numeric"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return {year: Number(values.year), month: Number(values.month)};
+}
+
+function populateTrainingPeriodSelectors(){
+  const {year, month} = trainingTaipeiParts();
+  defensiveAdminYear.innerHTML = [year + 1, year, year - 1]
+    .map(value => `<option value="${value}">${value} 年</option>`).join("");
+  defensiveAdminYear.value = String(year);
+  defensiveAdminMonth.value = String(month);
+  const currentRound = `${year}M${month >= 7 ? 7 : 1}`;
+  const rounds = [];
+  for(let roundYear = year + 2; roundYear >= year - 1; roundYear--){
+    for(const half of [7, 1]) rounds.push({value:`${roundYear}M${half}`, label:`${roundYear} M${half}（${half === 1 ? "1–6月" : "7–12月"}）`});
+  }
+  surveyRoundSelect.innerHTML = rounds.map(round => `<option value="${round.value}">${round.label}</option>`).join("");
+  surveyRoundSelect.value = currentRound;
+}
+
+populateTrainingPeriodSelectors();
 const newVehicleFullPlate = $("newVehicleFullPlate");
 const newVehicleCenter = $("newVehicleCenter");
 const addVehicleBtn = $("addVehicleBtn");
 const addVehicleMessage = $("addVehicleMessage");
-const surveyRoundSelect = $("surveyRoundSelect");
-const SURVEY_ROUND_YEAR = 2027;
-surveyRoundSelect.value = `${SURVEY_ROUND_YEAR}M${new Date().getMonth() + 1 >= 7 ? 7 : 1}`;
 const surveyTargetNameInput = $("surveyTargetNameInput");
 const surveyTargetAddBtn = $("surveyTargetAddBtn");
 const surveyTargetMessage = $("surveyTargetMessage");
@@ -3847,45 +3951,12 @@ function renderSurveyRoster(){
 }
 
 async function addSurveyTarget(){
-  const name = surveyTargetNameInput.value.trim();
-  const round = surveyRoundSelect.value;
-  if(!name){ surveyTargetMessage.textContent = "請輸入姓名。"; return; }
-  surveyTargetAddBtn.disabled = true;
-  surveyTargetMessage.textContent = "確認在職名單中…";
-  try{
-    const employee = await db.from("employee_directory").select("id").eq("full_name",name).eq("is_active",true).maybeSingle();
-    if(employee.error) throw employee.error;
-    if(!employee.data){surveyTargetMessage.textContent="請先在上方新增／啟用此員工並設定區域，再加入防禦駕駛名單。";return;}
-    const existing = await db.from("driver_survey_targets").select("id").eq("respondent_name",name).limit(1);
-    if(existing.error) throw existing.error;
-    if(existing.data?.length){
-      surveyTargetMessage.textContent = `此姓名已在目前在職名單：${name}`;
-      return;
-    }
-    const result = await db.from("driver_survey_targets").insert({respondent_name:name, survey_round:round});
-    if(result.error) throw result.error;
-    surveyTargetNameInput.value = "";
-    surveyTargetMessage.textContent = `✅ 已加入目前在職名單：${name}`;
-    await loadRosterData();
-  }catch(e){
-    surveyTargetMessage.textContent = e.code === "23505" ? "此姓名已存在於此問卷批次。" : `新增失敗：${e.message || "請確認權限"}`;
-  }finally{
-    surveyTargetAddBtn.disabled = false;
-  }
+  surveyTargetMessage.textContent = "調查與訓練對象自動依目前在職員工名單，不需另行加入。";
+  await loadRosterData();
 }
 
-async function deleteSurveyTarget(name, round){
-  if(!confirm(`確定要永久刪除「${name}」嗎？\n\n這會刪除該姓名的所有問卷名單、問卷紀錄與防禦駕駛紀錄，且無法復原。`)) return;
-  try{
-    const responseDelete = await db.from("driver_survey_responses").delete().eq("respondent_name", name);
-    if(responseDelete.error) throw responseDelete.error;
-    const defensiveDelete = await db.from("defensive_driving_responses").delete().eq("respondent_name", name);
-    if(defensiveDelete.error) throw defensiveDelete.error;
-    const targetDelete = await db.from("driver_survey_targets").delete().eq("respondent_name", name);
-    if(targetDelete.error) throw targetDelete.error;
-    alert("✅ 該姓名的名單、問卷與防禦駕駛紀錄已永久刪除。");
-    await loadRosterData();
-  }catch(e){ alert(`刪除失敗：${e.message || "請確認 DELETE 權限"}`); }
+async function deleteSurveyTarget(name){
+  alert(`「${name}」的調查／訓練資格由在職名單自動管理。請至在職員工區停用或管理員工；既有作答紀錄不會因此刪除。`);
 }
 
 function renderActiveRoster(){
@@ -3900,26 +3971,26 @@ function renderActiveRoster(){
   }
   rosterList.innerHTML = rows.map(row => `
     <div class="roster-item">
-      <span>${esc(row.respondent_name)}<small style="display:block;color:var(--gray);">意向調查／防禦駕駛共用</small></span>
-      <button type="button" class="survey-target-delete-btn" data-name="${esc(row.respondent_name)}" data-round="${esc(row.survey_round || surveyRoundSelect.value)}">永久刪除</button>
+      <span>${esc(row.respondent_name)}<small style="display:block;color:var(--gray);">意向調查／防禦駕駛｜依在職名單</small></span>
     </div>
   `).join('');
 }
 
 async function loadRosterData(){
+  if(!rosterList) return;
   rosterList.innerHTML = '<div class="loading">載入在職名單中…</div>';
   try{
-    const result = await db.from("driver_survey_targets").select("*").order("created_at",{ascending:true});
+    const result = await db.from("employee_directory").select("full_name,is_active").eq("is_active",true).order("full_name",{ascending:true});
     if(result.error) throw result.error;
     const map = new Map();
     (result.data || []).forEach(row => {
-      const name = String(row.respondent_name || "").trim();
-      if(name && !map.has(name)) map.set(name, {...row, respondent_name:name});
+      const name = String(row.full_name || "").trim();
+      if(name && !map.has(name)) map.set(name, {respondent_name:name, survey_round:surveyRoundSelect.value});
     });
     surveyTargets = [...map.values()];
     renderActiveRoster();
   }catch(e){
-    rosterList.innerHTML = `<div class="empty">在職名單讀取失敗：${esc(e.message || "請確認權限")}</div>`;
+    rosterList.innerHTML = `<div class="empty">在職名單讀取失敗：${esc(e.message || "請確認員工名單權限")}</div>`;
   }
 }
 
@@ -3979,13 +4050,13 @@ function renderDefensiveStatusList(status){
     const meta = completed
       ? `完成日期：${esc(fmt(response.completed_at))}｜答題 ${esc(response.attempt_count || 0)} 次`
       : (response ? `尚未完成｜最後作答：${esc(fmt(response.last_attempt_at))}` : "尚未開始");
-    const deleteButton = activeDefensiveStatus === "active"
-      ? `<button type="button" class="status-delete-btn defensive-target-delete" data-name="${esc(row.name)}" data-round="${esc(surveyRoundSelect.value)}">永久刪除</button>`
-      : (completed ? `<button type="button" class="status-delete-btn defensive-status-delete" data-name="${esc(row.name)}" data-month="${esc(response.month_no)}" data-year="${esc(response.training_year)}">刪除紀錄</button>` : "");
+    const deleteButton = completed
+      ? `<button type="button" class="status-delete-btn defensive-status-delete" data-name="${esc(row.name)}" data-month="${esc(response.month_no)}" data-year="${esc(response.training_year)}">刪除紀錄</button>`
+      : "";
     return `<div class="survey-status-card">
       <div class="status-name">${esc(row.name)}</div>
-      <div class="status-meta">${activeDefensiveStatus === "active" ? `${esc(surveyRoundSelect.value)}｜在職人員` : meta}</div>
-      <div class="status-result ${completed ? "status-pass" : "status-fail"}">${activeDefensiveStatus === "active" ? (completed ? "本月已完成" : "本月未完成") : (completed ? "已完成" : "未完成")}</div>
+      <div class="status-meta">${meta}</div>
+      <div class="status-result ${completed ? "status-pass" : "status-fail"}">${completed ? "已完成" : "未完成"}</div>
       ${deleteButton ? `<div class="status-card-actions">${deleteButton}</div>` : ""}
     </div>`;
   }).join("");
@@ -4009,25 +4080,30 @@ async function deleteDefensiveResponse(name, monthNo, year){
 async function loadDefensiveAdminData(){
   defensiveAdminList.innerHTML = '<div class="loading">載入防禦駕駛資料中…</div>';
   const monthNo = Number(defensiveAdminMonth.value);
-  const year = new Date().getFullYear();
+  const year = Number(defensiveAdminYear.value);
   try{
-    const targetsResult = await db.from("driver_survey_targets").select("respondent_name");
-    if(targetsResult.error) throw targetsResult.error;
-    const uniqueNames = [...new Set((targetsResult.data || []).map(row => String(row.respondent_name || "").trim()).filter(Boolean))];
-    const responseResult = await db.from("defensive_driving_responses").select("*").eq("training_year", year).eq("month_no", monthNo);
+    const [employeeResult, responseResult] = await Promise.all([
+      db.from("employee_directory").select("full_name").eq("is_active",true).order("full_name",{ascending:true}),
+      db.from("defensive_driving_responses").select("*").eq("training_year", year).eq("month_no", monthNo)
+    ]);
+    if(employeeResult.error) throw employeeResult.error;
     if(responseResult.error) throw responseResult.error;
+    const uniqueNames = [...new Set((employeeResult.data || []).map(row => String(row.full_name || "").trim()).filter(Boolean))];
     defensiveTargets = uniqueNames;
     defensiveResponses = responseResult.data || [];
-    const completed = new Set(defensiveResponses.filter(row => row.status === "completed").map(row => row.respondent_name));
+    const activeNameSet = new Set(uniqueNames);
+    const completed = new Set(defensiveResponses
+      .filter(row => row.status === "completed" && activeNameSet.has(String(row.respondent_name || "").trim()))
+      .map(row => String(row.respondent_name || "").trim()));
     const incomplete = uniqueNames.filter(name => !completed.has(name));
     renderDefensiveSummary(uniqueNames, completed, incomplete);
   }catch(e){
-    renderDefensiveEmptySummary(`防禦駕駛資料讀取失敗：${e.message || "請確認資料表與權限"}`);
+    renderDefensiveEmptySummary(`防禦駕駛資料讀取失敗：${e.message || "請確認在職名單與訓練資料權限"}`);
   }
 }
 
 function exportDefensiveResponses(){
-  const year = new Date().getFullYear();
+  const year = Number(defensiveAdminYear.value);
   const monthNo = Number(defensiveAdminMonth.value);
   const names = [...new Set((defensiveTargets || []).map(name => String(name || "").trim()).filter(Boolean))];
   if(!names.length){
@@ -4068,16 +4144,16 @@ async function loadSurveyData(){
   surveyResponseList.innerHTML = '<div class="loading">載入問卷資料中…</div>';
   try{
     const round = surveyRoundSelect.value;
-    const [targetResult, responseResult] = await Promise.all([
-      db.from("driver_survey_targets").select("*").order("created_at",{ascending:true}),
+    const [employeeResult, responseResult] = await Promise.all([
+      db.from("employee_directory").select("full_name,is_active").eq("is_active",true).order("full_name",{ascending:true}),
       db.from("driver_survey_responses").select("*").eq("survey_round", round).order("submitted_at",{ascending:false})
     ]);
-    if(targetResult.error) throw targetResult.error;
+    if(employeeResult.error) throw employeeResult.error;
     if(responseResult.error) throw responseResult.error;
     const targetMap = new Map();
-    (targetResult.data || []).forEach(row => {
-      const name = String(row.respondent_name || "").trim();
-      if(name && !targetMap.has(name)) targetMap.set(name, {...row, respondent_name:name});
+    (employeeResult.data || []).forEach(row => {
+      const name = String(row.full_name || "").trim();
+      if(name && !targetMap.has(name)) targetMap.set(name, {respondent_name:name, survey_round:round});
     });
     surveyTargets = [...targetMap.values()];
     surveyResponses = responseResult.data || [];
@@ -4633,8 +4709,6 @@ defensiveAdminList.onclick = e => {
     deleteDefensiveResponse(recordButton.dataset.name, recordButton.dataset.month, recordButton.dataset.year);
     return;
   }
-  const targetButton = e.target.closest(".defensive-target-delete");
-  if(targetButton) deleteSurveyTarget(targetButton.dataset.name, targetButton.dataset.round);
 };
 
 surveySearchInput.oninput =
@@ -4686,6 +4760,7 @@ defensiveBackBtn.onclick = () => showAdminMode("home");
 defensiveRefreshBtn.onclick = loadDefensiveAdminData;
 defensiveExportBtn.onclick = exportDefensiveResponses;
 defensiveAdminMonth.onchange = loadDefensiveAdminData;
+defensiveAdminYear.onchange = loadDefensiveAdminData;
 defensiveSearchInput.oninput = () => renderDefensiveStatusList(activeDefensiveStatus);
 const rosterDeleteHandler = e => {
   const button = e.target.closest(".survey-target-delete-btn");
@@ -4883,6 +4958,7 @@ const t995ShiftAdminList=$("shiftAdminList");
 const t995StaffingSummary=$("staffingRecommendationSummary");
 const t995StaffingList=$("staffingRecommendationList");
 const t995StaffingWeekGap=$("staffingWeekGap");
+const t995StaffingForecastDataWarning=$("staffingForecastDataWarning");
 const t995StaffingDayTabs=$("staffingDayTabs");
 let t995StaffingForecastData=[];
 let t995StaffingDayOffset=0;
@@ -4932,17 +5008,6 @@ function t995RenderEmployeeDirectory(){
     </article>`;
   }).join('');
 }
-async function t995SyncActiveEmployeesToSurveyTargets(employees){
-  const names=[...new Set((employees||[]).map(row=>String(row.full_name||"").trim()).filter(Boolean))];
-  if(!names.length)return;
-  const existing=await db.from("driver_survey_targets").select("respondent_name").in("respondent_name",names);
-  if(existing.error)throw existing.error;
-  const present=new Set((existing.data||[]).map(row=>String(row.respondent_name||"").trim()));
-  const missing=names.filter(name=>!present.has(name));
-  if(!missing.length)return;
-  const result=await db.from("driver_survey_targets").insert(missing.map(respondent_name=>({respondent_name,survey_round:surveyRoundSelect.value})));
-  if(result.error)throw result.error;
-}
 async function t995LoadEmployees(){
   t995EmployeeDirectoryList.innerHTML='<div class="loading">載入員工名單中…</div>';
   try{
@@ -4950,8 +5015,8 @@ async function t995LoadEmployees(){
     if(r.error)throw r.error;
     t995Employees=r.data||[];
     t995RenderEmployeeDirectory();
-    try{await t995SyncActiveEmployeesToSurveyTargets(t995Employees);await loadRosterData();}
-    catch(syncError){console.warn("在職員工同步至問卷／訓練名單失敗",syncError);t995EmployeeMessage.textContent="問卷／訓練名單同步失敗";}
+    try{await loadRosterData();}
+    catch(rosterError){console.warn("更新在職員工名單快取失敗",rosterError);}
   }catch(e){t995EmployeeDirectoryList.innerHTML=`<div class="empty">員工名單讀取失敗：${esc(e.message||"請確認管理員權限與 SQL 更新")}</div>`;}
 }
 async function t995AddEmployee(){
@@ -4981,7 +5046,7 @@ async function t995DeleteEmployeePermanently(id,button){
   const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
   const warning=`永久刪除「${row.full_name}」的全部員工紀錄？
 
-將刪除：員工主檔、意向調查名單與作答、防禦駕駛紀錄、指休資料、領還車紀錄及該員工提交的車輛檢查紀錄。
+將刪除：員工主檔、意向調查作答、防禦駕駛紀錄、指休資料、領還車紀錄及該員工提交的車輛檢查紀錄。
 
 車輛主檔本身不刪除；刪除領還車紀錄可能改變後台按最新領車資料顯示的狀態。此動作無法復原。`;
   if(!confirm(warning))return;
@@ -5039,7 +5104,7 @@ async function t995LoadShiftAdmin(){
   const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;
   t995ShiftWeekSelect.innerHTML=weeks.map(w=>`<option value="${w.start}">${w.label}</option>`).join('');if(weeks.some(w=>w.start===old))t995ShiftWeekSelect.value=old;
   t995RenderShiftWeekButtons(weeks);
-  t995ShiftAdminList.innerHTML='<div class="loading">載入中…</div>';t995ShiftSummary.textContent="";t995StaffingList.innerHTML='<div class="loading">計算中…</div>';
+  t995ShiftAdminList.innerHTML='<div class="loading">載入中…</div>';t995ShiftSummary.textContent="";t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="loading">計算中…</div>';
   try{
     const [er,sr,settings]=await Promise.all([
       db.from("employee_directory").select("id,full_name,area_code,is_active").eq("is_active",true).order("area_code",{ascending:true}).order("full_name",{ascending:true}),
@@ -5053,7 +5118,7 @@ async function t995LoadShiftAdmin(){
     const forecastRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
     const openToggle=document.getElementById("shiftOpenToggle");if(openToggle)openToggle.checked=Boolean(t995StaffingSettings.shift_submission_open);
     t995RenderShiftAdmin();await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,forecastRows);
-  }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">讀取失敗：${esc(e.message||"請確認權限")}</div>`;t995StaffingList.innerHTML='<div class="empty">人力資料讀取失敗</div>';}
+  }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">讀取失敗：${esc(e.message||"請確認權限")}</div>`;t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="empty">人力資料讀取失敗</div>';}
 }
 function t995RenderShiftAdmin(){
   const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
@@ -5128,43 +5193,87 @@ async function t995LoadAllPaged(table,select,fromDate,toDate,periodCode,orderCol
   }return out;
 }
 function t995MapAdd(map,key,value){map.set(key,(map.get(key)||0)+Number(value||0));}
-function t995SampleAverage(map,area,weekStart,dayOffset,weeks){
-  const vals=[];for(let w=1;w<=weeks;w++){const day=t995DateAdd(weekStart,dayOffset-7*w);const k=`${area}|${day}`;if(map.has(k))vals.push(map.get(k));}
-  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+function t995SampleAverage(map,area,weekStart,dayOffset,weeks,expectedStores){
+  const vals=[];
+  for(let w=1;w<=weeks;w++){
+    const date=t995DateAdd(weekStart,dayOffset-7*w);
+    const cell=map.get(`${area}|${date}`);
+    if(!cell)continue;
+    // 僅採用當日該區所有有效餐廳均有資料的完整樣本，避免缺店資料拉低平均。
+    if(expectedStores>0&&cell.stores.size<expectedStores)continue;
+    if(Number.isFinite(cell.totalTc)&&cell.totalTc>=0)vals.push(cell.totalTc);
+  }
+  return {average:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null,sampleWeeks:vals.length};
+}
+function t995ForecastTcFromAverage(average,growthRate=0.20){
+  if(average===null||average===undefined||!Number.isFinite(Number(average)))return null;
+  return Math.ceil(Number(average)*(1+growthRate)-1e-9);
 }
 async function t995RenderStaffingRecommendation(weekStart,shiftRows){
-  const weeks=Math.max(1,Number(t995StaffingSettings.forecast_weeks)||8);
+  if(!t995AreaMapLoaded)await t995LoadAreaMap();
+  const weeks=8;
   const first=t995DateAdd(weekStart,-7*weeks);
-  const fullRows=await t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,period_code",first,weekStart,"full_day");
-  if(!fullRows.length){
-    t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingDayTabs.innerHTML="";
-    t995StaffingList.innerHTML='<div class="shift-admin-empty">尚未匯入整天 TC，無法預測。</div>';return;
-  }
+  const importedFullRows=await t995LoadAllPaged("staffing_tc_history","record_date,restaurant_name,area_code,total_tc,period_code",first,weekStart,"full_day");
+  const fullRows=importedFullRows.filter(r=>t995AreaMap.get(String(r.restaurant_name||"").trim())===r.area_code);
+  const areaOrder=['A','B','C','D','E','F','G','H','I','J','K'];
+  const mappedAreas=[...new Set(t995AreaMap.values())].sort((a,b)=>areaOrder.indexOf(a)-areaOrder.indexOf(b));
+  t995StaffingForecastData=[];
+  if(!mappedAreas.length){t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="shift-admin-empty">尚未設定桃園餐廳區域對照表。</div>';return;}
+  if(!fullRows.length){t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="shift-admin-empty">尚未匯入實際外送 TC，無法預測。</div>';return;}
   const fullByAreaDate=new Map();
-  for(const r of fullRows){const date=String(r.record_date).slice(0,10);t995MapAdd(fullByAreaDate,`${r.area_code}|${date}`,Number(r.total_tc||0));}
+  for(const r of fullRows){
+    const date=String(r.record_date).slice(0,10),store=String(r.restaurant_name||"").trim(),key=`${r.area_code}|${date}`;
+    let cell=fullByAreaDate.get(key);if(!cell){cell={totalTc:0,stores:new Set()};fullByAreaDate.set(key,cell);}
+    // 同餐廳同日只計一次，避免重複資料意外放大預估。
+    if(!cell.stores.has(store)){cell.stores.add(store);const tc=Number(r.total_tc);cell.totalTc+=Number.isFinite(tc)&&tc>=0?tc:0;}
+  }
+  const expectedStoresByArea=new Map();
+  for(const area of t995AreaMap.values())expectedStoresByArea.set(area,(expectedStoresByArea.get(area)||0)+1);
   const byArea=new Map();
   for(const {employee,shift} of shiftRows){const area=employee.area_code;if(!area)continue;if(!byArea.has(area))byArea.set(area,[]);byArea.get(area).push({employee,shift});}
-  const areas=['A','B','C','D','E','F','G','H','I','J','K'];
-  const target=Math.max(0.01,Number(t995StaffingSettings.target_tplh)||2.5);
-  const cap=Math.max(0,Math.min(100,Number(t995StaffingSettings.max_third_party_usage_pct??20)));
+  const areas=mappedAreas;
+  // 使用固定營運目標，確保畫面公式與工時計算一致。
+  const target=2.5;
+  const cap=20;
+  const growthRate=0.20;
   const dayNames=['週一','週二','週三','週四','週五','週六','週日'];
   const output=areas.map(area=>({area,days:dayNames.map((day,offset)=>{
-    const date=t995DateAdd(weekStart,offset);const rawTc=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks);const totalTc=rawTc===null?null:Math.ceil(rawTc-1e-9);
+    const date=t995DateAdd(weekStart,offset);
+    const sample=t995SampleAverage(fullByAreaDate,area,weekStart,offset,weeks,expectedStoresByArea.get(area)||0);
+    const averageTc=sample.average;
+    // 順序固定：同星期歷史平均 → 成長 20% → 區域 TC 無條件進位 → 除以 TPLH 2.5。
+    const totalTc=t995ForecastTcFromAverage(averageTc,growthRate);
     const recommended=totalTc===null?null:totalTc/target;
-    const thirdPartyCap=totalTc===null?null:Math.floor(totalTc*cap/100);
+    const thirdPartyCap=totalTc===null?null:totalTc*cap/100;
     let availableHours=0,people=0;
     for(const x of byArea.get(area)||[]){if(!x.shift)continue;const key=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][offset];const intervals=t995ParseRanges(x.shift[key]);if(intervals===null||!intervals.length)continue;people++;availableHours+=intervals.reduce((sum,[a,b])=>sum+(b-a)/60,0);}
-    return {day,date,totalTc,recommended,thirdPartyCap,availableHours,people,gap:recommended===null?null:availableHours-recommended};
+    return {day,date,averageTc,totalTc,recommended,thirdPartyCap,availableHours,people,gap:recommended===null?null:availableHours-recommended,historyWeeks:sample.sampleWeeks,targetWeeks:weeks};
   })}));
-  const allDays=output.flatMap(x=>x.days);const forecastDays=allDays.filter(d=>d.totalTc!==null);
-  const weeklyTc=forecastDays.reduce((sum,d)=>sum+d.totalTc,0);
-  const weeklyNeeded=forecastDays.reduce((sum,d)=>sum+d.recommended,0);
+  const allDays=output.flatMap(x=>x.days);
+  const missingForecasts=allDays.filter(d=>d.totalTc===null);
+  const partialHistory=allDays.filter(d=>d.historyWeeks<weeks);
+  const completeWeek=missingForecasts.length===0;
+  const weeklyTc=completeWeek?allDays.reduce((sum,d)=>sum+d.totalTc,0):null;
+  const weeklyNeeded=completeWeek?allDays.reduce((sum,d)=>sum+d.recommended,0):null;
   const weeklyAvailable=allDays.reduce((sum,d)=>sum+d.availableHours,0);
-  const weeklyThirdParty=forecastDays.reduce((sum,d)=>sum+d.thirdPartyCap,0);
-  const weeklyGap=weeklyAvailable-weeklyNeeded;
-  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">預估整週 TC</div><div class="summary-number">${weeklyTc.toLocaleString('zh-TW')}</div></div><div class="summary-card"><div class="summary-label">預估需求工時</div><div class="summary-number">${weeklyNeeded.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">可安排工時</div><div class="summary-number">${weeklyAvailable.toFixed(1)}</div></div><div class="summary-card"><div class="summary-label">第三方可派單上限</div><div class="summary-number">${weeklyThirdParty.toLocaleString('zh-TW')}</div></div>`;
-  t995StaffingWeekGap.hidden=false;t995StaffingWeekGap.className=`forecast-week-gap ${weeklyGap<0?'is-short':'is-surplus'}`;
-  t995StaffingWeekGap.textContent=`整週工時差：${weeklyGap>=0?'+':''}${weeklyGap.toFixed(1)} 小時｜${weeklyGap<0?'人力不足':'人力有餘裕'}`;
+  const weeklyThirdParty=completeWeek?allDays.reduce((sum,d)=>sum+d.thirdPartyCap,0):null;
+  const weeklyGap=completeWeek?weeklyAvailable-weeklyNeeded:null;
+  const fmtTc=value=>value===null?'—':Number(value).toLocaleString('zh-TW',{maximumFractionDigits:1});
+  const fmtHours=value=>value===null?'—':Number(value).toLocaleString('zh-TW',{minimumFractionDigits:1,maximumFractionDigits:1});
+  t995StaffingSummary.innerHTML=`<div class="summary-card"><div class="summary-label">成長後預估整週 TC</div><div class="summary-number">${fmtTc(weeklyTc)}</div></div><div class="summary-card"><div class="summary-label">預估需求工時（÷2.5）</div><div class="summary-number">${fmtHours(weeklyNeeded)}</div></div><div class="summary-card"><div class="summary-label">可安排工時</div><div class="summary-number">${fmtHours(weeklyAvailable)}</div></div><div class="summary-card"><div class="summary-label">第三方 TC 提醒值（20%）</div><div class="summary-number">${fmtTc(weeklyThirdParty)}</div></div>`;
+  if(partialHistory.length){
+    const examples=partialHistory.slice(0,4).map(d=>`${d.day}${output.find(a=>a.days.includes(d))?.area||''}區 ${d.historyWeeks}/${weeks}週`).join('、');
+    const more=partialHistory.length>4?` 等 ${partialHistory.length} 組`:` 共 ${partialHistory.length} 組`;
+    t995StaffingForecastDataWarning.textContent=`歷史資料未滿 ${weeks} 週：${examples}${more}；按各區／星期可用完整週數平均。`;
+    t995StaffingForecastDataWarning.hidden=false;
+  }else{t995StaffingForecastDataWarning.textContent="";t995StaffingForecastDataWarning.hidden=true;}
+  if(completeWeek){
+    t995StaffingWeekGap.hidden=false;t995StaffingWeekGap.className=`forecast-week-gap ${weeklyGap<0?'is-short':'is-surplus'}`;
+    t995StaffingWeekGap.textContent=`整週工時差：${weeklyGap>=0?'+':''}${weeklyGap.toFixed(1)} 小時｜${weeklyGap<0?'人力不足':'人力有餘裕'}`;
+  }else{
+    t995StaffingWeekGap.hidden=false;t995StaffingWeekGap.className='forecast-week-gap is-warning';
+    t995StaffingWeekGap.textContent=`整週 TC／需求工時／工時差暫不加總：${missingForecasts.length} 組區域／日期沒有完整歷史樣本。`;
+  }
   t995StaffingForecastData=output;
   t995StaffingDayOffset=Math.max(0,Math.min(6,t995StaffingDayOffset));
   t995StaffingDayTabs.innerHTML=dayNames.map((day,i)=>{const date=t995DateAdd(weekStart,i);return `<button type="button" class="staffing-day-tab ${i===t995StaffingDayOffset?'active':''}" data-t995-forecast-day="${i}" role="tab" aria-selected="${i===t995StaffingDayOffset?'true':'false'}"><span>${day}</span><small>${date.slice(5).replace('-','/')}</small></button>`;}).join('');
@@ -5175,20 +5284,22 @@ function t995RenderStaffingDay(){
   const offset=t995StaffingDayOffset;const day=areas[0]?.days[offset];if(!day)return;
   const gap=(value)=>value===null?{text:'—',cls:''}:{text:`${value>=0?'+':''}${value.toFixed(1)} 小時`,cls:value<0?'is-short':'is-surplus'};
   const metric=(label,value)=>`<div class="forecast-area-stat"><span>${label}</span><strong>${value}</strong></div>`;
-  const dayData=areas.map(x=>x.days[offset]);const forecastAreas=dayData.filter(d=>d.totalTc!==null);
-  const totalTc=forecastAreas.length?forecastAreas.reduce((sum,d)=>sum+d.totalTc,0):null;
-  const totalNeeded=forecastAreas.length?forecastAreas.reduce((sum,d)=>sum+d.recommended,0):null;
-  const totalThird=forecastAreas.length?forecastAreas.reduce((sum,d)=>sum+d.thirdPartyCap,0):null;
+  const fmtTc=value=>value===null?'—':Number(value).toLocaleString('zh-TW',{maximumFractionDigits:1});
+  const fmtHours=value=>value===null?'—':Number(value).toLocaleString('zh-TW',{minimumFractionDigits:1,maximumFractionDigits:1});
+  const dayData=areas.map(x=>x.days[offset]);
+  const completeDay=dayData.every(d=>d.totalTc!==null);
+  const totalTc=completeDay?dayData.reduce((sum,d)=>sum+d.totalTc,0):null;
+  const totalNeeded=completeDay?dayData.reduce((sum,d)=>sum+d.recommended,0):null;
+  const totalThird=completeDay?dayData.reduce((sum,d)=>sum+d.thirdPartyCap,0):null;
   const totalPeople=dayData.reduce((sum,d)=>sum+d.people,0);const totalAvailable=dayData.reduce((sum,d)=>sum+d.availableHours,0);
   const totalGap=totalNeeded===null?null:totalAvailable-totalNeeded;const totalDelta=gap(totalGap);
   const totalText=(value,digits=1)=>value===null?'—':Number(value).toLocaleString('zh-TW',{minimumFractionDigits:digits,maximumFractionDigits:digits});
-  const totals=`<div class="forecast-day-total-wrap"><div class="forecast-day-total-title">當日預估合計（各區 TC 無條件進位後加總）</div><div class="forecast-day-total-grid"><div class="forecast-day-total-card"><span>預估總 TC</span><strong>${totalTc===null?'—':totalTc.toLocaleString('zh-TW')}</strong></div><div class="forecast-day-total-card"><span>需求工時</span><strong>${totalText(totalNeeded)}</strong></div><div class="forecast-day-total-card"><span>第三方可派單</span><strong>${totalThird===null?'—':totalThird.toLocaleString('zh-TW')}</strong></div><div class="forecast-day-total-card"><span>可排人數／工時</span><strong>${totalPeople} 人／${totalText(totalAvailable)} 小時</strong></div><div class="forecast-day-total-card"><span>工時差</span><strong class="forecast-gap ${totalDelta.cls}">${totalDelta.text}</strong></div></div></div>`;
-  const rows=areas.map(({area,days})=>{const d=days[offset];const delta=gap(d.gap);const tc=d.totalTc===null?'—':d.totalTc.toLocaleString('zh-TW');const needed=d.recommended===null?'—':d.recommended.toFixed(1);const third=d.thirdPartyCap===null?'—':d.thirdPartyCap.toLocaleString('zh-TW');const availability=`${d.people} 人／${d.availableHours.toFixed(1)} 小時`;
-    return {area,tc,needed,third,availability,delta};
+  const totals=`<div class="forecast-day-total-wrap"><div class="forecast-day-total-title">${day.day} 預估合計｜各區前 8 週同星期實際外送 TC 平均 ×1.2 後無條件進位</div><div class="forecast-day-total-grid"><div class="forecast-day-total-card"><span>預估 TC</span><strong>${fmtTc(totalTc)}</strong></div><div class="forecast-day-total-card"><span>需求工時（÷2.5）</span><strong>${totalText(totalNeeded)}</strong></div><div class="forecast-day-total-card"><span>第三方 TC 提醒值（20%）</span><strong>${fmtTc(totalThird)}</strong></div><div class="forecast-day-total-card"><span>可排人數／工時</span><strong>${totalPeople} 人／${totalText(totalAvailable)} 小時</strong></div><div class="forecast-day-total-card"><span>工時差</span><strong class="forecast-gap ${totalDelta.cls}">${totalDelta.text}</strong></div></div></div>`;
+  const rows=areas.map(({area,days})=>{const d=days[offset];const delta=gap(d.gap);const tc=fmtTc(d.totalTc);const needed=fmtHours(d.recommended);const third=fmtTc(d.thirdPartyCap);const availability=`${d.people} 人／${d.availableHours.toFixed(1)} 小時`;const history=`${d.historyWeeks}/${d.targetWeeks}週`;
+    return {area,tc,needed,third,availability,delta,history};
   });
-  t995StaffingList.innerHTML=`<div class="forecast-day-panel"><div class="forecast-day-heading">${day.day}｜${day.date}</div>${totals}<div class="forecast-area-table-wrap"><table class="forecast-area-table" aria-label="${day.day}各區人力預測"><thead><tr><th>區域</th><th>預估總 TC</th><th>需求工時</th><th>第三方可派單</th><th>可排人數／工時</th><th>工時差</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.area} 區</td><td>${r.tc}</td><td>${r.needed}</td><td>${r.third}</td><td>${r.availability}</td><td class="forecast-gap ${r.delta.cls}">${r.delta.text}</td></tr>`).join('')}</tbody></table></div><div class="forecast-area-cards">${rows.map(r=>`<article class="forecast-area-card"><div class="forecast-area-card-head"><span>${r.area} 區</span><span class="forecast-gap ${r.delta.cls}">${r.delta.text}</span></div><div class="forecast-area-card-grid">${metric('預估總 TC',r.tc)}${metric('預估需求工時',r.needed)}${metric('第三方可派單',r.third)}${metric('可排人數／工時',r.availability)}</div></article>`).join('')}</div></div>`;
+  t995StaffingList.innerHTML=`<div class="forecast-day-panel"><div class="forecast-day-heading">${day.day}｜${day.date}</div>${totals}<div class="forecast-area-table-wrap"><table class="forecast-area-table" aria-label="${day.day}各區人力預測"><thead><tr><th>區域／歷史週數</th><th>成長後預估 TC</th><th>需求工時</th><th>第三方 TC 20% 提醒</th><th>可排人數／工時</th><th>工時差</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${r.area} 區</strong><small class="forecast-history-weeks">${r.history}</small></td><td>${r.tc}</td><td>${r.needed}</td><td>${r.third}</td><td>${r.availability}</td><td class="forecast-gap ${r.delta.cls}">${r.delta.text}</td></tr>`).join('')}</tbody></table></div><div class="forecast-area-cards">${rows.map(r=>`<article class="forecast-area-card"><div class="forecast-area-card-head"><span>${r.area} 區 <small class="forecast-history-weeks">${r.history}</small></span><span class="forecast-gap ${r.delta.cls}">${r.delta.text}</span></div><div class="forecast-area-card-grid">${metric('成長後預估 TC',r.tc)}${metric('預估需求工時（÷2.5）',r.needed)}${metric('第三方 TC 20% 提醒值',r.third)}${metric('可排人數／工時',r.availability)}</div></article>`).join('')}</div></div>`;
 }
-function t995RenderStaffingFromCurrent(){t995StaffingList.querySelectorAll('.staffing-day-card').forEach(card=>{card.style.display='';});}
 function t995RenderShiftAndForecast(){t995RenderShiftAdmin();t995RenderStaffingFromCurrent();}
 
 function t995ExcelDateToISO(value){
