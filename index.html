@@ -1657,8 +1657,13 @@ const db =
     SUPABASE_KEY
   );
 
-const SURVEY_ROUND_YEAR = 2027;
-const CURRENT_SURVEY_ROUND = `${SURVEY_ROUND_YEAR}M${new Date().getMonth() + 1 >= 7 ? 7 : 1}`;
+function trainingTaipeiParts(){
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "numeric"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return {year: Number(values.year), month: Number(values.month)};
+}
 
 // 桃園 T995 安全月曆：與 index.html 同層的 pdf 資料夾
 const SAFETY_CALENDAR_PDFS = {
@@ -3810,20 +3815,19 @@ async function saveSurvey() {
     const behaviorScore = Object.values(surveyAnswers.behavior).reduce((sum, value) => sum + value, 0);
     const attitudeScore = Object.values(surveyAnswers.attitude).reduce((sum, value) => sum + value, 0);
     const accident = document.querySelector('input[name="accidentWithinYear"]:checked');
-    const result = await db.from("driver_survey_responses").insert({
-      respondent_name: respondentName,
-      survey_round: CURRENT_SURVEY_ROUND,
-      part1_answers: {
+    const result = await db.rpc("submit_driver_survey_response", {
+      p_respondent_name: respondentName,
+      p_part1_answers: {
         violation_points: Number(violationPointsInput.value),
         answers: surveyAnswers.behavior
       },
-      part1_total: behaviorScore,
-      part1_result: behaviorScore <= 27 ? "合格" : "不合格",
-      part2_answers: surveyAnswers.attitude,
-      part2_total: attitudeScore,
-      part2_result: attitudeScore <= 57 ? "合格" : "不合格",
-      accident_within_one_year: accident.value === "有",
-      accident_description: accident.value === "有" ? accidentDetailInput.value.trim() : null
+      p_part1_total: behaviorScore,
+      p_part1_result: behaviorScore <= 27 ? "合格" : "不合格",
+      p_part2_answers: surveyAnswers.attitude,
+      p_part2_total: attitudeScore,
+      p_part2_result: attitudeScore <= 57 ? "合格" : "不合格",
+      p_accident_within_one_year: accident.value === "有",
+      p_accident_description: accident.value === "有" ? accidentDetailInput.value.trim() : null
     });
 
     if (result.error) {
@@ -3832,7 +3836,9 @@ async function saveSurvey() {
       return;
     }
 
+    const submittedRound = result.data && typeof result.data === "object" ? result.data.survey_round : "";
     document.getElementById("surveySuccessData").innerHTML = `
+      ${submittedRound ? `<div><strong>調查期別：</strong>${escapeHtml(submittedRound)}</div>` : ""}
       <div><strong>填寫人：</strong>${escapeHtml(surveyRespondentNameInput.value.trim())}</div>
       <div><strong>違規記點：</strong>${Number(violationPointsInput.value)} 點</div>
       <div><strong>駕駛行為：</strong>${behaviorScore} 分，${behaviorScore <= 27 ? "合格" : "不合格"}</div>
@@ -3941,7 +3947,11 @@ function closeAllNameSuggestions(){
 
 
 function currentTrainingYear(){
-  return new Date().getFullYear();
+  return trainingTaipeiParts().year;
+}
+
+function currentTrainingMonth(){
+  return trainingTaipeiParts().month;
 }
 
 function selectedTrainingMonth(){
@@ -3972,7 +3982,7 @@ function resetDefensiveForm(){
   defensiveNameInput.value = "";
   defensiveNameSuggestions.classList.remove("show");
   defensiveNameSuggestions.innerHTML = "";
-  defensiveMonthSelect.value = String(new Date().getMonth() + 1);
+  defensiveMonthSelect.value = String(currentTrainingMonth());
   defensiveLessonPanel.style.display = "none";
   defensiveQuestions.style.display = "none";
   defensiveStatus.className = "training-message";
@@ -3997,13 +4007,6 @@ async function loadDefensiveLesson(){
       defensiveStatus.textContent = "此員工目前已停用或不在職，無法填寫防禦駕駛，請找店長確認。";
       defensiveLessonPanel.style.display = "none";
       defensiveQuestions.style.display = "none";
-      return;
-    }
-    const targetResult = await db.from("driver_survey_targets").select("id").eq("respondent_name", name).limit(1);
-    if(targetResult.error) throw targetResult.error;
-    if(!targetResult.data?.length){
-      defensiveStatus.className = "training-message";
-      defensiveStatus.textContent = "查無此姓名，請先由後台加入應完成人員名單。";
       return;
     }
     const lessonResult = await db.from("defensive_driving_lessons").select("*").eq("month_no", monthNo).maybeSingle();
@@ -4135,7 +4138,7 @@ document.addEventListener("click", event => {
 defensiveLoadBtn.addEventListener("click", loadDefensiveLesson);
 document.getElementById("defensiveBackBtn").addEventListener("click", showHome);
 document.getElementById("defensiveSuccessHomeBtn").addEventListener("click", showHome);
-defensiveMonthSelect.value = String(new Date().getMonth() + 1);
+defensiveMonthSelect.value = String(currentTrainingMonth());
 
 
 /* =====================================================
