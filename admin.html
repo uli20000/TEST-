@@ -3856,32 +3856,54 @@ function renderSurveyResponses(){
 }
 
 function exportSurveyResponses(){
-  if(!surveyResponses.length){
-    alert("目前沒有可匯出的意向調查資料。");
+  const period = surveyRoundInfo(surveyRoundSelect.value);
+  const responseMap = latestSurveyResponseByName();
+  const activeNames = new Set(
+    surveyTargets.map(row => String(row.respondent_name || "").trim()).filter(Boolean)
+  );
+  const exportRow = (name, row, employeeStatus) => {
+    const hasResponse = Boolean(row);
+    const p1 = hasResponse ? parseSurveyPart(row.part1_answers) : {};
+    return {
+      調查期別: period.label,
+      員工狀態: employeeStatus,
+      提交狀態: hasResponse ? "已提交" : "未完成",
+      填寫人姓名: name,
+      違規記點: hasResponse ? (p1.violation_points ?? "") : "",
+      第一部分答案: hasResponse ? JSON.stringify(row.part1_answers ?? "") : "",
+      第一部分總分: hasResponse ? (row.part1_total ?? "") : "",
+      第一部分結果: hasResponse ? (row.part1_result || "") : "",
+      第二部分答案: hasResponse ? JSON.stringify(row.part2_answers ?? "") : "",
+      第二部分總分: hasResponse ? (row.part2_total ?? "") : "",
+      第二部分結果: hasResponse ? (row.part2_result || "") : "",
+      一年內肇事: hasResponse ? (row.accident_within_one_year === true ? "有" : row.accident_within_one_year === false ? "沒有" : "") : "",
+      肇事說明: hasResponse ? (row.accident_description || "") : "",
+      填寫時間: hasResponse ? (row.submitted_at || "") : ""
+    };
+  };
+
+  // 以所選期別的在職名單為主表，未提交者也輸出一列，讓主管可直接追蹤缺漏。
+  const rows = surveyTargets
+    .map(target => String(target.respondent_name || "").trim())
+    .filter((name, index, names) => name && names.indexOf(name) === index)
+    .map(name => exportRow(name, responseMap.get(name) || null, "在職"));
+
+  // 保留已提交、但目前不在職名單中的紀錄，避免匯出時漏掉歷史提交者。
+  const exportedNames = new Set(rows.map(row => row.填寫人姓名));
+  responseMap.forEach((response, name) => {
+    if(name && !activeNames.has(name) && !exportedNames.has(name)){
+      rows.push(exportRow(name, response, "非目前在職名單"));
+    }
+  });
+
+  if(!rows.length){
+    alert("目前所選期別沒有在職名單或已提交紀錄，無資料可匯出。");
     return;
   }
-  const rows = surveyResponses.map(row => {
-    const p1 = parseSurveyPart(row.part1_answers);
-    return {
-      id: row.id || "",
-      填寫人姓名: row.respondent_name || "",
-      違規記點: p1.violation_points ?? "",
-      第一部分答案: JSON.stringify(row.part1_answers ?? ""),
-      第一部分總分: row.part1_total ?? "",
-      第一部分結果: row.part1_result || "",
-      第二部分答案: JSON.stringify(row.part2_answers ?? ""),
-      第二部分總分: row.part2_total ?? "",
-      第二部分結果: row.part2_result || "",
-      一年內肇事: row.accident_within_one_year === true ? "有" : "沒有",
-      肇事說明: row.accident_description || "",
-      填寫時間: row.submitted_at || ""
-    };
-  });
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(rows);
   XLSX.utils.book_append_sheet(wb, ws, "駕駛意向調查");
-  const period = surveyRoundInfo(surveyRoundSelect.value);
-  XLSX.writeFile(wb, `KFC_駕駛意向調查_${period.year}_${period.round}.xlsx`);
+  XLSX.writeFile(wb, `KFC_駕駛意向調查_${period.year}_${period.round}_V2.xlsx`);
 }
 
 async function deleteSurveyResponse(id, name, submittedAt){
