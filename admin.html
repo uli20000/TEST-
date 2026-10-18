@@ -1240,6 +1240,42 @@ button{cursor:pointer}
  .shift-test-toggle{font-size:11px}
  .shift-week-open-hint{font-size:10px}
 }
+
+/* T995 V6：逐週開放勾選整合於日期卡；工具列三列固定四欄。 */
+#shiftModePage .shift-heading-tools{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+#shiftModePage .shift-heading-tools>.hint{margin:0;padding:0;line-height:1.35}
+#shiftModePage .shift-heading-tools .shift-test-toggle{width:auto;height:32px;min-height:32px;padding:4px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:12px}
+#shiftModePage .shift-heading-tools .shift-test-toggle.is-checked{border-color:var(--red)!important;background:var(--danger-bg)!important;color:var(--danger)!important}
+#shiftModePage .shift-heading-tools .shift-mini-delete[hidden]{display:none!important}
+#shiftModePage .shift-toolbar-week-row{display:block!important;grid-template-columns:none!important}
+#shiftModePage .shift-week-buttons{display:grid!important;grid-column:auto!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;width:100%;min-width:0}
+#shiftModePage .shift-week-option{display:grid;grid-template-rows:39px 24px;gap:0;height:64px!important;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#fff;box-sizing:border-box}
+#shiftModePage .shift-week-option .shift-week-btn{width:100%;height:39px!important;min-height:39px!important;margin:0;padding:3px 1px!important;border:0!important;border-radius:0!important;background:#fff;color:var(--black);box-shadow:none!important;font-size:11px!important;font-weight:800;white-space:nowrap;letter-spacing:-.2px}
+#shiftModePage .shift-week-option .shift-week-btn.active{background:var(--red)!important;color:#fff!important}
+#shiftModePage .shift-week-open-toggle{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;height:24px!important;min-height:24px!important;margin:0;padding:1px 2px;border:0!important;border-top:1px solid #eee8e0!important;border-radius:0!important;background:transparent!important;color:var(--black);font-size:11px!important;font-weight:700;line-height:1;white-space:nowrap;box-shadow:none!important;box-sizing:border-box}
+#shiftModePage .shift-week-open-toggle input{width:14px;height:14px;margin:0;accent-color:var(--red);flex:none}
+#shiftModePage .shift-week-open-toggle.is-checked{background:var(--danger-bg)!important;color:var(--danger)!important;border-top-color:#f1c4c1!important}
+#shiftModePage .shift-toolbar-status-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+#shiftModePage .shift-status-tabs{display:grid!important;grid-column:span 3!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+#shiftModePage .shift-status-btn,#shiftModePage .shift-name-search{width:100%;height:48px!important;min-height:48px!important;box-sizing:border-box}
+#shiftModePage .shift-toolbar-search-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+#shiftModePage .shift-toolbar-search-row>button,#shiftModePage .shift-export-week{width:100%;height:48px!important;min-height:48px!important;min-width:0;box-sizing:border-box;padding:4px 3px;font-size:12px;font-weight:800;text-align:center}
+#shiftModePage .shift-export-week{appearance:auto;background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--black);font-family:inherit;white-space:nowrap}
+#shiftModePage .shift-purge-old-btn{background:var(--danger-bg);border-color:#f2b6b0;color:var(--danger);font-size:10px!important;white-space:normal;line-height:1.15}
+#shiftModePage .shift-toolbar-search-row>button:disabled{opacity:.55;cursor:wait}
+@media(max-width:699px){
+ #shiftModePage .shift-week-buttons,#shiftModePage .shift-toolbar-status-row,#shiftModePage .shift-toolbar-search-row{gap:4px!important}
+ #shiftModePage .shift-week-option{height:62px!important;grid-template-rows:37px 23px}
+ #shiftModePage .shift-week-option .shift-week-btn{height:37px!important;min-height:37px!important;font-size:10px!important;letter-spacing:-.35px}
+ #shiftModePage .shift-week-open-toggle{height:23px!important;min-height:23px!important;font-size:10px!important;gap:3px}
+ #shiftModePage .shift-week-open-toggle input{width:13px;height:13px}
+ #shiftModePage .shift-status-btn,#shiftModePage .shift-toolbar-search-row>button,#shiftModePage .shift-export-week{height:46px!important;min-height:46px!important;padding:2px 1px;font-size:10px!important;letter-spacing:-.25px}
+ #shiftModePage .shift-name-search{height:46px!important;min-height:46px!important;padding:0 3px;font-size:12px;text-align:center}
+ #shiftModePage .shift-purge-old-btn{font-size:9px!important;letter-spacing:-.45px}
+ #shiftModePage .shift-heading-tools{gap:6px;margin-bottom:7px}
+ #shiftModePage .shift-heading-tools .shift-test-toggle{height:29px;min-height:29px;font-size:11px}
+}
+
 </style>
 </head>
 
@@ -1570,12 +1606,15 @@ button{cursor:pointer}
   <div class="mode-back-row protected-mode-actions"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="shiftPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
   <section class="section">
     <div class="section-title">指休管理</div>
-    <div class="hint">TPLH 2.5｜第三方 ≤20%</div>
+    <div class="shift-heading-tools">
+      <div class="hint">TPLH 2.5｜第三方 ≤20%</div>
+      <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox" aria-label="測試模式"><span>測試</span></label>
+      <button id="shiftDeleteTestBtn" class="shift-mini-delete" type="button" hidden title="刪除所選週測試資料" aria-label="刪除所選週測試資料">🗑</button>
+    </div>
     <div class="shift-admin-toolbar">
       <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次" hidden></select>
       <div class="shift-toolbar-week-row">
         <div id="shiftWeekButtons" class="shift-week-buttons" role="group" aria-label="選擇週次並設定開放"></div>
-        <button id="shiftPurgeOldBtn" class="action-btn shift-test-delete-btn" type="button" title="刪除一個月前指休資料" aria-label="刪除一個月前指休資料">刪除</button>
       </div>
       <div class="shift-toolbar-status-row">
         <div id="shiftStatusTabs" class="shift-status-tabs" role="tablist" aria-label="指休提交狀態"></div>
@@ -1583,12 +1622,9 @@ button{cursor:pointer}
       </div>
       <div class="shift-toolbar-search-row">
         <button id="shiftRefreshBtn" class="action-btn" type="button">重新整理</button>
+        <select id="shiftExportWeekSelect" class="search-input shift-export-week" aria-label="選擇匯出週次"></select>
         <button id="shiftExportBtn" class="action-btn" type="button">匯出</button>
-        <div class="shift-test-control" aria-label="測試模式與測試資料管理">
-          <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox" aria-label="測試模式"><span>測試</span></label>
-          <button id="shiftDeleteTestBtn" class="shift-mini-delete" type="button" hidden title="刪除所選週測試資料" aria-label="刪除所選週測試資料">🗑</button>
-        </div>
-          <div class="shift-week-open-hint" aria-live="polite">逐週開放</div>
+        <button id="shiftPurgeOldBtn" class="action-btn shift-purge-old-btn" type="button" title="刪除一個月前指休資料" aria-label="刪除一個月前指休資料">刪除一個月前</button>
       </div>
     </div>
     <div id="shiftAdminSummary" class="hint" style="margin-top:10px"></div>
@@ -5163,7 +5199,7 @@ function t995RenderShiftWeekButtons(weeks){
   const selected=t995ShiftWeekSelect.value;
   t995ShiftWeekButtons.innerHTML=weeks.map(w=>{
     const opened=t995ShiftOpenWeeks.has(w.start);
-    return `<div class="shift-week-option">
+    return `<div class="shift-week-option ${w.start===selected?'is-selected':''}">
       <button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}">${w.dateLabel}</button>
       <label class="shift-week-open-toggle ${opened?'is-checked':''}" title="${opened?'關閉':'開放'} ${w.dateLabel}">
         <input type="checkbox" data-t995-open-week="${w.start}" aria-label="${opened?'關閉':'開放'}指休 ${w.dateLabel}" ${opened?'checked':''}>
@@ -5173,8 +5209,10 @@ function t995RenderShiftWeekButtons(weeks){
   }).join('');
 }
 async function t995LoadShiftAdmin(){
-  const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;
+  const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;const oldExport=document.getElementById("shiftExportWeekSelect")?.value;
   t995ShiftWeekSelect.innerHTML=weeks.map(w=>`<option value="${w.start}">${w.label}</option>`).join('');if(weeks.some(w=>w.start===old))t995ShiftWeekSelect.value=old;
+  const exportSelect=document.getElementById("shiftExportWeekSelect");
+  if(exportSelect){exportSelect.innerHTML=weeks.map(w=>`<option value="${w.start}">${w.dateLabel}</option>`).join('');exportSelect.value=weeks.some(w=>w.start===oldExport)?oldExport:t995ShiftWeekSelect.value;}
   t995ShiftAdminList.innerHTML='<div class="loading">載入中…</div>';t995ShiftSummary.textContent="";t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="loading">計算中…</div>';
   try{
     // 初始化不存在的週次為關閉；ignoreDuplicates 保留既有勾選狀態。
@@ -5215,7 +5253,7 @@ function t995RenderShiftAdmin(){
   const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
   if(t995ShiftDeleteTestBtn){
     const count=Number(t995ShiftTestRecordCount||0);
-    t995ShiftDeleteTestBtn.hidden=count===0;
+    t995ShiftDeleteTestBtn.hidden=true;
     t995ShiftDeleteTestBtn.disabled=count===0;
     t995ShiftDeleteTestBtn.title=count?`刪除所選週 ${count} 筆測試資料`:"所選週沒有測試資料";
     t995ShiftDeleteTestBtn.setAttribute("aria-label",count?`刪除所選週 ${count} 筆測試資料`:"刪除所選週測試資料");
@@ -5238,13 +5276,23 @@ function t995RenderShiftAdmin(){
   }).join('');
   t995ShiftAdminList.innerHTML=`<div class="shift-scroll-cue" aria-hidden="true">↔</div><div class="shift-admin-scroll" role="region" aria-label="指休資料，可左右滑動" tabindex="0"><table class="shift-data-table"><thead><tr><th>員工</th>${days.map(([label])=>`<th>${label}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
-function t995BuildShiftExportRows(){
+function t995BuildShiftExportRows(week,shiftRows){
   const days=[['週一','monday'],['週二','tuesday'],['週三','wednesday'],['週四','thursday'],['週五','friday'],['週六','saturday'],['週日','sunday']];
-  return t995ShiftRows.map(({employee:e,shift:r})=>({週次:t995ShiftWeekSelect.value,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",資料類型:r?.is_test?"測試資料（納入人力建議）":"正式資料",提交狀態:!r?"未提交":r.is_test?"測試提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
+  return shiftRows.map(({employee:e,shift:r})=>({週次:week,姓名:e.full_name,區域:e.area_code?`${e.area_code}區`:"未分類",資料類型:r?.is_test?"測試資料（納入人力建議）":"正式資料",提交狀態:!r?"未提交":r.is_test?"測試提交":t995IsAllBlank(r)?"已提交－七天皆空白":"已提交",...Object.fromEntries(days.map(([label,key])=>[label,r?.[key]||""])),備註:r?.notes||"",最後提交時間:r?.submitted_at||""}));
 }
-function t995ExportShiftWeek(){
-  const rows=t995BuildShiftExportRows();if(!rows.length){alert("目前沒有在職員工資料可匯出。");return;}
-  const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(rows);if(ws["!ref"])ws["!autofilter"]={ref:ws["!ref"]};XLSX.utils.book_append_sheet(wb,ws,"指休表");XLSX.writeFile(wb,`T995_指休_${t995ShiftWeekSelect.value}.xlsx`);
+async function t995ExportShiftWeek(){
+  const week=document.getElementById("shiftExportWeekSelect")?.value||t995ShiftWeekSelect.value;
+  if(!week){alert("請先選擇匯出週次。");return;}
+  t995ShiftExportBtn.disabled=true;
+  try{
+    const result=await db.from("weekly_shift_availability").select("id,employee_id,employee_name,employee_area_code,week_start,monday,tuesday,wednesday,thursday,friday,saturday,sunday,notes,submitted_at,is_test").eq("week_start",week).order("submitted_at",{ascending:false});
+    if(result.error)throw result.error;
+    const latest=t995LatestShiftByEmployee(result.data||[]);
+    const rows=t995BuildShiftExportRows(week,t995Employees.map(employee=>({employee,shift:latest.get(String(employee.id))||null})));
+    if(!rows.length){alert("目前沒有在職員工資料可匯出。");return;}
+    const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(rows);if(ws["!ref"])ws["!autofilter"]={ref:ws["!ref"]};XLSX.utils.book_append_sheet(wb,ws,"指休表");XLSX.writeFile(wb,`T995_指休_${week}.xlsx`);
+  }catch(e){alert(`指休匯出失敗：${e.message||"請確認資料庫權限"}`);}
+  finally{t995ShiftExportBtn.disabled=false;}
 }
 function t995TaipeiDateMonthsAgo(months=1){
   const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
@@ -5553,7 +5601,7 @@ t995EmployeeAreaTabs.onclick=e=>{const b=e.target.closest("[data-t995-area-filte
 t995ShiftModeBtn.onclick=()=>showAdminMode("shift");
 t995ShiftBackBtn.onclick=()=>showAdminMode("home");
 t995ShiftWeekSelect.onchange=()=>t995LoadShiftAdmin();
-t995ShiftWeekButtons.onclick=e=>{if(e.target.closest(".shift-week-open-toggle"))return;const b=e.target.closest("[data-t995-shift-week]");if(!b)return;t995ShiftWeekSelect.value=b.dataset.t995ShiftWeek;t995LoadShiftAdmin();};
+t995ShiftWeekButtons.onclick=e=>{if(e.target.closest(".shift-week-open-toggle"))return;const b=e.target.closest("[data-t995-shift-week]");if(!b)return;t995ShiftWeekSelect.value=b.dataset.t995ShiftWeek;const exportSelect=document.getElementById("shiftExportWeekSelect");if(exportSelect)exportSelect.value=b.dataset.t995ShiftWeek;t995LoadShiftAdmin();};
 t995ShiftWeekButtons.onchange=e=>{const input=e.target.closest("[data-t995-open-week]");if(input)t995SetShiftWeekOpen(input);};
 t995ShiftNameSearch.oninput=()=>t995RenderShiftAdmin();
 t995ShiftStatusTabs.onclick=e=>{const b=e.target.closest("[data-t995-shift-status]");if(!b)return;t995ShiftStatusFilter=b.dataset.t995ShiftStatus;t995RenderShiftAdmin();};
