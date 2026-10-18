@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- T995 V8: multi-week opening + Taipei-week rollover refresh; confirmed UI unchanged. -->
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
@@ -5601,6 +5602,24 @@ t995EmployeeAreaTabs.onclick=e=>{const b=e.target.closest("[data-t995-area-filte
 t995ShiftModeBtn.onclick=()=>showAdminMode("shift");
 t995ShiftBackBtn.onclick=()=>showAdminMode("home");
 t995ShiftWeekSelect.onchange=()=>t995LoadShiftAdmin();
+// Refresh the rolling four-week window when this admin tab crosses Taipei Monday.
+let t995ObservedShiftMonday=t995WeekChoices()[0]?.start||'';
+let t995RolloverRefreshBusy=false;
+async function t995RefreshShiftWindowAfterRollover(){
+  if(document.visibilityState==='hidden'||t995RolloverRefreshBusy||t995ShiftModePage.style.display==='none')return;
+  const currentMonday=t995WeekChoices()[0]?.start||'';
+  if(!currentMonday||currentMonday===t995ObservedShiftMonday)return;
+  t995RolloverRefreshBusy=true;
+  try{
+    await t995LoadShiftAdmin();
+    t995ObservedShiftMonday=currentMonday;
+  }catch(e){console.warn('指休週次更新失敗',e);}
+  finally{t995RolloverRefreshBusy=false;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')t995RefreshShiftWindowAfterRollover();});
+window.addEventListener('focus',t995RefreshShiftWindowAfterRollover);
+setInterval(t995RefreshShiftWindowAfterRollover,60000);
+
 t995ShiftWeekButtons.onclick=e=>{if(e.target.closest(".shift-week-open-toggle"))return;const b=e.target.closest("[data-t995-shift-week]");if(!b)return;t995ShiftWeekSelect.value=b.dataset.t995ShiftWeek;const exportSelect=document.getElementById("shiftExportWeekSelect");if(exportSelect)exportSelect.value=b.dataset.t995ShiftWeek;t995LoadShiftAdmin();};
 t995ShiftWeekButtons.onchange=e=>{const input=e.target.closest("[data-t995-open-week]");if(input)t995SetShiftWeekOpen(input);};
 t995ShiftNameSearch.oninput=()=>t995RenderShiftAdmin();
