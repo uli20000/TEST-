@@ -1214,6 +1214,17 @@ button{cursor:pointer}
   #shiftModePage .shift-test-control .shift-test-toggle{padding-right:26px}
 }
 
+
+/* T995 V4：週次開放勾選，維持工具列欄位等寬並讓勾選狀態紅色可辨。 */
+.shift-week-option{display:grid;grid-template-rows:minmax(0,1fr) 22px;gap:2px;min-width:0;height:66px;box-sizing:border-box}
+.shift-week-option .shift-week-btn{width:100%;height:42px!important;min-height:42px!important;padding:4px 2px!important;font-size:10px!important;white-space:nowrap}
+.shift-week-open-toggle{display:flex;align-items:center;justify-content:center;gap:3px;width:100%;height:22px!important;min-height:22px!important;margin:0;padding:1px 2px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--black);font-size:10px;font-weight:800;line-height:1;white-space:nowrap;cursor:pointer;box-sizing:border-box}
+.shift-week-open-toggle input{width:14px;height:14px;margin:0;accent-color:var(--red);flex:none}
+.shift-week-open-toggle.is-checked{border-color:var(--red)!important;background:var(--danger-bg)!important;color:var(--danger)!important;box-shadow:0 0 0 1px rgba(200,16,46,.08)}
+#shiftModePage .shift-toolbar-week-row>button{height:66px!important;min-height:66px!important}
+#shiftModePage .shift-week-btn{height:42px!important;min-height:42px!important}
+.shift-week-open-hint{display:flex;align-items:center;justify-content:center;min-width:0;height:48px;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--gray);font-size:11px;font-weight:800;text-align:center;line-height:1.35}
+@media(max-width:699px){.shift-week-option{height:62px}.shift-week-option .shift-week-btn{height:39px!important;min-height:39px!important;font-size:9px!important;letter-spacing:-.25px}#shiftModePage .shift-toolbar-week-row>button{height:62px!important;min-height:62px!important}.shift-week-open-toggle{font-size:9px}}
 </style>
 </head>
 
@@ -1548,7 +1559,7 @@ button{cursor:pointer}
     <div class="shift-admin-toolbar">
       <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次" hidden></select>
       <div class="shift-toolbar-week-row">
-        <div id="shiftWeekButtons" class="shift-week-buttons" role="group" aria-label="選擇指休週次"></div>
+        <div id="shiftWeekButtons" class="shift-week-buttons" role="group" aria-label="選擇週次並設定開放"></div>
         <button id="shiftPurgeOldBtn" class="action-btn shift-test-delete-btn" type="button" title="刪除一個月前指休資料" aria-label="刪除一個月前指休資料">刪除</button>
       </div>
       <div class="shift-toolbar-status-row">
@@ -1562,7 +1573,7 @@ button{cursor:pointer}
           <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox" aria-label="測試模式"><span>測試</span></label>
           <button id="shiftDeleteTestBtn" class="shift-mini-delete" type="button" hidden title="刪除所選週測試資料" aria-label="刪除所選週測試資料">🗑</button>
         </div>
-        <label class="shift-open-toggle"><input id="shiftOpenToggle" type="checkbox" aria-label="開放指休"><span>開放</span></label>
+          <div class="shift-week-open-hint" aria-live="polite">逐週開放</div>
       </div>
     </div>
     <div id="shiftAdminSummary" class="hint" style="margin-top:10px"></div>
@@ -5020,7 +5031,8 @@ let t995ShiftRows=[];
 let t995ShiftExportRows=[];
 let t995ShiftStatusFilter="all";
 let t995ShiftTestRecordCount=0;
-let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_submission_open:false,shift_test_mode:false};
+let t995ShiftOpenWeeks=new Set();
+let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_test_mode:false};
 let t995AreaMap=new Map();
 let t995AreaMapLoaded=false;
 
@@ -5134,28 +5146,55 @@ function t995IsAllBlank(row){return ['monday','tuesday','wednesday','thursday','
 function t995LatestShiftByEmployee(rows){const map=new Map();for(const r of [...(rows||[])].sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||''))))if(!map.has(String(r.employee_id)))map.set(String(r.employee_id),r);return map;}
 function t995RenderShiftWeekButtons(weeks){
   const selected=t995ShiftWeekSelect.value;
-  t995ShiftWeekButtons.innerHTML=weeks.map(w=>`<button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}">${w.dateLabel}</button>`).join('');
+  t995ShiftWeekButtons.innerHTML=weeks.map(w=>{
+    const opened=t995ShiftOpenWeeks.has(w.start);
+    return `<div class="shift-week-option">
+      <button type="button" class="shift-week-btn ${w.start===selected?'active':''}" data-t995-shift-week="${w.start}" aria-pressed="${w.start===selected?'true':'false'}">${w.dateLabel}</button>
+      <label class="shift-week-open-toggle ${opened?'is-checked':''}" title="${opened?'關閉':'開放'} ${w.dateLabel}">
+        <input type="checkbox" data-t995-open-week="${w.start}" aria-label="${opened?'關閉':'開放'}指休 ${w.dateLabel}" ${opened?'checked':''}>
+        <span>開放</span>
+      </label>
+    </div>`;
+  }).join('');
 }
 async function t995LoadShiftAdmin(){
   const weeks=t995WeekChoices();const old=t995ShiftWeekSelect.value;
   t995ShiftWeekSelect.innerHTML=weeks.map(w=>`<option value="${w.start}">${w.label}</option>`).join('');if(weeks.some(w=>w.start===old))t995ShiftWeekSelect.value=old;
-  t995RenderShiftWeekButtons(weeks);
   t995ShiftAdminList.innerHTML='<div class="loading">載入中…</div>';t995ShiftSummary.textContent="";t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="loading">計算中…</div>';
   try{
-    const [er,sr,settings]=await Promise.all([
+    // 初始化不存在的週次為關閉；ignoreDuplicates 保留既有勾選狀態。
+    const seed=await db.from("weekly_shift_open_weeks").upsert(weeks.map(w=>({week_start:w.start,is_open:false})),{onConflict:"week_start",ignoreDuplicates:true});
+    if(seed.error)throw seed.error;
+    const [er,sr,settings,openWeeks]=await Promise.all([
       db.from("employee_directory").select("id,full_name,area_code,is_active").eq("is_active",true).order("area_code",{ascending:true}).order("full_name",{ascending:true}),
       db.from("weekly_shift_availability").select("id,employee_id,employee_name,employee_area_code,week_start,monday,tuesday,wednesday,thursday,friday,saturday,sunday,notes,submitted_at,is_test").eq("week_start",t995ShiftWeekSelect.value).order("submitted_at",{ascending:false}),
-      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks,shift_submission_open,shift_test_mode").eq("singleton",true).maybeSingle()
+      db.from("staffing_settings").select("target_tplh,max_third_party_usage_pct,forecast_weeks,shift_test_mode").eq("singleton",true).maybeSingle(),
+      db.from("weekly_shift_open_weeks").select("week_start,is_open").in("week_start",weeks.map(w=>w.start))
     ]);
-    if(er.error)throw er.error;if(sr.error)throw sr.error;if(settings.error)throw settings.error;
+    if(er.error)throw er.error;if(sr.error)throw sr.error;if(settings.error)throw settings.error;if(openWeeks.error)throw openWeeks.error;
     t995Employees=er.data||[];if(settings.data)t995StaffingSettings=settings.data;
+    t995ShiftOpenWeeks=new Set((openWeeks.data||[]).filter(row=>row.is_open).map(row=>row.week_start));
+    t995RenderShiftWeekButtons(weeks);
     const latest=t995LatestShiftByEmployee(sr.data||[]);t995ShiftTestRecordCount=(sr.data||[]).filter(r=>r.is_test).length;
     t995ShiftRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
     const forecastRows=t995Employees.map(e=>({employee:e,shift:latest.get(String(e.id))||null}));
-    const openToggle=document.getElementById("shiftOpenToggle");if(openToggle){openToggle.checked=Boolean(t995StaffingSettings.shift_submission_open);t995SyncShiftToggleVisual(openToggle);}
     const testToggle=document.getElementById("shiftTestModeToggle");if(testToggle){testToggle.checked=Boolean(t995StaffingSettings.shift_test_mode);t995SyncShiftToggleVisual(testToggle);}
     t995RenderShiftAdmin();await t995RenderStaffingRecommendation(t995ShiftWeekSelect.value,forecastRows);
   }catch(e){t995ShiftRows=[];t995ShiftAdminList.innerHTML=`<div class="empty">讀取失敗：${esc(e.message||"請確認權限")}</div>`;t995StaffingSummary.innerHTML="";t995StaffingWeekGap.hidden=true;t995StaffingForecastDataWarning.hidden=true;t995StaffingDayTabs.innerHTML="";t995StaffingList.innerHTML='<div class="empty">人力資料讀取失敗</div>';}
+}
+async function t995SetShiftWeekOpen(input){
+  if(!input)return;
+  const weekStart=input.dataset.t995OpenWeek;const requested=input.checked;const previous=!requested;
+  input.disabled=true;
+  try{
+    const r=await db.from("weekly_shift_open_weeks").upsert({week_start:weekStart,is_open:requested,updated_at:new Date().toISOString()},{onConflict:"week_start"});
+    if(r.error)throw r.error;
+    if(requested)t995ShiftOpenWeeks.add(weekStart);else t995ShiftOpenWeeks.delete(weekStart);
+    await t995LoadShiftAdmin();
+  }catch(e){
+    input.checked=previous;t995SyncShiftToggleVisual(input);
+    alert(`週次開放狀態更新失敗：${e.message||"請確認已部署995 V4逐週開放SQL，且管理區密碼已解鎖。"}`);
+  }finally{if(input.isConnected)input.disabled=false;}
 }
 function t995RenderShiftAdmin(){
   const active=t995ShiftRows.length;const submitted=t995ShiftRows.filter(x=>x.shift).length;const missing=active-submitted;
@@ -5499,7 +5538,8 @@ t995EmployeeAreaTabs.onclick=e=>{const b=e.target.closest("[data-t995-area-filte
 t995ShiftModeBtn.onclick=()=>showAdminMode("shift");
 t995ShiftBackBtn.onclick=()=>showAdminMode("home");
 t995ShiftWeekSelect.onchange=()=>t995LoadShiftAdmin();
-t995ShiftWeekButtons.onclick=e=>{const b=e.target.closest("[data-t995-shift-week]");if(!b)return;t995ShiftWeekSelect.value=b.dataset.t995ShiftWeek;t995LoadShiftAdmin();};
+t995ShiftWeekButtons.onclick=e=>{if(e.target.closest(".shift-week-open-toggle"))return;const b=e.target.closest("[data-t995-shift-week]");if(!b)return;t995ShiftWeekSelect.value=b.dataset.t995ShiftWeek;t995LoadShiftAdmin();};
+t995ShiftWeekButtons.onchange=e=>{const input=e.target.closest("[data-t995-open-week]");if(input)t995SetShiftWeekOpen(input);};
 t995ShiftNameSearch.oninput=()=>t995RenderShiftAdmin();
 t995ShiftStatusTabs.onclick=e=>{const b=e.target.closest("[data-t995-shift-status]");if(!b)return;t995ShiftStatusFilter=b.dataset.t995ShiftStatus;t995RenderShiftAdmin();};
 t995ShiftRefreshBtn.onclick=()=>t995LoadShiftAdmin();
@@ -5635,7 +5675,6 @@ let t995PasswordDialogMode="unlock";
 let t995ProtectedTargetMode=null;
 let t995DeviceClaimRecords=[];
 let t995DeviceClaimFetchError="";
-const t995ShiftOpenToggle=document.getElementById("shiftOpenToggle");
 const t995ShiftTestModeToggle=document.getElementById("shiftTestModeToggle");
 function t995SyncShiftToggleVisual(input){const label=input?.closest("label");if(label)label.classList.toggle("is-checked",Boolean(input.checked));}
 
@@ -5712,20 +5751,6 @@ t995ShiftBackBtn.onclick=()=>showAdminMode("home");
 document.getElementById("rosterPasswordChangeBtn").onclick=()=>t995OpenPasswordDialog("change","roster");
 document.getElementById("shiftPasswordChangeBtn").onclick=()=>t995OpenPasswordDialog("change","shift");
 
-if(t995ShiftOpenToggle){
-  t995ShiftOpenToggle.addEventListener("change",async()=>{
-    const requested=t995ShiftOpenToggle.checked;t995SyncShiftToggleVisual(t995ShiftOpenToggle);
-    t995ShiftOpenToggle.disabled=true;
-    try{
-      const r=await db.from("staffing_settings").update({shift_submission_open:requested,updated_at:new Date().toISOString()}).eq("singleton",true);
-      if(r.error)throw r.error;
-      t995StaffingSettings={...t995StaffingSettings,shift_submission_open:requested};
-      alert(requested?"指休表已開放，任何時間都可填寫；新提交會列為正式資料。":"指休表已關閉。" );
-      await t995LoadShiftAdmin();
-    }catch(e){t995ShiftOpenToggle.checked=!requested;t995SyncShiftToggleVisual(t995ShiftOpenToggle);alert(`更新指休開放狀態失敗：${e.message||"請確認已執行開放開關 SQL 並重新登入。"}`);}
-    finally{t995ShiftOpenToggle.disabled=false;}
-  });
-}
 if(t995ShiftTestModeToggle){
   t995ShiftTestModeToggle.addEventListener("change",async()=>{
     const requested=t995ShiftTestModeToggle.checked;t995SyncShiftToggleVisual(t995ShiftTestModeToggle);t995ShiftTestModeToggle.disabled=true;
