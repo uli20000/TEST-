@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- T995 V8: multi-week opening + Taipei-week rollover refresh; confirmed UI unchanged. -->
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
@@ -4594,6 +4595,31 @@ async function enterShiftMode(){
     showMode("shift");
   }catch(e){alert(`目前無法確認指休表開放狀態：${e.message||"請稍後再試"}`);}
 }
+/* Weekly rollover safety: refresh open weeks after Taipei Monday changes.
+   Existing draft entries are preserved; an expired week stays visibly closed until the user
+   explicitly chooses a current open week (the existing picker then confirms before clearing). */
+let shiftObservedWeekMonday=shiftCurrentMonday();
+let shiftRolloverRefreshBusy=false;
+async function refreshShiftWeekWindowAfterRollover(){
+  if(document.visibilityState==='hidden'||shiftRolloverRefreshBusy)return;
+  const currentMonday=shiftCurrentMonday();
+  if(currentMonday===shiftObservedWeekMonday)return;
+  shiftRolloverRefreshBusy=true;
+  try{
+    await loadShiftSubmissionSettings();
+    shiftObservedWeekMonday=currentMonday;
+    if(!shiftOpenWeeks.some(row=>row.week_start===shiftSelectedWeekStart)&&!shiftHasEnteredAvailability()){
+      shiftSelectedWeekStart=shiftOpenWeeks[0]?.week_start||null;
+    }
+    updateShiftWindow();
+  }catch(e){
+    shiftSubmitMessage.textContent='週次更新失敗，請確認網路後重新整理。';
+  }finally{shiftRolloverRefreshBusy=false;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshShiftWeekWindowAfterRollover();});
+window.addEventListener('focus',refreshShiftWeekWindowAfterRollover);
+setInterval(refreshShiftWeekWindowAfterRollover,60000);
+
 function parseAvailabilityRanges(value){
   const text=String(value||"").trim();if(!text)return [];
   const parts=text.split(/[，,、;；/\n]+/).map(x=>x.trim()).filter(Boolean);const out=[];
