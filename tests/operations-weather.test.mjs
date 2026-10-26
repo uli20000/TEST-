@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {monthDates,observation,fetchMonth,stationsFor} from '../supabase/functions/t995-operations-weather/weather.mjs';
+const station={city:'新竹',id:'467571',name:'新竹',type:'cwb'},row={DataDate:'2026-10-25T00:00:00',AirTemperature:{Mean:24.1,Meanf:0},Precipitation:{Accumulation:0,Accumulationf:0}};
+assert.equal(observation(row,station).precipitation,0);
+assert.equal(observation({...row,Precipitation:{Accumulation:-9.8,Accumulationf:0}},station).trace,true);
+assert.equal(observation({...row,Precipitation:{Accumulation:-9.5,Accumulationf:0}},station).precipitation,null);
+assert.equal(observation({...row,AirTemperature:{Mean:-99.5,Meanf:24}},station).temperature,null);
+assert.equal(observation({...row,AirTemperature:{Mean:null,Meanf:0}},station).temperature,null);
+assert.equal(monthDates('2024-02-01').length,29);assert.throws(()=>monthDates('2026-13-01'));
+assert.equal(stationsFor('2026-02-01')[1].id,'467050');
+const fake=async(url,init)=>{const id=init.body.get('stn_ID');assert.equal(init.body.get('start'),'2026-10-01T00:00:00');return {ok:true,json:async()=>({code:200,data:[{StationID:id,dts:[row,{...row,DataDate:'2026-10-26T00:00:00'}]}]})};};
+const rows=await fetchMonth('2026-10-01','2026-10-26',fake);
+assert.equal(rows.length,62);assert.equal(rows.find(x=>x.date==='2026-10-25'&&x.city==='新竹').temperature,24.1);
+assert.equal(rows.find(x=>x.date==='2026-10-26').status,'pending');assert.equal(rows.find(x=>x.date==='2026-10-24').status,'missing');
+const failed=await fetchMonth('2026-10-01','2026-10-26',async()=>{throw new Error('timeout');});assert.equal(failed.find(x=>x.date==='2026-10-25').status,'unavailable');assert.equal(failed.find(x=>x.date==='2026-10-26').status,'pending');
+console.log('Weather: calendar boundaries, station changes, zero rain, trace, missing flags, unpublished dates and upstream outages passed.');
