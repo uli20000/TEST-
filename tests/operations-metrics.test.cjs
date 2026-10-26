@@ -23,5 +23,8 @@ const zero=M.build({...args,reports:[{record_date:date,area_hours:{B:0},transfer
 const partial=M.build({...args,history:history.slice(0,1)});assert.equal(partial.summary.sstg,null,'partial prior-year coverage must not inflate growth');assert.equal(partial.summary.forecast,null);
 const monthly=M.build({...args,start:'2026-10-01',end:'2026-10-31',reports:[...reports,{record_date:'2026-10-24',area_hours:{B:7,J:2},transfer_out_hours:1,transfer_in_hours:0},{record_date:'2026-11-01',area_hours:{B:100},transfer_out_hours:0,transfer_in_hours:0}]});
 assert.equal(monthly.hourTotals.get('B').hours,12);assert.equal(monthly.hourTotals.get('J').hours,3);assert.equal(monthly.summary.actualHours,13,'monthly totals apply each day’s shared transfers exactly once');
+assert.equal(monthly.summary.tplh,null,'TC and hours from unmatched days must not produce a monthly TPLH');
+assert.deepEqual(monthly.hoursWithoutScores,['2026-10-24']);
+const negative=M.build({...args,reports:[{record_date:date,area_hours:{B:5},transfer_out_hours:10,transfer_in_hours:0}]});assert.equal(negative.summary.actualHours,null);assert.deepEqual(negative.invalidHourDays,[date]);
 assert.equal(M.latestBatches([{id:'old',report_date:date,report_type:'ByDate',imported_at:'2026-10-25T10:00:00Z'},{id:'new',report_date:date,report_type:'ByDate',imported_at:'2026-10-25T11:00:00Z'}])[0].id,'new');
 console.log('Operations metric, area mapping, coverage, and monthly-hour checks passed.');
