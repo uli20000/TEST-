@@ -6006,7 +6006,7 @@ async function opsLookupStore(inputId){
   return row||null;
  }catch(e){if(opsStoreLookupSeq[inputId]===seq)label.textContent="查詢失敗，請確認登入或資料庫設定";return null;}
 }
-["opsDelayStore","opsLineStore","opsLinkStore"].forEach(id=>{
+["opsDelayStore","opsLineStore"].forEach(id=>{
  $(id).addEventListener("input",()=>{opsStoreLookupSeq[id]=(opsStoreLookupSeq[id]||0)+1;$(id+"Name").textContent="";clearTimeout($(id)._opsLookupTimer);$(id)._opsLookupTimer=setTimeout(()=>opsLookupStore(id),300);});
  $(id).addEventListener("blur",()=>opsLookupStore(id));
 });
