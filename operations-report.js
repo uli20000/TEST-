@@ -58,6 +58,8 @@
     E('opsLaborAdjustments').innerHTML='<div class="ops-labor-grid"><label>合計總工時<output>'+fmt(s.totalHours,2)+'</output></label><label>調出工時'+(isDay?'<input id="opsTransferOut" type="number" min="0" step="0.25" inputmode="decimal" value="'+(report?.transfer_out_hours??0)+'">':'<output>'+fmt(s.transferOut,2)+'</output>')+'</label><label>調入工時'+(isDay?'<input id="opsTransferIn" type="number" min="0" step="0.25" inputmode="decimal" value="'+(report?.transfer_in_hours??0)+'">':'<output>'+fmt(s.transferIn,2)+'</output>')+'</label><label>實際工時<output>'+fmt(s.actualHours,2)+'</output></label><label>天氣'+(isDay?'<input id="opsReportWeather" type="text" maxlength="30" value="'+escape(report?.weather||'')+'">':'<output>—</output>')+'</label></div>';
     const messages=[];if(v.missingPairs.length)messages.push('尚缺另一份成績檔：'+v.missingPairs.map(x=>x.slice(5)).join('、'));
     if(v.missingHourDays.length)messages.push(isDay?'尚有 '+day.missingAreas+' 區未填工時':'尚有 '+v.missingHourDays.length+' 天工時未填完整');
+    if(v.hoursWithoutScores.length)messages.push('有工時但尚無成績：'+v.hoursWithoutScores.map(x=>x.slice(5)).join('、'));
+    if(v.invalidHourDays.length)messages.push('調出工時超過可用工時：'+v.invalidHourDays.map(x=>x.slice(5)).join('、'));
     if(v.missingBaselineDays.length)messages.push('去年 TC 缺少資料：'+v.missingBaselineDays.map(x=>x.slice(5)).join('、'));
     if(v.areas.has('?'))messages.push('有餐廳尚未設定區域');
     E('opsReportWarnings').textContent=messages.join('；');E('opsReportWarnings').hidden=!messages.length;
