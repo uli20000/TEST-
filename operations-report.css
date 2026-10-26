@@ -68,3 +68,57 @@
   #opsModePage .ops-section{padding:16px 10px}.ops-report-grid>div{min-width:0}
   .ops-score-heading{gap:6px}.ops-score-heading input{max-width:155px;padding:8px 4px}.ops-score-heading .ops-mini-tabs button{padding:8px 10px}
 }
+
+/* Daily operations workspace: equal cards, compact centered controls. */
+#opsScoresPanel{--ops-ink:#27231f;--ops-paper:#fff;--ops-tint:#fbf5ef;color:var(--ops-ink)}
+#opsScoresPanel h3,#opsScoresPanel h4{margin:0;text-align:center}
+#opsScoresPanel .ops-date-label{display:flex;align-items:center;gap:10px;font-weight:700}
+#opsScoresPanel .ops-score-heading{justify-content:space-between;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;margin-top:0}
+#opsScoresPanel .ops-week-tabs{margin-bottom:14px}
+#opsScoresPanel .ops-upload-block{background:var(--ops-tint);padding:16px;border-radius:14px}
+.ops-file-status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 24px}
+.ops-file-card{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.ops-file-card strong{grid-column:1/-1;font-size:15px}.ops-file-card.ready{border-color:#94b9a4;background:#f3faf5}
+#opsPeriodLabel{margin:20px 0 14px!important;font-size:19px}
+.ops-kpi-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ops-kpi-card{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:112px;padding:14px 8px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:center;gap:7px;font-variant-numeric:tabular-nums}
+#opsScoresPanel .ops-kpi-card h4{font-size:13px;font-weight:700;line-height:1.5}
+.ops-kpi-card strong{font-size:25px;line-height:1.2;color:#a71930;white-space:nowrap}.ops-kpi-card span{font-size:12px;min-height:15px}
+.ops-secondary{margin:12px 0 20px;text-align:center}.ops-secondary>summary{cursor:pointer;min-height:32px;font-weight:700}.ops-secondary-cards{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:10px}.ops-secondary-cards strong{font-size:19px}
+.ops-report-card{margin:18px 0;border:1px solid var(--line);border-radius:16px;padding:18px;background:#fff;min-width:0}
+#opsScoresPanel .ops-report-card>h3{font-size:18px;margin:0 0 16px}
+.ops-area-table{border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:10px}
+.ops-area-table th,.ops-area-table td{border-width:0 0 1px 0;height:50px;padding:8px 5px}
+.ops-area-table thead th{background:var(--ops-tint);font-size:13px}
+.ops-area-table tbody tr:nth-child(even){background:#fdfbf8}.ops-area-table tbody th{font-weight:800}
+.ops-area-table tfoot th,.ops-area-table tfoot td{background:#f5eae2;border:0;font-weight:800}
+.ops-area-hour{width:84px;min-height:40px;background:#fffaf4;border-color:#cfb9a4;font-weight:700}
+.ops-labor-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0;gap:12px}
+.ops-labor-grid label{font-size:14px}.ops-labor-grid label:last-child output{background:#a71930;color:#fff;border-color:#a71930}
+.ops-labor-grid input,.ops-labor-grid output{min-height:46px;border-radius:10px;font-size:17px}
+.ops-weather-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ops-weather-card{display:grid;gap:10px;padding:18px 12px;border-radius:12px;background:var(--ops-tint);text-align:center}
+.ops-weather-card h4{font-size:15px}.ops-weather-card strong{font-size:21px}.ops-weather-card span{font-size:13px}
+.ops-weather-source{margin-top:14px;text-align:center;font-size:12px;line-height:1.8}.ops-weather-source a{color:#a71930}
+.ops-weather-table,.ops-daily-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.ops-weather-table th,.ops-weather-table td,.ops-daily-table th,.ops-daily-table td{border-bottom:1px solid var(--line);padding:12px 7px;text-align:center;line-height:1.6;white-space:nowrap}
+.ops-weather-table thead,.ops-daily-table thead{background:var(--ops-tint)}
+.ops-daily-table{min-width:780px}.ops-daily-table button{background:#fff;border:1px solid var(--line);padding:7px 10px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer;color:#a71930}
+.ops-report-status:empty{display:none}
+#opsModePage .ops-export-bottom{position:static;display:grid;grid-template-columns:1.5fr 1fr 1fr}
+@media(max-width:760px){
+ #opsScoresPanel .ops-score-heading{justify-content:center;padding:10px;gap:10px}
+ .ops-kpi-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ops-kpi-card{min-height:104px;padding:12px 5px}.ops-kpi-card strong{font-size:25px}
+ .ops-secondary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-secondary-cards strong{font-size:18px}
+ .ops-report-card{padding:14px 10px}.ops-file-status{gap:8px}.ops-file-card{grid-template-columns:1fr;padding:12px 6px;font-size:13px}.ops-file-card span,.ops-file-card strong{grid-column:1}
+ .ops-area-table,.ops-area-table tbody,.ops-area-table tfoot{display:block;table-layout:auto}.ops-area-table thead{display:none}
+ .ops-area-table tbody,.ops-area-table tfoot{display:grid;gap:10px}.ops-area-table tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;padding:0 8px 8px;background:#fff!important}
+ .ops-area-table tr>th{grid-column:1/-1;display:flex;align-items:center;justify-content:center;background:var(--ops-tint);height:38px!important;margin:0 -8px 5px;width:auto!important;border:0}
+ .ops-area-table tr>td{display:flex;flex-direction:column;justify-content:flex-start;gap:5px;width:auto!important;max-width:none!important;height:auto!important;min-height:64px;border:0;padding:8px 2px!important;font-size:16px}
+ .ops-area-table td::before{content:attr(data-label);font-size:11px;font-weight:700;white-space:nowrap}.ops-area-table .ops-area-hour{min-height:38px;height:38px;max-width:95px;align-self:center;font-size:16px}
+ .ops-area-table tfoot{margin-top:10px}.ops-area-table tfoot tr{background:#f5eae2!important}.ops-area-table tfoot td{background:transparent}
+ .ops-labor-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ops-labor-grid label:last-child{grid-column:auto}
+ .ops-weather-cards{grid-template-columns:1fr;gap:10px}.ops-weather-card{padding:16px}
+ #opsModePage .ops-export-bottom{grid-template-columns:1fr 1fr}#opsModePage .ops-export-bottom button:first-child{grid-column:1/-1}
+ .ops-month-fold,.ops-history-fold{padding:12px 8px}
+}
