@@ -6135,7 +6135,8 @@ function opsRenderPreparedScoreFiles(errors=[]){
   $("opsScorePreview").innerHTML=all.length
     ?'<table class="ops-table"><thead><tr><th>檔案</th><th>報表類型</th><th>日期</th><th>資料筆數</th><th>狀態</th></tr></thead><tbody>'+all.map(x=>'<tr><td>'+opsEscape(x.file)+'</td><td>'+opsEscape(x.type)+'</td><td>'+opsEscape(x.date)+'</td><td>'+opsEscape(x.count)+'</td><td>'+opsEscape(x.status)+'</td></tr>').join("")+'</tbody></table>'
     :'<div class="ops-empty">選取 ByDate 或 ByOrder 格式的 Excel 檔後會顯示預覽。</div>';
-  $("opsScoreImport").disabled=!opsPreparedScoreFiles.length;
+  const pair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;
+  $("opsScoreImport").disabled=!pair;
 }
 opsScoreFileInput.addEventListener("change",async()=>{
   opsPreparedScoreFiles=[];$("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="讀取與辨識檔案中…";
@@ -6145,11 +6146,12 @@ opsScoreFileInput.addEventListener("change",async()=>{
     catch(e){errors.push({file:file.name,error:e.message||"檔案無法讀取"});}
   }
   opsRenderPreparedScoreFiles(errors);
-  $("opsScoreMessage").textContent=errors.length?"辨識完成；"+errors.length+" 個檔案格式不符或無法讀取。":"辨識完成，請確認日期與筆數後匯入。";
+  const pair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;$("opsScoreMessage").textContent=errors.length?"辨識完成；"+errors.length+" 個檔案格式不符或無法讀取。":pair?"兩個檔案日期一致且類型齊全，可匯入。":"請同時選擇相同日期的 ByDate 與 ByOrder 兩個檔案。";
 });
 $("opsScoreImport").onclick=async()=>{
-  if(!opsPreparedScoreFiles.length)return;
+  const validPair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;if(!validPair){$("opsScoreMessage").textContent="請同時選擇相同日期的 ByDate 與 ByOrder 兩個檔案。";return;}
   $("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="匯入資料中…";
+  const importedDate=opsPreparedScoreFiles[0].reportDate;
   let completed=0;
   try{
     for(const item of opsPreparedScoreFiles){
@@ -6160,6 +6162,8 @@ $("opsScoreImport").onclick=async()=>{
     $("opsScoreMessage").textContent="完成匯入 "+completed+" 個檔案。";
     opsPreparedScoreFiles=[];opsScoreFileInput.value="";opsRenderPreparedScoreFiles();
     await opsLoadScoreBatches();
+    $("opsAnalysisDate").value=importedDate||opsToday();
+    await opsLoadDailyAnalytics();
   }catch(e){$("opsScoreMessage").textContent="匯入中止："+(e.message||"請檢查資料庫 migration 與登入狀態");}
   finally{$("opsScoreImport").disabled=!opsPreparedScoreFiles.length;}
 };
@@ -6195,7 +6199,7 @@ async function opsLoadDailyAnalytics(){
  $("opsAnalysisTable").innerHTML='<div class="ops-empty">讀取成績中…</div>';
  const batchesRes=await db.from("t995_score_import_batches").select("*").gte("report_date",start).lte("report_date",end).order("report_date");
  if(batchesRes.error)throw batchesRes.error;
- const batches=batchesRes.data||[],byDate=new Map(),byOrder=new Map();
+ const allBatches=batchesRes.data||[],latest=new Map();for(const b of allBatches.sort((x,y)=>String(y.imported_at||"").localeCompare(String(x.imported_at||"")))){const k=b.report_date+"|"+b.report_type;if(!latest.has(k))latest.set(k,b);}const batches=[...latest.values()],byDate=new Map(),byOrder=new Map();
  for(const batch of batches){const target=batch.report_type==="ByDate"?byDate:byOrder;let rows=[];
   for(let off=0;;off+=1000){const q=await db.from("t995_score_import_rows").select("*").eq("batch_id",batch.id).range(off,off+999);if(q.error)throw q.error;rows.push(...(q.data||[]));if(!q.data||q.data.length<1000)break;}
   opsDailyExportRows.push(...rows.map(r=>({...r,report_date:batch.report_date,report_type:batch.report_type})));
