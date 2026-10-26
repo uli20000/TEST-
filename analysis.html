@@ -147,8 +147,8 @@ function renderRanking(){
  if(!lastResult)return;const mode=selectedMetric,labels={sstg:"SSTG",d25:"D25",d7:"D7",waiting:"等餐紀錄",thirdParty:"第三方使用率"},higher=["sstg","d25","d7"].includes(mode),candidates=lastResult.metrics.filter(x=>mode==="waiting"?x.delayTotal>0:rankValue(x,mode)!=null);
  $("rankHint").textContent=mode==="sstg"?"SSTG＝本期 TC ÷ 去年同期 TC − 1｜依指休管理的整天 TC 計算":labels[mode]+"排行｜"+(higher?"由低至高":"由高至低")+(mode==="waiting"?"｜僅列有等餐紀錄餐廳":"");
  candidates.sort((a,b)=>higher?rankValue(a,mode)-rankValue(b,mode):rankValue(b,mode)-rankValue(a,mode));
- const rows=candidates.slice(0,20).map((x,i)=>[String(i+1),x.region,x.restaurant_name,mode==="waiting"?String(x.delayTotal):pct(rankValue(x,mode)),mode==="d7"?String(x.d7Yes+"/"+x.d7Eligible):mode==="d25"?String(x.d25Yes+"/"+x.d25Eligible):mode==="sstg"?String(x.sstgCurrent+"/"+x.sstgPrior):String(x.tc),String(x.tc)]);
- $("worstTable").innerHTML=rows.length?table(["排名","區域","餐廳",labels[mode],mode==="waiting"?"等餐紀錄":"成功數/有效訂單","TC"],rows):"<div class='empty'>目前沒有可用的"+labels[mode]+"成績資料。</div>";
+ const rows=candidates.slice(0,20).map((x,i)=>[String(i+1),x.region,x.restaurant_name,mode==="waiting"?String(x.delayTotal):pct(rankValue(x,mode)),mode==="d7"?String(x.d7Yes+"/"+x.d7Eligible):mode==="d25"?String(x.d25Yes+"/"+x.d25Eligible):mode==="sstg"?String(x.sstgCurrent+"/"+x.sstgPrior):mode==="thirdParty"?String(x.thirdParty+"/"+x.tc):String(x.tc),String(x.tc)]);
+ $("worstTable").innerHTML=rows.length?table(["排名","區域","餐廳",labels[mode],mode==="waiting"?"TC":mode==="sstg"?"本期 TC/去年同期 TC":mode==="thirdParty"?"第三方 TC/TC":"成功數/有效訂單","TC"],rows):"<div class='empty'>目前沒有可用的"+labels[mode]+"成績資料。</div>";
  $("insightWorst").textContent=rows.length?candidates[0].restaurant_name+"｜"+(mode==="waiting"?String(candidates[0].delayTotal)+" 筆":pct(rankValue(candidates[0],mode))):"尚無可用資料";
 }
 function render(r){
