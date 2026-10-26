@@ -119,6 +119,7 @@ async function loadReport(){
    fetchAll("t995_delay_orders","record_date,store_code,restaurant_name,order_number,status,reason,responded_at,created_at",q=>q.gte("record_date",window.start).lte("record_date",window.end).order("created_at",{ascending:false})),
    fetchAll("staffing_tc_history","restaurant_name,record_date,prior_year_tc,period_code",q=>q.gte("record_date",window.start).lte("record_date",window.end).eq("period_code","full_day"))
   ]);
+  let shiftUnlocked=false;try{const gate=await db.rpc("employee_shift_gate_status");shiftUnlocked=Boolean(gate.data?.unlocked&&!gate.error);}catch(e){}
   storeByCode=new Map(restaurants.map(x=>[x.store_code,x]));storeByName=new Map(restaurants.map(x=>[normalizeName(x.restaurant_name),x]));
   const latest=new Map();for(const item of batches){const k=item.report_date+"|"+item.report_type;if(!latest.has(k))latest.set(k,item);}
   const chosen=[...latest.values()],scoreMap=new Map(),trendDaily=new Map(),storeDailyTc=new Map(),groups=[];for(let i=0;i<chosen.length;i+=10)groups.push(chosen.slice(i,i+10));
@@ -137,7 +138,7 @@ async function loadReport(){
   const keys=trendKeys(window),bucketMap=new Map();for(const key of keys)bucketMap.set(key,{key,tc:0,third:0,d7Yes:0,d7No:0,d25Yes:0,d25No:0,waiting:0,sstgCurrent:0,sstgPrior:0});
   for(const [date,v] of trendDaily){const key=trendBucket(date,window.unit),b=bucketMap.get(key);if(b)for(const field of ["tc","third","d7Yes","d7No","d25Yes","d25No","waiting","sstgCurrent","sstgPrior"])b[field]+=v[field]||0;}
   const trend=[...bucketMap.values()].map(x=>({...x,sstgRate:x.sstgPrior?x.sstgCurrent/x.sstgPrior-1:null,label:window.unit==="month"?x.key.slice(5)+"/"+x.key.slice(2,4):x.key.slice(5)}));
-  render({start,end,label,metrics,causeRows,restaurantReasons,delay,totalSstgCurrent,totalSstgPrior,totalTc,totalThird,d7Yes,d7Eligible,d25Yes,d25Eligible,replied,totalDelay,trend,trendUnit:window.unit});
+  render({start,end,label,metrics,causeRows,restaurantReasons,delay,shiftUnlocked,totalSstgCurrent,totalSstgPrior,totalTc,totalThird,d7Yes,d7Eligible,d25Yes,d25Eligible,replied,totalDelay,trend,trendUnit:window.unit});
  }catch(e){$("status").className="message error";$("status").textContent="讀取失敗："+(e.message||"請確認登入狀態與資料表設定");}
  finally{$("refresh").disabled=false;}
 }
@@ -152,7 +153,7 @@ function renderRanking(){
  $("insightWorst").textContent=rows.length?candidates[0].restaurant_name+"｜"+(mode==="waiting"?String(candidates[0].delayTotal)+" 筆":pct(rankValue(candidates[0],mode))):"尚無可用資料";
 }
 function render(r){
- lastResult=r;$("status").textContent="";$("report").classList.remove("hidden");$("kpiSstg").textContent=pct(r.totalSstgPrior?r.totalSstgCurrent/r.totalSstgPrior-1:null);$("kpiD25").textContent=pct(r.d25Eligible?r.d25Yes/r.d25Eligible:null);$("kpiD7").textContent=pct(r.d7Eligible?r.d7Yes/r.d7Eligible:null);$("kpiDelay").textContent=r.totalDelay.toLocaleString();$("kpiThirdParty").textContent=pct(r.totalTc?r.totalThird/r.totalTc:null);
+ lastResult=r;$("status").textContent="";$("report").classList.remove("hidden");$("kpiSstg").textContent=pct(r.totalSstgPrior?r.totalSstgCurrent/r.totalSstgPrior-1:null);$("kpiSstgFoot").textContent="";if(r.totalSstgPrior){$("kpiSstgFoot").textContent="同期基準 "+r.totalSstgPrior.toLocaleString()+" TC";}else if(!r.shiftUnlocked){$("kpiSstgFoot").innerHTML='<a href="admin.html">先到後台解鎖指休管理</a>';}else{$("kpiSstgFoot").textContent="此期間沒有匹配的同期 TC";}$("kpiD25").textContent=pct(r.d25Eligible?r.d25Yes/r.d25Eligible:null);$("kpiD7").textContent=pct(r.d7Eligible?r.d7Yes/r.d7Eligible:null);$("kpiDelay").textContent=r.totalDelay.toLocaleString();$("kpiThirdParty").textContent=pct(r.totalTc?r.totalThird/r.totalTc:null);
  $("insightReason").textContent=r.causeRows[0]?r.causeRows[0].category+"｜"+r.causeRows[0].count+" 筆":"尚無已回覆原因";$("insightReplyRate").textContent=r.totalDelay?Math.round(r.replied/r.totalDelay*100)+"%":"—";renderRanking();renderTrend(r.trend,r.trendUnit);
  const areaMap=new Map();for(const x of r.metrics){const v=areaMap.get(x.region)||{region:x.region,tc:0,thirdParty:0,d7Yes:0,d7Eligible:0,d25Yes:0,d25Eligible:0,waiting:0,restaurants:0,sstgCurrent:0,sstgPrior:0};v.sstgCurrent+=x.sstgCurrent;v.sstgPrior+=x.sstgPrior;v.tc+=x.tc;v.thirdParty+=x.thirdParty;v.d7Yes+=x.d7Yes;v.d7Eligible+=x.d7Eligible;v.d25Yes+=x.d25Yes;v.d25Eligible+=x.d25Eligible;v.waiting+=x.delayTotal;v.restaurants++;areaMap.set(x.region,v);}
  const areaOrder=["A 新竹","B 竹北","C 竹東","D 中壢","E 桃園","F 楊梅","G 大園","H 大溪龍潭","I 林口","J 大竹","K 苗栗","未分類"],areas=[...areaMap.values()].sort((a,b)=>areaOrder.indexOf(a.region)-areaOrder.indexOf(b.region));
@@ -166,7 +167,8 @@ function renderTrend(series,unit){
  const names={sstg:"SSTG",d25:"D25",d7:"D7",waiting:"等餐",thirdParty:"第三方使用率"},higher=["sstg","d25","d7"].includes(selectedMetric),vals=series.map(trendMetricValue),points=vals.map((v,i)=>({v,i})).filter(p=>p.v!=null);
  $("trendTitle").textContent=names[selectedMetric]+" 趨勢";
  $("trendCaption").textContent=(unit==="day"?"每日":unit==="week"?"每週":"每月")+"｜"+(higher?"越高越好":"越低越好");
- if(!points.length){$("trendChart").innerHTML='<div class="chart-empty">'+(selectedMetric==="sstg"?"指休管理尚無對應期間的整天去年同期 TC 資料。":"這段期間沒有可繪製的成績資料。")+'</div>';return;}
+ if(!points.length){$("trendChart").innerHTML='<div class="chart-empty">'+(selectedMetric==="sstg"?(lastResult?.shiftUnlocked?"此期間沒有匹配的去年同期 TC。":"請先在後台解鎖指休管理，再刷新報表。"):"這段期間沒有可繪製的成績資料。")+'</div>';return;}
+ if(points.length===1)$("trendChart").insertAdjacentHTML("beforeend",'<div class="chart-note">目前只有 1 個成績日期；匯入更多日期後會顯示趨勢線。</div>');
  const W=800,H=300,L=56,R=20,T=20,B=48,plotW=W-L-R,plotH=H-T-B,lo=Math.min(...points.map(p=>p.v)),hi=Math.max(...points.map(p=>p.v)),pad=(hi-lo)*.18||Math.max(Math.abs(hi)*.08,.03),min=selectedMetric==="sstg"?lo-pad:Math.max(0,lo-pad),max=selectedMetric==="sstg"?hi+pad:hi+pad||1;
  const xy=p=>({x:L+(p.i/(series.length-1||1))*plotW,y:T+(1-(p.v-min)/(max-min||1))*plotH}),line=points.map(p=>{const q=xy(p);return q.x+","+q.y;}).join(" "),grid=Array.from({length:5},(_,i)=>{const y=T+i*plotH/4,v=max-i*(max-min)/4,label=selectedMetric==="waiting"?Math.round(v):Math.round(v*100)+"%";return '<line class="chart-grid" x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'"></line><text class="chart-label" x="'+(L-8)+'" y="'+(y+4)+'" text-anchor="end">'+label+'</text>';}).join(""),ticks=series.map((p,i)=>({p,i})).filter(x=>x.i===0||x.i===series.length-1||x.i%Math.ceil(series.length/5)===0).map(x=>{const q=xy({i:x.i,v:points.find(z=>z.i===x.i)?.v??min});return '<text class="chart-label" x="'+q.x+'" y="'+(H-14)+'" text-anchor="middle">'+escapeHtml(x.p.label)+'</text>';}).join(""),dots=points.map(p=>{const q=xy(p),label=selectedMetric==="waiting"?p.v.toFixed(0):pct(p.v);return '<circle class="chart-point" cx="'+q.x+'" cy="'+q.y+'" r="4"><title>'+escapeHtml(series[p.i].key+" "+label)+'</title></circle>';}).join("");
  $("trendChart").innerHTML='<svg class="trend-chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+names[selectedMetric]+'趨勢折線圖">'+grid+'<polyline class="chart-line" points="'+line+'"></polyline>'+dots+ticks+'</svg>';
