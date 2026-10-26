@@ -70,7 +70,7 @@ begin
     nullif(item->>'restaurant_name',''),
     nullif(item->>'order_number',''),
     coalesce(item->'payload','{}'::jsonb)
-  from jsonb_array_elements(p_rows) as item;
+  from jsonb_array_elements(p_rows) as t(item);
   return v_batch_id;
 end;
 $$;
