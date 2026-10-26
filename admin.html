@@ -1281,6 +1281,7 @@ button{cursor:pointer}
 .ops-section h3{margin:20px 0 12px;text-align:left}.ops-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}.ops-analysis{margin:14px 0}.ops-export-bottom{display:flex;justify-content:center;margin:18px 0 4px}.ops-export-bottom .action-btn{min-width:min(420px,100%)}.ops-analysis-tools{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}.ops-analysis-tools input{min-height:42px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.ops-mini-tabs{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:10px;background:#fff}.ops-mini-tabs button{border:0;background:transparent;border-radius:8px;padding:8px 12px;font:inherit}.ops-mini-tabs button.active{background:var(--red);color:#fff}.ops-hours-input{width:80px;min-width:68px;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;text-align:center}.ops-week-tabs{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin:8px}.ops-toggle-group{display:flex;gap:10px;align-items:center;justify-content:center}.ops-toggle{min-height:46px;min-width:120px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-weight:800}.ops-toggle.selected{background:var(--green);border-color:var(--green);color:#fff}.ops-tab{padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit;font-weight:800;cursor:pointer}.ops-tab.active{background:var(--red);color:#fff;border-color:var(--red)}.ops-panel{padding:12px 0}.ops-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:center}.ops-form-grid label,.ops-toolbar label{display:grid;gap:6px;font-weight:700;color:var(--black);text-align:center}.ops-form-grid input,.ops-form-grid select,.ops-form-grid textarea,.ops-toolbar input{width:100%;min-height:46px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:var(--black);text-align:center}.ops-form-grid textarea{resize:vertical}.ops-wide{grid-column:1/-1}.ops-form-grid .action-btn{min-height:46px}.ops-lookup{min-height:18px;color:var(--green);font-size:13px;font-weight:700}.ops-message{min-height:24px;margin:8px 0;text-align:center;color:var(--gray)}.ops-toolbar{display:flex;align-items:end;gap:8px;margin:14px 0;text-align:left}.ops-toolbar label{min-width:145px}.ops-toolbar .action-btn{min-height:44px}.ops-table-wrap{overflow:auto;text-align:left}.ops-table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}.ops-table th,.ops-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:center}.ops-table th{background:#f8f6f1;white-space:nowrap}.ops-status{display:inline-block;padding:4px 8px;border-radius:99px;background:#fff0ee;color:#b42318;font-weight:800;white-space:nowrap}.ops-status.done{background:#eef5f0;color:#356b4b}.ops-help{padding:12px;background:#f8f6f1;border-radius:12px;text-align:left;color:var(--gray);line-height:1.7}.ops-link-result{display:flex;gap:8px;margin-top:12px}.ops-link-result input{min-width:0;flex:1;padding:10px;border:1px solid var(--line);border-radius:10px}.ops-empty{padding:18px;color:var(--gray);text-align:center}@media(max-width:600px){.ops-form-grid{grid-template-columns:1fr}.ops-wide{grid-column:auto}.ops-tabs{grid-template-columns:1fr}.ops-toolbar{align-items:stretch;flex-direction:column}.ops-link-result{flex-direction:column}.ops-table{font-size:12px}.ops-table th,.ops-table td{padding:8px 6px}}
 .ops-score-upload{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}.ops-score-file-button{display:inline-flex;align-items:center;min-height:44px;padding:9px 14px;border-radius:10px;background:#fff;border:1px solid var(--line);font-weight:800;cursor:pointer}.ops-score-file-button input{position:absolute;width:1px;height:1px;opacity:0}.ops-score-file-hint{color:var(--gray);font-size:13px}.ops-score-divider{height:1px;background:var(--line);margin:24px 0}.ops-score-history-tools{display:flex;align-items:end;gap:10px;margin:12px 0}.ops-score-history-tools label{display:grid;gap:6px;min-width:170px;color:var(--gray);font-weight:700;text-align:left}.ops-score-history-tools input,.ops-score-history-tools select{min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit}.ops-score-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.ops-batch-link{border:0;background:transparent;color:#1683df;font:inherit;font-weight:800;cursor:pointer;text-decoration:underline}.ops-score-count{color:var(--gray);white-space:nowrap}@media(max-width:600px){.ops-score-history-tools{align-items:stretch;flex-direction:column}.ops-score-history-tools label{min-width:0}.ops-score-detail-heading{align-items:flex-start;flex-direction:column}}
 </style>
+<link rel="stylesheet" href="operations-report.css?v=20261026-region">
 </head>
 
 <body>
@@ -1341,16 +1342,15 @@ button{cursor:pointer}
   <section class="section ops-section">
     <div class="section-title">營運管理</div>
     <div class="ops-tabs">
-      <button type="button" class="ops-tab active" data-ops-tab="delay">延遲訂單</button>
+      <button type="button" class="ops-tab active" data-ops-tab="delay">等餐紀錄</button>
       <button type="button" class="ops-tab" data-ops-tab="line">劃線／簽名</button>
-      <button type="button" class="ops-tab" data-ops-tab="links">餐廳月回覆連結</button>
-      <button type="button" class="ops-tab" data-ops-tab="scores">每日成績匯入／歷史</button>
+      <button type="button" class="ops-tab" data-ops-tab="scores">當日成績</button>
     </div>
     <div id="opsDelayPanel" class="ops-panel">
-      <h3>新增延遲訂單</h3>
+      <h3>等餐紀錄</h3>
       <div class="ops-form-grid">
         
-        <label>餐廳店號<input id="opsDelayStore" type="text" inputmode="numeric" maxlength="3" placeholder="輸入 3 碼店號" autocomplete="off"><span id="opsDelayStoreName" class="ops-lookup" aria-live="polite"></span></label>
+        <label>餐廳店號<input id="opsDelayStore" type="text" inputmode="numeric" maxlength="3" placeholder="輸入店號" autocomplete="off"><span id="opsDelayStoreName" class="ops-lookup" aria-live="polite"></span><div id="opsDelayStoreChoices" class="ops-store-choices"></div></label>
         <label>訂單編號<input id="opsDelayOrder" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="4 碼"></label>
         <button id="opsDelaySave" type="button" class="action-btn primary">新增待回覆訂單</button>
       </div>
@@ -1362,46 +1362,36 @@ button{cursor:pointer}
       <h3>每日劃線／簽名紀錄</h3>
       <div class="ops-form-grid">
         
-        <label>餐廳店號<input id="opsLineStore" type="text" inputmode="numeric" maxlength="3" placeholder="輸入 3 碼店號" autocomplete="off"><span id="opsLineStoreName" class="ops-lookup" aria-live="polite"></span></label>
+        <label>餐廳店號<input id="opsLineStore" type="text" inputmode="numeric" maxlength="3" placeholder="輸入店號" autocomplete="off"><span id="opsLineStoreName" class="ops-lookup" aria-live="polite"></span><div id="opsLineStoreChoices" class="ops-store-choices"></div></label>
         <div class="ops-toggle-group"><button type="button" id="opsLineMark" class="ops-toggle" aria-pressed="false">劃線</button><button type="button" id="opsSignMark" class="ops-toggle" aria-pressed="false">簽名</button></div>
-        <label>簽名人／登記人<input id="opsSigner" type="text" maxlength="100" placeholder="選填"></label>
-        <label class="ops-wide">備註<textarea id="opsLineNote" rows="2" maxlength="500" placeholder="選填"></textarea></label>
+        <input id="opsSigner" type="hidden">
+        <input id="opsLineNote" type="hidden">
         <button id="opsLineSave" type="button" class="action-btn primary">儲存當日紀錄</button>
       </div>
       <div id="opsLineMessage" class="ops-message" role="status"></div>
-      <h3>當日未完成餐廳</h3><div id="opsLineIncomplete" class="ops-table-wrap"></div><div id="opsLineList" class="ops-table-wrap"></div>
+      <h3>當日未完成餐廳</h3><div id="opsLineIncomplete" class="ops-table-wrap"></div><div id="opsLineList" class="ops-table-wrap" hidden></div>
+    <div id="opsLinksPanel" class="ops-shared-link"><h3>等餐原因回覆連結</h3><button id="opsLinkCreate" type="button" class="action-btn primary">產生共用回覆連結</button><div id="opsLinkMessage" class="ops-message" role="status"></div><div id="opsLinkResult" class="ops-link-result" hidden><input id="opsLinkUrl" type="text" readonly><button id="opsLinkCopy" type="button" class="action-btn">複製連結</button></div></div>
+
     </div>
-    <div id="opsLinksPanel" class="ops-panel" hidden><h3>等餐原因回覆連結</h3><button id="opsLinkCreate" type="button" class="action-btn primary">產生共用回覆連結</button><div id="opsLinkMessage" class="ops-message" role="status"></div><div id="opsLinkResult" class="ops-link-result" hidden><input id="opsLinkUrl" type="text" readonly><button id="opsLinkCopy" type="button" class="action-btn">複製連結</button></div></div>
     <div id="opsScoresPanel" class="ops-panel" hidden>
-      <h3>每日成績 Excel 匯入</h3>
-      
-      <div class="ops-score-upload">
-        <label class="ops-score-file-button">選擇每日成績 Excel<input id="opsScoreFiles" type="file" accept=".xlsx,.xls,.xlsm" multiple></label>
-        
+      <div class="ops-score-heading">
+        <input id="opsAnalysisDate" type="date" aria-label="成績日期">
+        <div id="opsPeriodTabs" class="ops-mini-tabs"><button type="button" class="active" data-period="day">當日</button><button type="button" data-period="week">週匯總</button><button type="button" data-period="month">月匯總</button></div>
+        <button id="opsAnalysisRefresh" type="button" class="action-btn">重新整理</button>
       </div>
-      <div id="opsScorePreview" class="ops-table-wrap"></div>
-      <div class="ops-analysis">
-        <div class="ops-analysis-tools"><input id="opsAnalysisDate" type="date"><div class="ops-mini-tabs"><button type="button" class="active" data-period="day">當日</button><button type="button" data-period="week">週匯總</button></div><button id="opsAnalysisRefresh" type="button" class="action-btn">查看分析</button></div>
-        <div id="opsAnalysisSummary"></div><div id="opsAnalysisTable" class="ops-table-wrap"></div>
-      </div>
-      <button id="opsScoreImport" type="button" class="action-btn primary" disabled>匯入選取檔案</button>
-      <div id="opsScoreMessage" class="ops-message" role="status"></div>
-      <div class="ops-score-divider"></div>
-      <h3>過去匯入資料</h3>
-      <div class="ops-score-history-tools">
-        <label>報表日期<input id="opsScoreHistoryDate" type="date"></label>
-        <label>報表類型<select id="opsScoreHistoryType"><option value="">全部類型</option><option value="ByDate">ByDate</option><option value="ByOrder">ByOrder</option></select></label>
-        <button id="opsScoreHistoryRefresh" type="button" class="action-btn">查詢</button>
-      </div>
-      <div id="opsScoreBatches" class="ops-table-wrap"></div>
-      <div id="opsScoreDetailSection" hidden>
-        <div class="ops-score-detail-heading"><h3 id="opsScoreDetailTitle">匯入明細</h3><button id="opsScoreExport" type="button" class="action-btn">匯出此批 Excel</button></div>
-        <div class="ops-score-history-tools"><label>搜尋訂單／餐廳<input id="opsScoreSearch" type="search" placeholder="輸入訂單編號、店號或餐廳"></label></div>
-        <div id="opsScoreDetails" class="ops-table-wrap"></div>
-      </div>
+      <div id="opsWeekTabs" class="ops-week-tabs"></div>
+      <div class="ops-upload-block"><h3>匯入當日成績</h3><div class="ops-score-upload"><label class="ops-score-file-button">選擇兩個 Excel<input id="opsScoreFiles" type="file" accept=".xlsx,.xls,.xlsm" multiple></label></div><div id="opsScorePreview" class="ops-table-wrap"></div><button id="opsScoreImport" type="button" class="action-btn primary" disabled>匯入當日成績</button><div id="opsScoreMessage" class="ops-message" role="status"></div></div>
+      <h3 id="opsPeriodLabel">23:00 回饋</h3>
+      <div id="opsReportWarnings" class="ops-report-warnings" hidden></div>
+      <div class="ops-report-grid"><div id="opsAnalysisSummary"></div><div id="opsAnalysisTable"></div></div>
+      <div id="opsLaborAdjustments"></div><div id="opsReportStatus" class="ops-report-status" role="status"></div>
+      <details class="ops-month-fold"><summary>各區每日／整月工時</summary><div id="opsMonthHours"></div></details>
+      <details class="ops-history-fold"><summary>過去匯入資料</summary>
+        <div class="ops-score-history-tools"><label>報表日期<input id="opsScoreHistoryDate" type="date"></label><label>報表類型<select id="opsScoreHistoryType"><option value="">全部類型</option><option value="ByDate">ByDate</option><option value="ByOrder">ByOrder</option></select></label><button id="opsScoreHistoryRefresh" type="button" class="action-btn">查詢</button></div>
+        <div id="opsScoreBatches" class="ops-table-wrap"></div><div id="opsScoreDetailSection" hidden><div class="ops-score-detail-heading"><h3 id="opsScoreDetailTitle">匯入明細</h3><button id="opsScoreExport" type="button" class="action-btn">匯出此批 Excel</button></div><div class="ops-score-history-tools"><label>搜尋訂單／餐廳<input id="opsScoreSearch" type="search" placeholder="訂單編號、店號或餐廳"></label></div><div id="opsScoreDetails" class="ops-table-wrap"></div></div>
+      </details>
     </div>
-  </section>
-<div class="ops-export-bottom"><button id="opsExport" type="button" class="action-btn primary">匯出當日成績／劃線／等餐 Excel</button></div>
+    <div class="ops-export-bottom"><button id="opsExport" type="button" class="action-btn primary">匯出當日成績／劃線／等餐</button><button id="opsMonthExport" type="button" class="action-btn">匯出整月各區工時</button></div>
   </section>
 </section>
 
@@ -5992,25 +5982,9 @@ const opsModeBtn=$("opsModeBtn"),opsModePage=$("opsModePage");
 const opsDelayPageStore=$("opsDelayStore"),opsLinePageStore=$("opsLineStore"),opsLinkPageStore=$("opsLinkStore");
 const opsDelayRows=[],opsLineRows=[];
 let opsLoadedDelayRows=[],opsLoadedLineRows=[],t995Restaurants=[],opsAnalysisPeriod="day",opsDailyExportRows=[];
-const opsLocalDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
+const opsLocalDate=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const opsRestaurantCache=new Map(),opsStoreLookupSeq={};
-async function opsLookupStore(inputId){
- const input=$(inputId),label=$(inputId+"Name"),code=input.value.trim();
- if(!code){label.textContent="";return null;}
- if(!/^\d{3}$/.test(code)){label.textContent="請輸入 3 碼店號";return null;}
- const seq=(opsStoreLookupSeq[inputId]||0)+1;opsStoreLookupSeq[inputId]=seq;label.textContent="查詢餐廳中…";
- try{
-  let row=opsRestaurantCache.get(code);
-  if(!row){const r=await db.from("t995_restaurants").select("store_code,restaurant_name").eq("store_code",code).eq("enabled",true).maybeSingle();if(r.error)throw r.error;row=r.data;if(row)opsRestaurantCache.set(code,row);}
-  if(opsStoreLookupSeq[inputId]!==seq)return null;
-  label.textContent=row?row.restaurant_name+"（"+row.store_code+"）":"查無此店號";
-  return row||null;
- }catch(e){if(opsStoreLookupSeq[inputId]===seq)label.textContent="查詢失敗，請確認登入或資料庫設定";return null;}
-}
-["opsDelayStore","opsLineStore"].forEach(id=>{
- $(id).addEventListener("input",()=>{opsStoreLookupSeq[id]=(opsStoreLookupSeq[id]||0)+1;$(id+"Name").textContent="";clearTimeout($(id)._opsLookupTimer);$(id)._opsLookupTimer=setTimeout(()=>opsLookupStore(id),300);});
- $(id).addEventListener("blur",()=>opsLookupStore(id));
-});
+async function opsLookupStore(inputId){return window.opsFindRestaurant?window.opsFindRestaurant(inputId):null;}
 function opsEscape(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 document.querySelectorAll(".ops-tab").forEach(btn=>btn.onclick=()=>{document.querySelectorAll(".ops-tab").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".ops-panel").forEach(x=>x.hidden=x.id!==({delay:"opsDelayPanel",line:"opsLinePanel",links:"opsLinksPanel",scores:"opsScoresPanel"}[btn.dataset.opsTab]));});
 function opsMonthValue(){return $("opsMonthFilter").value||opsLocalDate().slice(0,7);}
@@ -6026,8 +6000,8 @@ async function opsLoadData(){
   opsLoadedDelayRows=delay.data||[];opsLoadedLineRows=line.data||[];t995Restaurants=stores.data||[];opsRenderDelay();opsRenderLine();
 }
 function opsRenderDelay(){
-  const list=$("opsDelayList");if(!opsLoadedDelayRows.length){list.innerHTML='<div class="ops-empty">本月尚無延遲訂單紀錄。</div>';return;}
-  list.innerHTML='<table class="ops-table"><thead><tr><th>日期</th><th>店號／餐廳</th><th>訂單編號</th><th>狀態</th><th>回覆原因</th></tr></thead><tbody>'+opsLoadedDelayRows.map(r=>'<tr><td>'+opsEscape(r.record_date)+'</td><td>'+opsEscape(r.store_code)+'／'+opsEscape(r.restaurant_name)+'</td><td>'+opsEscape(r.order_number)+'</td><td><span class="ops-status '+(r.status==="completed"?"done":"")+'">'+(r.status==="completed"?"已回覆":"待回覆")+'</span></td><td>'+opsEscape(r.reason||"—")+'</td></tr>').join("")+'</tbody></table>';
+ const rows=opsLoadedDelayRows.filter(r=>r.status!=="completed"),list=$("opsDelayList");
+ list.innerHTML=rows.length?'<table class="ops-table"><thead><tr><th>日期</th><th>店號／餐廳</th><th>訂單編號</th><th>狀態</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+opsEscape(r.record_date)+'</td><td>'+opsEscape(r.store_code)+'／'+opsEscape(r.restaurant_name)+'</td><td>'+opsEscape(r.order_number)+'</td><td>待回覆</td></tr>').join("")+'</tbody></table>':'<div class="ops-empty">沒有待回覆訂單</div>';
 }
 function opsRenderLine(){
   const todayRows=opsLoadedLineRows.filter(r=>r.record_date===opsToday());
@@ -6052,7 +6026,7 @@ $("opsLineSave").onclick=async()=>{
  const date=opsToday(),store=opsLinePageStore.value.trim(),msg=$("opsLineMessage"),marked=$("opsLineMark").getAttribute("aria-pressed")==="true",signed=$("opsSignMark").getAttribute("aria-pressed")==="true";
  if(!store||(!marked&&!signed)){msg.textContent="請輸入店號並選擇劃線或簽名。";return;}
  $("opsLineSave").disabled=true;msg.textContent="儲存中…";
- try{const restaurant=await opsLookupStore("opsLineStore");if(!restaurant)throw new Error("查無此店號，請檢查後再試。");const payload={record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,status:marked&&signed?"completed":"not_completed",line_completed:marked,signature_completed:signed,signer_name:$("opsSigner").value.trim()||null,note:$("opsLineNote").value.trim()||null,updated_at:new Date().toISOString()};const r=await db.from("t995_line_signature_records").upsert(payload,{onConflict:"record_date,store_code"});if(r.error)throw r.error;msg.textContent="當日餐廳紀錄已儲存。";opsSetToggle("opsLineMark",false);opsSetToggle("opsSignMark",false);$("opsMonthFilter").value=date.slice(0,7);await opsLoadData();}
+ try{const restaurant=await opsLookupStore("opsLineStore");if(!restaurant)throw new Error("查無此店號，請檢查後再試。");const payload={record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,status:marked&&signed?"completed":"not_completed",line_completed:marked,signature_completed:signed,signer_name:$("opsSigner").value.trim()||null,note:$("opsLineNote").value.trim()||null,updated_at:new Date().toISOString()};const r=await db.from("t995_line_signature_records").upsert(payload,{onConflict:"record_date,store_code"});if(r.error)throw r.error;msg.textContent="當日餐廳紀錄已儲存。";$("opsMonthFilter").value=date.slice(0,7);await opsLoadData();}
  catch(e){msg.textContent="儲存失敗："+(e.message||"請先確認資料表 SQL 已執行。");}
  finally{$("opsLineSave").disabled=false;}
 };
@@ -6066,14 +6040,6 @@ $("opsLinkCopy").onclick=async()=>{try{await navigator.clipboard.writeText($("op
 $("opsMonthFilter").value=opsLocalDate().slice(0,7);
 $("opsRefresh").onclick=()=>opsLoadData().catch(e=>{$("opsDelayMessage").textContent="讀取失敗："+(e.message||"資料庫尚未設定");});
 $("opsMonthFilter").onchange=()=>opsLoadData().catch(e=>{$("opsDelayMessage").textContent="讀取失敗："+(e.message||"資料庫尚未設定");});
-$("opsExport").onclick=()=>{
-  const wb=XLSX.utils.book_new();
-  const exportDate=$("opsAnalysisDate").value||opsToday();
-  const d=opsLoadedDelayRows.filter(r=>r.record_date===exportDate).map(r=>({日期:r.record_date,店號:r.store_code,餐廳:r.restaurant_name,訂單編號:r.order_number,狀態:r.status==="completed"?"已回覆":"待回覆",等餐原因:r.reason||""}));
-  const l=opsLoadedLineRows.filter(r=>r.record_date===exportDate).map(r=>({日期:r.record_date,店號:r.store_code,餐廳:r.restaurant_name,劃線:r.line_completed?"完成":"未完成",簽名:r.signature_completed?"完成":"未完成"}));
-  const s=opsDailyExportRows.filter(r=>r.report_date===exportDate).map(r=>({日期:r.report_date,報表類型:r.report_type,店號:r.store_code,餐廳:r.restaurant_name,訂單編號:r.order_number,...(r.payload||{})}));
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(s),"當日成績");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(l),"當日劃線紀錄");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),"當日等餐紀錄");XLSX.writeFile(wb,"營運日報_"+exportDate+".xlsx");
-};
 const opsOriginalShowAdminMode=showAdminMode;
 showAdminMode=function(mode){opsOriginalShowAdminMode(mode);opsModePage.style.display=mode==="ops"?"block":"none";if(mode==="ops")opsLoadData().catch(e=>{$("opsDelayList").innerHTML='<div class="ops-empty">讀取失敗：'+opsEscape(e.message||"請執行資料庫 SQL")+ "</div>";});};
 $("opsBackBtn").onclick=()=>showAdminMode("home");opsModeBtn.onclick=()=>showAdminMode("ops");
@@ -6135,7 +6101,7 @@ function opsRenderPreparedScoreFiles(errors=[]){
   const all=[...data,...failed];
   $("opsScorePreview").innerHTML=all.length
     ?'<table class="ops-table"><thead><tr><th>檔案</th><th>報表類型</th><th>日期</th><th>資料筆數</th><th>狀態</th></tr></thead><tbody>'+all.map(x=>'<tr><td>'+opsEscape(x.file)+'</td><td>'+opsEscape(x.type)+'</td><td>'+opsEscape(x.date)+'</td><td>'+opsEscape(x.count)+'</td><td>'+opsEscape(x.status)+'</td></tr>').join("")+'</tbody></table>'
-    :'<div class="ops-empty">選取 ByDate 或 ByOrder 格式的 Excel 檔後會顯示預覽。</div>';
+    :"";
   const pair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;
   $("opsScoreImport").disabled=!pair;
 }
@@ -6182,42 +6148,6 @@ function opsRenderScoreBatches(){
   target.innerHTML='<table class="ops-table"><thead><tr><th>報表日期</th><th>類型</th><th>來源檔案</th><th>筆數</th><th>匯入時間</th><th></th></tr></thead><tbody>'+opsScoreBatchRows.map(b=>'<tr><td>'+opsEscape(b.report_date)+'</td><td>'+opsEscape(b.report_type)+'</td><td>'+opsEscape(b.source_file)+'</td><td>'+opsEscape(b.row_count)+'</td><td>'+opsEscape(b.imported_at||"")+'</td><td><button class="ops-batch-link" type="button" data-score-batch="'+opsEscape(b.id)+'">查看</button></td></tr>').join("")+'</tbody></table>';
 }
 $("opsScoreBatches").addEventListener("click",e=>{const btn=e.target.closest("[data-score-batch]");if(btn)opsOpenScoreBatch(btn.dataset.scoreBatch).catch(err=>{$("opsScoreDetails").innerHTML='<div class="ops-empty">讀取失敗：'+opsEscape(err.message||"")+'</div>';});});
-const opsRegionFor=name=>{
- const n=String(name||"");
- if(n.includes("大園"))return "大園";if(n.includes("大溪")||n.includes("龍潭"))return "大溪龍潭";
- if(n.includes("林口"))return "林口";if(n.includes("大竹"))return "大竹";
- if(n.includes("竹北"))return "竹北";if(n.includes("竹東"))return "竹東";
- if(n.includes("新竹")||n.includes("湖口")||n.includes("新豐"))return "新竹";
- if(n.includes("中壢")||n.includes("領航")||n.includes("過嶺"))return "中壢";
- if(n.includes("楊梅"))return "楊梅";if(n.includes("苗栗")||n.includes("頭份")||n.includes("竹南"))return "苗栗";
- if(n.includes("桃園")||n.includes("南崁"))return "桃園";return "未分類";
-};
-function opsShiftDate(date,days){const d=new Date(date+"T12:00:00+08:00");d.setDate(d.getDate()+days);return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei"}).format(d);}
-async function opsLoadDailyAnalytics(){
- const date=$("opsAnalysisDate").value||opsToday();$("opsAnalysisDate").value=date;opsDailyExportRows=[];
- const d=new Date(date+"T12:00:00+08:00");let start=date,end=date;
- if(opsAnalysisPeriod==="week"){const dow=(d.getDay()+6)%7;start=opsShiftDate(date,-dow);end=opsShiftDate(start,6);}
- $("opsAnalysisTable").innerHTML='<div class="ops-empty">讀取成績中…</div>';
- const batchesRes=await db.from("t995_score_import_batches").select("*").gte("report_date",start).lte("report_date",end).order("report_date");
- if(batchesRes.error)throw batchesRes.error;
- const allBatches=batchesRes.data||[],latest=new Map();for(const b of allBatches.sort((x,y)=>String(y.imported_at||"").localeCompare(String(x.imported_at||"")))){const k=b.report_date+"|"+b.report_type;if(!latest.has(k))latest.set(k,b);}const batches=[...latest.values()],byDate=new Map(),byOrder=new Map();
- for(const batch of batches){const target=batch.report_type==="ByDate"?byDate:byOrder;let rows=[];
-  for(let off=0;;off+=1000){const q=await db.from("t995_score_import_rows").select("*").eq("batch_id",batch.id).range(off,off+999);if(q.error)throw q.error;rows.push(...(q.data||[]));if(!q.data||q.data.length<1000)break;}
-  opsDailyExportRows.push(...rows.map(r=>({...r,report_date:batch.report_date,report_type:batch.report_type})));
-  for(const row of rows){const key=row.store_code||row.restaurant_name||"unknown";const old=target.get(key)||{store_code:row.store_code||"",restaurant_name:row.restaurant_name||"",count:0};old.count++;target.set(key,old);}
- }
- const h=await db.from("t995_score_labor_hours").select("*").gte("record_date",start).lte("record_date",end);if(h.error)throw h.error;
- const hours=new Map();for(const row of h.data||[]){const x=hours.get(row.store_code)||{total_hours:0,transfer_out_hours:0,transfer_in_hours:0};x.total_hours+=Number(row.total_hours);x.transfer_out_hours+=Number(row.transfer_out_hours);x.transfer_in_hours+=Number(row.transfer_in_hours);hours.set(row.store_code,x);}
- const keys=new Set([...byDate.keys(),...byOrder.keys()]),rows=[...keys].map(key=>{const x=byDate.get(key)||byOrder.get(key),a=byDate.get(key)?.count||0,t=byOrder.get(key)?.count||a,hour=hours.get(x.store_code)||{total_hours:0,transfer_out_hours:0,transfer_in_hours:0},actual=hour.total_hours-hour.transfer_out_hours+hour.transfer_in_hours;return {...x,tc:t,nonfa:a,hour,actual,tplh:actual>0?a/actual:null};});
- const regions=["新竹","竹北","竹東","中壢","桃園","楊梅","大園","大溪龍潭","林口","大竹","苗栗","未分類"];
- const regionRows=regions.map(region=>[region,rows.filter(x=>opsRegionFor(x.restaurant_name)===region)]).filter(([,xs])=>xs.length);
- const sumTC=rows.reduce((n,x)=>n+x.tc,0),sumNonFa=rows.reduce((n,x)=>n+x.nonfa,0),sumH=rows.reduce((n,x)=>n+x.actual,0);
- $("opsAnalysisSummary").innerHTML='<div class="ops-score-count">'+(opsAnalysisPeriod==="week"?start+" 至 "+end:date)+'　TC '+sumTC+'　排除第三方 TC '+sumNonFa+'　實際工時 '+sumH.toFixed(2)+'　TPLH '+(sumH? (sumNonFa/sumH).toFixed(2):"—")+'<br>SSTG／TC 預估達成率需要後台提供前期 TC 與目標 TC 基準。</div>';
- $("opsAnalysisTable").innerHTML=regionRows.length?regionRows.map(([region,xs])=>'<h3>'+region+'</h3><table class="ops-table"><thead><tr><th>店號／餐廳</th><th>TC</th><th>非第三方 TC</th><th>總工時</th><th>調出</th><th>調入</th><th>實際工時</th><th>TPLH</th></tr></thead><tbody>'+xs.map(x=>'<tr><td>'+opsEscape(x.store_code)+'／'+opsEscape(x.restaurant_name)+'</td><td>'+x.tc+'</td><td>'+x.nonfa+'</td><td><input class="ops-hours-input" data-store="'+opsEscape(x.store_code)+'" data-col="total_hours" type="number" min="0" step=".25" value="'+x.hour.total_hours+'"></td><td><input class="ops-hours-input" data-store="'+opsEscape(x.store_code)+'" data-col="transfer_out_hours" type="number" min="0" step=".25" value="'+x.hour.transfer_out_hours+'"></td><td><input class="ops-hours-input" data-store="'+opsEscape(x.store_code)+'" data-col="transfer_in_hours" type="number" min="0" step=".25" value="'+x.hour.transfer_in_hours+'"></td><td>'+x.actual.toFixed(2)+'</td><td>'+(x.tplh===null?"—":x.tplh.toFixed(2))+'</td></tr>').join("")+'</tbody></table>').join(""):'<div class="ops-empty">該日期區間尚未匯入成績。</div>';
- $("opsAnalysisTable").querySelectorAll(".ops-hours-input").forEach(input=>{input.disabled=opsAnalysisPeriod==="week";input.onchange=async()=>{const store=input.dataset.store;const fields={record_date:date,store_code:store,total_hours:Number($('opsAnalysisTable').querySelector('[data-store="'+store+'"][data-col="total_hours"]').value)||0,transfer_out_hours:Number($('opsAnalysisTable').querySelector('[data-store="'+store+'"][data-col="transfer_out_hours"]').value)||0,transfer_in_hours:Number($('opsAnalysisTable').querySelector('[data-store="'+store+'"][data-col="transfer_in_hours"]').value)||0,updated_by:(await db.auth.getUser()).data.user?.id||null,updated_at:new Date().toISOString()};const saved=await db.from("t995_score_labor_hours").upsert(fields,{onConflict:"record_date,store_code"});if(saved.error){$("opsAnalysisSummary").textContent="工時儲存失敗："+saved.error.message;return;}if(opsAnalysisPeriod==="day")opsLoadDailyAnalytics().catch(e=>{$("opsAnalysisSummary").textContent=e.message;});};});
-}
-document.querySelectorAll(".ops-mini-tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".ops-mini-tabs button").forEach(x=>x.classList.toggle("active",x===b));opsAnalysisPeriod=b.dataset.period;opsLoadDailyAnalytics().catch(e=>{$("opsAnalysisSummary").textContent="讀取失敗："+e.message;});});
-$("opsAnalysisDate").value=opsToday();$("opsAnalysisRefresh").onclick=()=>opsLoadDailyAnalytics().catch(e=>{$("opsAnalysisSummary").textContent="讀取失敗："+e.message;});
 async function opsOpenScoreBatch(batchId){
   const batch=opsScoreBatchRows.find(x=>x.id===batchId);if(!batch)throw new Error("找不到匯入批次。");
   $("opsScoreDetails").innerHTML='<div class="ops-empty">讀取明細中…</div>';$("opsScoreDetailSection").hidden=false;
@@ -6266,5 +6196,8 @@ document.querySelectorAll(".ops-tab").forEach(btn=>btn.onclick=()=>{
 
 
 
+<script src="operations-metrics.js?v=20261026-region"></script>
+<script src="operations-report.js?v=20261026-region"></script>
 </body>
 </html>
+
