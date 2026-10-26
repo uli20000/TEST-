@@ -1277,6 +1277,8 @@ button{cursor:pointer}
  #shiftModePage .shift-heading-tools .shift-test-toggle{height:29px;min-height:29px;font-size:11px}
 }
 
+
+.ops-section h3{margin:20px 0 12px;text-align:left}.ops-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.ops-tab{padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit;font-weight:800;cursor:pointer}.ops-tab.active{background:var(--red);color:#fff;border-color:var(--red)}.ops-panel{padding:12px 0}.ops-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:left}.ops-form-grid label,.ops-toolbar label{display:grid;gap:6px;font-weight:700;color:var(--gray)}.ops-form-grid input,.ops-form-grid select,.ops-form-grid textarea,.ops-toolbar input{width:100%;min-height:46px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:var(--black)}.ops-form-grid textarea{resize:vertical}.ops-wide{grid-column:1/-1}.ops-form-grid .action-btn{min-height:46px}.ops-message{min-height:24px;margin:8px 0;text-align:left;color:var(--gray)}.ops-toolbar{display:flex;align-items:end;gap:8px;margin:14px 0;text-align:left}.ops-toolbar label{min-width:145px}.ops-toolbar .action-btn{min-height:44px}.ops-table-wrap{overflow:auto;text-align:left}.ops-table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}.ops-table th,.ops-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}.ops-table th{background:#f8f6f1;white-space:nowrap}.ops-status{display:inline-block;padding:4px 8px;border-radius:99px;background:#fff0ee;color:#b42318;font-weight:800;white-space:nowrap}.ops-status.done{background:#eef5f0;color:#356b4b}.ops-help{padding:12px;background:#f8f6f1;border-radius:12px;text-align:left;color:var(--gray);line-height:1.7}.ops-link-result{display:flex;gap:8px;margin-top:12px}.ops-link-result input{min-width:0;flex:1;padding:10px;border:1px solid var(--line);border-radius:10px}.ops-empty{padding:18px;color:var(--gray);text-align:center}@media(max-width:600px){.ops-form-grid{grid-template-columns:1fr}.ops-wide{grid-column:auto}.ops-tabs{grid-template-columns:1fr}.ops-toolbar{align-items:stretch;flex-direction:column}.ops-link-result{flex-direction:column}.ops-table{font-size:12px}.ops-table th,.ops-table td{padding:8px 6px}}
 </style>
 </head>
 
@@ -1322,6 +1324,8 @@ button{cursor:pointer}
 </header>
 
 <div id="adminModeMenu" class="admin-menu">
+  <button id="opsModeBtn" class="admin-mode-btn" type="button"><span class="icon">🍽️</span>營運管理</button>
+
   <button id="vehicleModeBtn" class="admin-mode-btn" type="button">
     <span class="icon">🚗</span>
     車輛管理
@@ -1347,6 +1351,54 @@ button{cursor:pointer}
     指休管理
   </button>
 </div>
+
+
+<section id="opsModePage" class="admin-mode-page">
+  <div class="mode-back-row"><button id="opsBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
+  <section class="section ops-section">
+    <div class="section-title">營運管理</div>
+    <div class="ops-tabs">
+      <button type="button" class="ops-tab active" data-ops-tab="delay">延遲訂單</button>
+      <button type="button" class="ops-tab" data-ops-tab="line">劃線／簽名</button>
+      <button type="button" class="ops-tab" data-ops-tab="links">餐廳月回覆連結</button>
+    </div>
+    <div id="opsDelayPanel" class="ops-panel">
+      <h3>新增延遲訂單</h3>
+      <div class="ops-form-grid">
+        <label>日期<input id="opsDelayDate" type="date"></label>
+        <label>餐廳店號<select id="opsDelayStore"><option value="">選擇餐廳</option><option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option><option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option><option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option><option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option><option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option><option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option><option value="580">苗栗頭份（580）</option><option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option><option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option><option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option><option value="025">苗栗中正（025）</option><option value="173">苗栗竹南（173）</option><option value="142">桃園桃營（142）</option><option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option><option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option><option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option></select></label>
+        <label>訂單編號<input id="opsDelayOrder" type="text" maxlength="80" placeholder="輸入訂單編號"></label>
+        <button id="opsDelaySave" type="button" class="action-btn primary">新增待回覆訂單</button>
+      </div>
+      <div id="opsDelayMessage" class="ops-message" role="status"></div>
+      <div class="ops-toolbar"><label>月份<input id="opsMonthFilter" type="month"></label><button id="opsRefresh" type="button" class="action-btn">重新整理</button><button id="opsExport" type="button" class="action-btn">匯出 Excel</button></div>
+      <div id="opsDelayList" class="ops-table-wrap"></div>
+    </div>
+    <div id="opsLinePanel" class="ops-panel" hidden>
+      <h3>每日劃線／簽名紀錄</h3>
+      <div class="ops-form-grid">
+        <label>日期<input id="opsLineDate" type="date"></label>
+        <label>餐廳店號<select id="opsLineStore"><option value="">選擇餐廳</option><option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option><option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option><option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option><option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option><option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option><option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option><option value="580">苗栗頭份（580）</option><option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option><option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option><option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option><option value="025">苗栗中正（025）</option><option value="173">苗栗竹南（173）</option><option value="142">桃園桃營（142）</option><option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option><option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option><option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option></select></label>
+        <label>紀錄狀態<select id="opsLineStatus"><option value="completed">已完成</option><option value="not_completed">未完成</option></select></label>
+        <label>簽名人／登記人<input id="opsSigner" type="text" maxlength="100" placeholder="選填"></label>
+        <label class="ops-wide">備註<textarea id="opsLineNote" rows="2" maxlength="500" placeholder="選填"></textarea></label>
+        <button id="opsLineSave" type="button" class="action-btn primary">儲存當日紀錄</button>
+      </div>
+      <div id="opsLineMessage" class="ops-message" role="status"></div>
+      <div id="opsLineList" class="ops-table-wrap"></div>
+    </div>
+    <div id="opsLinksPanel" class="ops-panel" hidden>
+      <h3>餐廳月回覆連結</h3>
+      <p class="ops-help">每間餐廳使用固定專屬連結。餐廳開啟後會看到本月尚待回覆的訂單；完成回覆後，訂單會從待回覆清單移除。重新產生連結會讓舊連結失效。</p>
+      <div class="ops-form-grid">
+        <label>餐廳店號<select id="opsLinkStore"><option value="">選擇餐廳</option><option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option><option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option><option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option><option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option><option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option><option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option><option value="580">苗栗頭份（580）</option><option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option><option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option><option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option><option value="025">苗栗中正（025）</option><option value="173">苗栗竹南（173）</option><option value="142">桃園桃營（142）</option><option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option><option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option><option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option></select></label>
+        <button id="opsLinkCreate" type="button" class="action-btn primary">產生／重設餐廳連結</button>
+      </div>
+      <div id="opsLinkMessage" class="ops-message" role="status"></div>
+      <div id="opsLinkResult" class="ops-link-result" hidden><input id="opsLinkUrl" type="text" readonly><button id="opsLinkCopy" type="button" class="action-btn">複製連結</button></div>
+    </div>
+  </section>
+</section>
 
 <section id="vehicleModePage" class="admin-mode-page">
 
@@ -5928,6 +5980,72 @@ vehicleList.addEventListener("click",event=>{
   const button=event.target.closest("[data-t995-vehicle-delete]");if(!button)return;
   event.preventDefault();event.stopPropagation();t995DeleteVehiclePermanently(button.dataset.t995VehicleDelete,button);
 },true);
+
+
+/* T995 營運管理：延遲訂單、月度餐廳回覆連結與劃線／簽名。 */
+const opsModeBtn=$("opsModeBtn"),opsModePage=$("opsModePage");
+const opsDelayPageStore=$("opsDelayStore"),opsLinePageStore=$("opsLineStore"),opsLinkPageStore=$("opsLinkStore");
+const opsDelayRows=[],opsLineRows=[];
+let opsLoadedDelayRows=[],opsLoadedLineRows=[];
+const opsLocalDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
+function opsStoreName(code){const option=[...opsDelayPageStore.options].find(x=>x.value===String(code));return option?option.textContent.replace(/（\d{3}）$/,""):String(code||"");}
+function opsEscape(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+document.querySelectorAll(".ops-tab").forEach(btn=>btn.onclick=()=>{document.querySelectorAll(".ops-tab").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".ops-panel").forEach(x=>x.hidden=x.id!==({delay:"opsDelayPanel",line:"opsLinePanel",links:"opsLinksPanel"}[btn.dataset.opsTab]));});
+function opsMonthValue(){return $("opsMonthFilter").value||opsLocalDate().slice(0,7);}
+function opsMonthEnd(){let [y,m]=opsMonthValue().split("-").map(Number);if(m===12){y+=1;m=1;}else m+=1;return String(y)+"-"+String(m).padStart(2,"0")+"-01";}
+async function opsLoadData(){
+  $("opsDelayList").innerHTML='<div class="ops-empty">讀取中…</div>';$("opsLineList").innerHTML='<div class="ops-empty">讀取中…</div>';
+  const [delay,line]=await Promise.all([
+    db.from("t995_delay_orders").select("*").gte("record_date",opsMonthValue()+"-01").lt("record_date",opsMonthEnd()).order("record_date",{ascending:false}).order("created_at",{ascending:false}).limit(1000),
+    db.from("t995_line_signature_records").select("*").gte("record_date",opsMonthValue()+"-01").lt("record_date",opsMonthEnd()).order("record_date",{ascending:false}).limit(1000)
+  ]);
+  if(delay.error)throw delay.error;if(line.error)throw line.error;
+  opsLoadedDelayRows=delay.data||[];opsLoadedLineRows=line.data||[];opsRenderDelay();opsRenderLine();
+}
+function opsRenderDelay(){
+  const list=$("opsDelayList");if(!opsLoadedDelayRows.length){list.innerHTML='<div class="ops-empty">本月尚無延遲訂單紀錄。</div>';return;}
+  list.innerHTML='<table class="ops-table"><thead><tr><th>日期</th><th>店號／餐廳</th><th>訂單編號</th><th>狀態</th><th>回覆原因</th></tr></thead><tbody>'+opsLoadedDelayRows.map(r=>'<tr><td>'+opsEscape(r.record_date)+'</td><td>'+opsEscape(r.store_code)+'／'+opsEscape(r.restaurant_name)+'</td><td>'+opsEscape(r.order_number)+'</td><td><span class="ops-status '+(r.status==="completed"?"done":"")+'">'+(r.status==="completed"?"已回覆":"待回覆")+'</span></td><td>'+opsEscape(r.reason||"—")+'</td></tr>').join("")+'</tbody></table>';
+}
+function opsRenderLine(){
+  const list=$("opsLineList");if(!opsLoadedLineRows.length){list.innerHTML='<div class="ops-empty">本月尚無劃線／簽名紀錄。</div>';return;}
+  list.innerHTML='<table class="ops-table"><thead><tr><th>日期</th><th>店號／餐廳</th><th>狀態</th><th>簽名人／登記人</th><th>備註</th></tr></thead><tbody>'+opsLoadedLineRows.map(r=>'<tr><td>'+opsEscape(r.record_date)+'</td><td>'+opsEscape(r.store_code)+'／'+opsEscape(r.restaurant_name)+'</td><td><span class="ops-status '+(r.status==="completed"?"done":"")+'">'+(r.status==="completed"?"已完成":"未完成")+'</span></td><td>'+opsEscape(r.signer_name||"—")+'</td><td>'+opsEscape(r.note||"—")+'</td></tr>').join("")+'</tbody></table>';
+}
+$("opsDelaySave").onclick=async()=>{
+  const date=$("opsDelayDate").value,store=opsDelayPageStore.value,order=$("opsDelayOrder").value.trim(),msg=$("opsDelayMessage");
+  if(!date||!store||!order){msg.textContent="請填寫日期、店號與訂單編號。";return;}
+  $("opsDelaySave").disabled=true;msg.textContent="儲存中…";
+  try{const r=await db.from("t995_delay_orders").insert({record_date:date,store_code:store,restaurant_name:opsStoreName(store),order_number:order,status:"pending"});if(r.error)throw r.error;msg.textContent="已新增待回覆訂單。";$("opsDelayOrder").value="";$("opsMonthFilter").value=date.slice(0,7);await opsLoadData();}
+  catch(e){msg.textContent="新增失敗："+(e.code==="23505"?"同一日期、餐廳與訂單編號已存在。":(e.message||"請先確認資料表 SQL 已執行。"));}
+  finally{$("opsDelaySave").disabled=false;}
+};
+$("opsLineSave").onclick=async()=>{
+  const date=$("opsLineDate").value,store=opsLinePageStore.value,msg=$("opsLineMessage");
+  if(!date||!store){msg.textContent="請選擇日期與餐廳。";return;}
+  $("opsLineSave").disabled=true;msg.textContent="儲存中…";
+  try{const payload={record_date:date,store_code:store,restaurant_name:opsStoreName(store),status:$("opsLineStatus").value,signer_name:$("opsSigner").value.trim()||null,note:$("opsLineNote").value.trim()||null,updated_at:new Date().toISOString()};const r=await db.from("t995_line_signature_records").upsert(payload,{onConflict:"record_date,store_code"});if(r.error)throw r.error;msg.textContent="當日餐廳紀錄已儲存。";$("opsMonthFilter").value=date.slice(0,7);await opsLoadData();}
+  catch(e){msg.textContent="儲存失敗："+(e.message||"請先確認資料表 SQL 已執行。");}
+  finally{$("opsLineSave").disabled=false;}
+};
+$("opsLinkCreate").onclick=async()=>{
+  const store=opsLinkPageStore.value,msg=$("opsLinkMessage");if(!store){msg.textContent="請選擇餐廳。";return;}
+  $("opsLinkCreate").disabled=true;msg.textContent="產生專屬連結中…";
+  try{const r=await db.rpc("t995_issue_restaurant_reply_link",{p_store_code:store});if(r.error)throw r.error;const url=new URL("reply.html",location.href);url.searchParams.set("token",r.data);$("opsLinkUrl").value=url.href;$("opsLinkResult").hidden=false;msg.textContent="連結已產生。重新產生會讓先前的連結失效，請將新連結交給該餐廳。";}
+  catch(e){msg.textContent="產生失敗："+(e.message||"請確認已執行 SQL，且目前帳號已登入。");}
+  finally{$("opsLinkCreate").disabled=false;}
+};
+$("opsLinkCopy").onclick=async()=>{try{await navigator.clipboard.writeText($("opsLinkUrl").value);$("opsLinkMessage").textContent="已複製連結。";}catch(e){$("opsLinkUrl").select();document.execCommand("copy");$("opsLinkMessage").textContent="已複製連結。";}};
+$("opsMonthFilter").value=opsLocalDate().slice(0,7);$("opsDelayDate").value=opsLocalDate();$("opsLineDate").value=opsLocalDate();
+$("opsRefresh").onclick=()=>opsLoadData().catch(e=>{$("opsDelayMessage").textContent="讀取失敗："+(e.message||"資料庫尚未設定");});
+$("opsMonthFilter").onchange=()=>opsLoadData().catch(e=>{$("opsDelayMessage").textContent="讀取失敗："+(e.message||"資料庫尚未設定");});
+$("opsExport").onclick=()=>{
+  const wb=XLSX.utils.book_new();
+  const d=opsLoadedDelayRows.map(r=>({日期:r.record_date,店號:r.store_code,餐廳:r.restaurant_name,訂單編號:r.order_number,狀態:r.status==="completed"?"已回覆":"待回覆",等餐原因:r.reason||"",回覆時間:r.responded_at||""}));
+  const l=opsLoadedLineRows.map(r=>({日期:r.record_date,店號:r.store_code,餐廳:r.restaurant_name,狀態:r.status==="completed"?"已完成":"未完成",簽名人或登記人:r.signer_name||"",備註:r.note||""}));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),"延遲訂單");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(l),"劃線簽名");XLSX.writeFile(wb,"營運紀錄_"+opsMonthValue()+".xlsx");
+};
+const opsOriginalShowAdminMode=showAdminMode;
+showAdminMode=function(mode){opsOriginalShowAdminMode(mode);opsModePage.style.display=mode==="ops"?"block":"none";if(mode==="ops")opsLoadData().catch(e=>{$("opsDelayList").innerHTML='<div class="ops-empty">讀取失敗：'+opsEscape(e.message||"請執行資料庫 SQL")+ "</div>";});};
+$("opsBackBtn").onclick=()=>showAdminMode("home");opsModeBtn.onclick=()=>showAdminMode("ops");
 
 </script>
 
