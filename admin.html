@@ -5992,11 +5992,12 @@ function opsStoreName(code){const option=[...opsDelayPageStore.options].find(x=>
 function opsEscape(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 document.querySelectorAll(".ops-tab").forEach(btn=>btn.onclick=()=>{document.querySelectorAll(".ops-tab").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".ops-panel").forEach(x=>x.hidden=x.id!==({delay:"opsDelayPanel",line:"opsLinePanel",links:"opsLinksPanel"}[btn.dataset.opsTab]));});
 function opsMonthValue(){return $("opsMonthFilter").value||opsLocalDate().slice(0,7);}
+function opsMonthEnd(){let [y,m]=opsMonthValue().split("-").map(Number);if(m===12){y+=1;m=1;}else m+=1;return String(y)+"-"+String(m).padStart(2,"0")+"-01";}
 async function opsLoadData(){
   $("opsDelayList").innerHTML='<div class="ops-empty">讀取中…</div>';$("opsLineList").innerHTML='<div class="ops-empty">讀取中…</div>';
   const [delay,line]=await Promise.all([
-    db.from("t995_delay_orders").select("*").gte("record_date",opsMonthValue()+"-01").lt("record_date",opsMonthValue()+"-32").order("record_date",{ascending:false}).order("created_at",{ascending:false}).limit(1000),
-    db.from("t995_line_signature_records").select("*").gte("record_date",opsMonthValue()+"-01").lt("record_date",opsMonthValue()+"-32").order("record_date",{ascending:false}).limit(1000)
+    db.from("t995_delay_orders").select("*").gte("record_date",opsMonthValue()+"-01").lt("record_date",opsMonthEnd()).order("record_date",{ascending:false}).order("created_at",{ascending:false}).limit(1000),
+    db.from("t995_line_signature_records").select("*").gte("record_date",opsMonthValue()+"-01").lt("record_date",opsMonthEnd()).order("record_date",{ascending:false}).limit(1000)
   ]);
   if(delay.error)throw delay.error;if(line.error)throw line.error;
   opsLoadedDelayRows=delay.data||[];opsLoadedLineRows=line.data||[];opsRenderDelay();opsRenderLine();
