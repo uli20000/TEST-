@@ -22,7 +22,7 @@ main{padding-top:22px}.toolbar{display:flex;justify-content:center;align-items:c
 .datebox{min-height:42px;padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:10px;text-align:center}
 .primary{border:0;border-radius:10px;background:var(--red);color:#fff;padding:10px 18px;font-weight:800}.primary:disabled{opacity:.55;cursor:wait}
 #periodLabel{font-size:14px;color:var(--muted);font-weight:700;min-width:150px}
-.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .kpi{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 10px;box-shadow:var(--shadow)}
 .kpi-label{font-size:13px;font-weight:800;color:var(--muted)}.kpi-value{font-size:28px;font-weight:900;margin-top:5px}.kpi-foot{font-size:12px;color:var(--muted);margin-top:4px}
 .insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
@@ -54,16 +54,15 @@ main{padding-top:22px}.toolbar{display:flex;justify-content:center;align-items:c
 <div id="status" class="message">載入報表中…</div>
 <div id="report" class="hidden">
 <div class="cards">
-<div class="kpi"><div class="kpi-label">TC 訂單</div><div id="kpiTc" class="kpi-value">—</div></div>
-<div class="kpi"><div class="kpi-label">非第三方 TC</div><div id="kpiNonFa" class="kpi-value">—</div></div>
-<div class="kpi"><div class="kpi-label">實際工時</div><div id="kpiHours" class="kpi-value">—</div></div>
-<div class="kpi"><div class="kpi-label">TPLH</div><div id="kpiTplh" class="kpi-value">—</div></div>
-<div class="kpi"><div class="kpi-label">等餐紀錄</div><div id="kpiDelay" class="kpi-value">—</div></div>
-<div class="kpi"><div class="kpi-label">已回覆原因</div><div id="kpiReplied" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">SSTG ↑</div><div id="kpiSstg" class="kpi-value">—</div><div class="kpi-foot">需去年同期餐廳 TC</div></div>
+<div class="kpi"><div class="kpi-label">D25 ↑</div><div id="kpiD25" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">D7 ↑</div><div id="kpiD7" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">等餐 ↓</div><div id="kpiDelay" class="kpi-value">—</div><div class="kpi-foot">等餐紀錄筆數</div></div>
+<div class="kpi"><div class="kpi-label">第三方使用率 ↓</div><div id="kpiThirdParty" class="kpi-value">—</div></div>
 </div>
-<div class="insights"><div class="insight"><div class="insight-label">TPLH 最低餐廳</div><div id="insightWorst" class="insight-value">—</div></div><div class="insight"><div class="insight-label">最常見回覆原因</div><div id="insightReason" class="insight-value">—</div></div><div class="insight"><div class="insight-label">等餐原因回覆率</div><div id="insightReplyRate" class="insight-value">—</div></div></div>
+<div class="insights"><div class="insight"><div class="insight-label">目前選取排行的最弱餐廳</div><div id="insightWorst" class="insight-value">—</div></div><div class="insight"><div class="insight-label">最常見回覆原因</div><div id="insightReason" class="insight-value">—</div></div><div class="insight"><div class="insight-label">等餐原因回覆率</div><div id="insightReplyRate" class="insight-value">—</div></div></div>
 <div class="grid">
-<section class="panel"><h2>成績較弱餐廳</h2><div class="desc">依期間 TPLH 由低至高排列</div><div id="worstTable" class="table-scroll"></div></section>
+<section class="panel"><h2>餐廳成績排行</h2><div class="toolbar"><select id="rankMetric" class="datebox" aria-label="選擇排行成績"><option value="sstg">SSTG（越高越好）</option><option value="d25">D25（越高越好）</option><option value="d7">D7（越高越好）</option><option value="waiting">等餐（越少越好）</option><option value="thirdParty">第三方使用率（越低越好）</option></select></div><div id="rankHint" class="desc"></div><div id="worstTable" class="table-scroll"></div></section>
 <section class="panel"><h2>等餐原因分類</h2><div id="reasonBars" class="barlist"></div></section>
 </div>
 <div class="grid">
@@ -108,45 +107,46 @@ async function loadReport(){
   ]);
   storeByCode=new Map(restaurants.map(x=>[x.store_code,x]));storeByName=new Map(restaurants.map(x=>[normalizeName(x.restaurant_name),x]));
   const latest=new Map();for(const b of batches){const k=b.report_date+"|"+b.report_type;if(!latest.has(k))latest.set(k,b);}
-  const chosen=[...latest.values()],scoreMap=new Map();
-  const groups=[];for(let i=0;i<chosen.length;i+=10)groups.push(chosen.slice(i,i+10));
-  for(const group of groups){const ids=group.map(b=>b.id);const rows=await fetchAll("t995_score_import_rows","batch_id,store_code,restaurant_name,order_number,payload",q=>q.in("batch_id",ids));
-   const typeById=new Map(group.map(b=>[b.id,b.report_type]));
-   for(const row of rows){const s=resolveStore(row);const key=s.store_code||normalizeName(s.restaurant_name);const v=scoreMap.get(key)||{...s,tc:0,nonfa:0};if(typeById.get(row.batch_id)==="ByOrder")v.tc++;else v.nonfa++;scoreMap.set(key,v);}
+  const chosen=[...latest.values()],scoreMap=new Map(),groups=[];for(let i=0;i<chosen.length;i+=10)groups.push(chosen.slice(i,i+10));
+  for(const group of groups){
+   const ids=group.map(b=>b.id),rows=await fetchAll("t995_score_import_rows","batch_id,store_code,restaurant_name,order_number,payload",q=>q.in("batch_id",ids)),typeById=new Map(group.map(b=>[b.id,b.report_type]));
+   for(const row of rows){if(typeById.get(row.batch_id)!=="ByOrder")continue;const s=resolveStore(row),key=s.store_code||normalizeName(s.restaurant_name),v=scoreMap.get(key)||{...s,tc:0,thirdParty:0,d7Yes:0,d7Eligible:0,d25Yes:0,d25Eligible:0},p=row.payload||{};v.tc++;if(String(p["自動/手動"]||"").trim()==="第三方")v.thirdParty++;const d7=String(p.D7??"").trim().toUpperCase(),d25=String(p.D25??"").trim().toUpperCase();if(d7==="Y"||d7==="N"){v.d7Eligible++;if(d7==="Y")v.d7Yes++;}if(d25==="Y"||d25==="N"){v.d25Eligible++;if(d25==="Y")v.d25Yes++;}scoreMap.set(key,v);}
   }
-  const hourMap=new Map();for(const h of hours){const v=hourMap.get(h.store_code)||0;hourMap.set(h.store_code,v+Number(h.total_hours||0)-Number(h.transfer_out_hours||0)+Number(h.transfer_in_hours||0));}
-  const delayMap=new Map();for(const d of delay){const s=resolveStore(d),key=s.store_code||normalizeName(s.restaurant_name);const x=delayMap.get(key)||{total:0,replied:0,causes:[]};x.total++;if(d.status==="completed"&&String(d.reason||"").trim()){x.replied++;x.causes.push({reason:String(d.reason).trim(),date:d.record_date,order:d.order_number,restaurant:s.restaurant_name,store_code:s.store_code,category:classifyReason(d.reason)});}delayMap.set(key,x);}
-  const allKeys=new Set([...scoreMap.keys(),...hourMap.keys(),...delayMap.keys()]);
-  const metrics=[...allKeys].map(key=>{const found=scoreMap.get(key);const store=storeByCode.get(key)||null;const s=found||{store_code:store?.store_code||(/^\\d{3}$/.test(key)?key:""),restaurant_name:store?.restaurant_name||"未分類餐廳",region:regionFor(store?.restaurant_name||""),tc:0,nonfa:0};const h=hourMap.get(s.store_code)||0;const d=delayMap.get(key)||{total:0,replied:0,causes:[]};return {...s,hasScore:Boolean(found),hours:h,actualTplh:h>0?s.nonfa/h:null,delayTotal:d.total,replied:d.replied,causes:d.causes};});
-  const totalTc=metrics.reduce((n,x)=>n+x.tc,0),totalNonfa=metrics.reduce((n,x)=>n+x.nonfa,0),totalHours=metrics.reduce((n,x)=>n+x.hours,0),totalDelay=delay.length,replied=delay.filter(x=>x.status==="completed"&&String(x.reason||"").trim()).length;
-  const ranked=metrics.filter(x=>x.hasScore&&x.actualTplh!==null).sort((a,b)=>a.actualTplh-b.actualTplh);
-  const causeMap=new Map();for(const m of metrics)for(const c of m.causes){const x=causeMap.get(c.category)||{category:c.category,count:0,examples:[]};x.count++;if(x.examples.length<2)x.examples.push(c.reason);causeMap.set(c.category,x);}
-  const causeRows=[...causeMap.values()].sort((a,b)=>b.count-a.count);
-  const restaurantReasons=metrics.filter(x=>x.causes.length).map(x=>{const counts=new Map();for(const c of x.causes)counts.set(c.category,(counts.get(c.category)||0)+1);const top=[...counts].sort((a,b)=>b[1]-a[1])[0];const exact=new Map();for(const c of x.causes)exact.set(c.reason,(exact.get(c.reason)||0)+1);const common=[...exact].sort((a,b)=>b[1]-a[1])[0];return {...x,topReason:top?.[0]||"—",topReasonCount:top?.[1]||0,commonText:common?.[0]||"—"};}).sort((a,b)=>b.causes.length-a.causes.length);
-  render({start,end,label,metrics,ranked,causeRows,restaurantReasons,delay,totalTc,totalNonfa,totalHours,replied,totalDelay});
+  const delayMap=new Map();for(const d of delay){const s=resolveStore(d),key=s.store_code||normalizeName(s.restaurant_name),x=delayMap.get(key)||{total:0,replied:0,causes:[]};x.total++;if(d.status==="completed"&&String(d.reason||"").trim()){x.replied++;x.causes.push({reason:String(d.reason).trim(),date:d.record_date,order:d.order_number,restaurant:s.restaurant_name,store_code:s.store_code,category:classifyReason(d.reason)});}delayMap.set(key,x);}
+  const allKeys=new Set([...scoreMap.keys(),...delayMap.keys()]);
+  const metrics=[...allKeys].map(key=>{const found=scoreMap.get(key),store=storeByCode.get(key)||null,s=found||{store_code:store?.store_code||(/^\\d{3}$/.test(key)?key:""),restaurant_name:store?.restaurant_name||"未分類餐廳",region:regionFor(store?.restaurant_name||""),tc:0,thirdParty:0,d7Yes:0,d7Eligible:0,d25Yes:0,d25Eligible:0},d=delayMap.get(key)||{total:0,replied:0,causes:[]};return {...s,hasScore:Boolean(found),d7Rate:s.d7Eligible?s.d7Yes/s.d7Eligible:null,d25Rate:s.d25Eligible?s.d25Yes/s.d25Eligible:null,thirdPartyRate:s.tc?s.thirdParty/s.tc:null,delayTotal:d.total,replied:d.replied,causes:d.causes};});
+  const totalTc=metrics.reduce((n,x)=>n+x.tc,0),totalThird=metrics.reduce((n,x)=>n+x.thirdParty,0),d7Yes=metrics.reduce((n,x)=>n+x.d7Yes,0),d7Eligible=metrics.reduce((n,x)=>n+x.d7Eligible,0),d25Yes=metrics.reduce((n,x)=>n+x.d25Yes,0),d25Eligible=metrics.reduce((n,x)=>n+x.d25Eligible,0),totalDelay=delay.length,replied=delay.filter(x=>x.status==="completed"&&String(x.reason||"").trim()).length;
+  const causeMap=new Map();for(const m of metrics)for(const c of m.causes){const x=causeMap.get(c.category)||{category:c.category,count:0,examples:[]};x.count++;if(x.examples.length<2)x.examples.push(c.reason);causeMap.set(c.category,x);}const causeRows=[...causeMap.values()].sort((a,b)=>b.count-a.count);
+  const restaurantReasons=metrics.filter(x=>x.causes.length).map(x=>{const counts=new Map();for(const c of x.causes)counts.set(c.category,(counts.get(c.category)||0)+1);const top=[...counts].sort((a,b)=>b[1]-a[1])[0],exact=new Map();for(const c of x.causes)exact.set(c.reason,(exact.get(c.reason)||0)+1);const common=[...exact].sort((a,b)=>b[1]-a[1])[0];return {...x,topReason:top?.[0]||"—",topReasonCount:top?.[1]||0,commonText:common?.[0]||"—"};}).sort((a,b)=>b.causes.length-a.causes.length);
+  render({start,end,label,metrics,causeRows,restaurantReasons,delay,totalTc,totalThird,d7Yes,d7Eligible,d25Yes,d25Eligible,replied,totalDelay});
  }catch(e){$("status").className="message error";$("status").textContent="讀取失敗："+(e.message||"請確認登入狀態與資料表設定");}
  finally{$("refresh").disabled=false;}
 }
+function pct(v){return v==null?"—":(v*100).toFixed(1)+"%";}
+function rankValue(x,key){return key==="sstg"?x.sstgRate:key==="d25"?x.d25Rate:key==="d7"?x.d7Rate:key==="waiting"?x.delayTotal:x.thirdPartyRate;}
+function renderRanking(){
+ if(!lastResult)return;const mode=$("rankMetric").value,labels={sstg:"SSTG",d25:"D25",d7:"D7",waiting:"等餐紀錄",thirdParty:"第三方使用率"},higher=["sstg","d25","d7"].includes(mode),candidates=lastResult.metrics.filter(x=>mode==="waiting"?x.delayTotal>0:rankValue(x,mode)!=null);
+ $("rankHint").textContent=mode==="sstg"?"需要匯入各餐廳去年同期 TC，才能計算 SSTG。":labels[mode]+"排行｜"+(higher?"由低至高":"由高至低")+(mode==="waiting"?"｜僅列有等餐紀錄餐廳":"");
+ candidates.sort((a,b)=>higher?rankValue(a,mode)-rankValue(b,mode):rankValue(b,mode)-rankValue(a,mode));
+ const rows=candidates.slice(0,20).map((x,i)=>[String(i+1),x.region,x.restaurant_name,mode==="waiting"?String(x.delayTotal):pct(rankValue(x,mode)),mode==="d7"?String(x.d7Yes+"/"+x.d7Eligible):mode==="d25"?String(x.d25Yes+"/"+x.d25Eligible):String(x.tc),String(x.tc)]);
+ $("worstTable").innerHTML=rows.length?table(["排名","區域","餐廳",labels[mode],mode==="waiting"?"等餐紀錄":"成功數/有效訂單","TC"],rows):"<div class='empty'>目前沒有可用的"+labels[mode]+"成績資料。</div>";
+ $("insightWorst").textContent=rows.length?candidates[0].restaurant_name+"｜"+(mode==="waiting"?String(candidates[0].delayTotal)+" 筆":pct(rankValue(candidates[0],mode))):"尚無可用資料";
+}
 function render(r){
- lastResult=r;$("status").textContent="";$("report").classList.remove("hidden");
- $("kpiTc").textContent=r.totalTc.toLocaleString();$("kpiNonFa").textContent=r.totalNonfa.toLocaleString();$("kpiHours").textContent=r.totalHours.toFixed(2);$("kpiTplh").textContent=r.totalHours?(r.totalNonfa/r.totalHours).toFixed(2):"—";$("kpiDelay").textContent=r.totalDelay.toLocaleString();$("kpiReplied").textContent=r.replied.toLocaleString();
- $("insightWorst").textContent=r.ranked[0]?r.ranked[0].restaurant_name+"｜"+r.ranked[0].actualTplh.toFixed(2):"尚無工時資料";
- $("insightReason").textContent=r.causeRows[0]?r.causeRows[0].category+"｜"+r.causeRows[0].count+" 筆":"尚無已回覆原因";
- $("insightReplyRate").textContent=r.totalDelay?Math.round(r.replied/r.totalDelay*100)+"%":"—";
- const worst=r.ranked.slice(0,10);$("worstTable").innerHTML=worst.length?table(["排名","區域","餐廳","TC","非第三方 TC","實際工時","TPLH","等餐","原因摘要"],worst.map((x,i)=>[String(i+1),x.region,x.restaurant_name,String(x.tc),String(x.nonfa),x.hours.toFixed(2),x.actualTplh.toFixed(2),x.replied+"/"+x.delayTotal,primaryCategory(x.causes)])):"<div class='empty'>此期間尚無已輸入工時的餐廳成績。</div>";
- const areaMap=new Map();for(const x of r.metrics){const v=areaMap.get(x.region)||{region:x.region,tc:0,nonfa:0,hours:0,restaurants:0};v.tc+=x.tc;v.nonfa+=x.nonfa;v.hours+=x.hours;v.restaurants++;areaMap.set(x.region,v);}
- const areaOrder=["A 新竹","B 竹北","C 竹東","D 中壢","E 桃園","F 楊梅","G 大園","H 大溪龍潭","I 林口","J 大竹","K 苗栗","未分類"];
- const areas=[...areaMap.values()].sort((a,b)=>areaOrder.indexOf(a.region)-areaOrder.indexOf(b.region));$("areaTable").innerHTML=areas.length?table(["區域","餐廳數","TC","非第三方 TC","實際工時","TPLH"],areas.map(x=>[x.region,String(x.restaurants),String(x.tc),String(x.nonfa),x.hours.toFixed(2),x.hours?(x.nonfa/x.hours).toFixed(2):"—"])):"<div class='empty'>沒有區域成績資料。</div>";
+ lastResult=r;$("status").textContent="";$("report").classList.remove("hidden");$("kpiSstg").textContent="—";$("kpiD25").textContent=pct(r.d25Eligible?r.d25Yes/r.d25Eligible:null);$("kpiD7").textContent=pct(r.d7Eligible?r.d7Yes/r.d7Eligible:null);$("kpiDelay").textContent=r.totalDelay.toLocaleString();$("kpiThirdParty").textContent=pct(r.totalTc?r.totalThird/r.totalTc:null);
+ $("insightReason").textContent=r.causeRows[0]?r.causeRows[0].category+"｜"+r.causeRows[0].count+" 筆":"尚無已回覆原因";$("insightReplyRate").textContent=r.totalDelay?Math.round(r.replied/r.totalDelay*100)+"%":"—";renderRanking();
+ const areaMap=new Map();for(const x of r.metrics){const v=areaMap.get(x.region)||{region:x.region,tc:0,thirdParty:0,d7Yes:0,d7Eligible:0,d25Yes:0,d25Eligible:0,waiting:0,restaurants:0};v.tc+=x.tc;v.thirdParty+=x.thirdParty;v.d7Yes+=x.d7Yes;v.d7Eligible+=x.d7Eligible;v.d25Yes+=x.d25Yes;v.d25Eligible+=x.d25Eligible;v.waiting+=x.delayTotal;v.restaurants++;areaMap.set(x.region,v);}
+ const areaOrder=["A 新竹","B 竹北","C 竹東","D 中壢","E 桃園","F 楊梅","G 大園","H 大溪龍潭","I 林口","J 大竹","K 苗栗","未分類"],areas=[...areaMap.values()].sort((a,b)=>areaOrder.indexOf(a.region)-areaOrder.indexOf(b.region));
+ $("areaTable").innerHTML=areas.length?table(["區域","餐廳數","SSTG","D25","D7","等餐筆數","第三方使用率"],areas.map(x=>[x.region,String(x.restaurants),"—",pct(x.d25Eligible?x.d25Yes/x.d25Eligible:null),pct(x.d7Eligible?x.d7Yes/x.d7Eligible:null),String(x.waiting),pct(x.tc?x.thirdParty/x.tc:null)])):"<div class='empty'>沒有區域成績資料。</div>";
  const max=Math.max(1,...r.causeRows.map(x=>x.count));$("reasonBars").innerHTML=r.causeRows.length?r.causeRows.map(x=>'<div class="barrow"><div class="barlabel">'+escapeHtml(x.category)+'</div><div class="bartrack"><div class="bar" style="width:'+Math.max(4,x.count/max*100)+'%"></div></div><div class="barcount">'+x.count+'</div></div>').join(""):"<div class='empty'>此期間沒有已回覆原因。</div>";
  $("restaurantReasonTable").innerHTML=r.restaurantReasons.length?table(["餐廳","回覆筆數","主要原因類別","最常見原因"],r.restaurantReasons.map(x=>[x.restaurant_name,String(x.causes.length),x.topReason+"（"+x.topReasonCount+"）",x.commonText])):"<div class='empty'>此期間沒有已回覆原因。</div>";
- const details=r.restaurantReasons.flatMap(x=>x.causes.map(c=>({...c,restaurant:x.restaurant_name}))).sort((a,b)=>b.date.localeCompare(a.date));
- $("reasonDetails").innerHTML=details.length?details.slice(0,60).map(x=>'<article class="reason-item"><div class="reason-head"><span>'+escapeHtml(x.restaurant)+'｜'+escapeHtml(x.category)+'</span><span>'+escapeHtml(x.date)+'</span></div><div class="reason-text">'+escapeHtml(x.reason)+'</div><div class="reason-meta">訂單 '+escapeHtml(x.order||"—")+'</div></article>').join(""):"<div class='empty'>尚無已回覆等餐原因。</div>";
+ const details=r.restaurantReasons.flatMap(x=>x.causes.map(c=>({...c,restaurant:x.restaurant_name}))).sort((a,b)=>b.date.localeCompare(a.date));$("reasonDetails").innerHTML=details.length?details.slice(0,60).map(x=>'<article class="reason-item"><div class="reason-head"><span>'+escapeHtml(x.restaurant)+'｜'+escapeHtml(x.category)+'</span><span>'+escapeHtml(x.date)+'</span></div><div class="reason-text">'+escapeHtml(x.reason)+'</div><div class="reason-meta">訂單 '+escapeHtml(x.order||"—")+'</div></article>').join(""):"<div class='empty'>尚無已回覆等餐原因。</div>";
 }
 function table(head,rows){return '<table class="table"><thead><tr>'+head.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></thead><tbody>"+rows.map((row,i)=>"<tr>"+row.map((v,j)=>"<td>"+(j===0&&/^[0-9]+$/.test(String(v))?'<span class="rank">'+escapeHtml(v)+'</span>':escapeHtml(v))+"</td>").join("")+"</tr>").join("")+"</tbody></table>";}
-document.querySelectorAll(".periods button").forEach(b=>b.onclick=()=>{period=b.dataset.period;document.querySelectorAll(".periods button").forEach(x=>x.classList.toggle("active",x===b));$("dateInput").classList.toggle("hidden",period==="month");$("monthInput").classList.toggle("hidden",period!=="month");loadReport();});
+document.querySelectorAll(".periods button").forEach(b=>b.onclick=()=>{period=b.dataset.period;document.querySelectorAll(".periods button").forEach(x=>x.classList.toggle("active",x===b));$("dateInput").classList.toggle("hidden",period==="month");$("monthInput").classList.toggle("hidden",period!=="month");loadReport();});$("rankMetric").onchange=renderRanking;
 $("refresh").onclick=loadReport;
 $("dateInput").value=today();$("monthInput").value=today().slice(0,7);
-$("export").onclick=()=>{if(!lastResult||!window.XLSX)return;const r=lastResult,wb=XLSX.utils.book_new();const scores=r.metrics.map(x=>({區域:x.region,店號:x.store_code,餐廳:x.restaurant_name,TC:x.tc,非第三方TC:x.nonfa,實際工時:x.hours,TPLH:x.actualTplh??""}));const causes=r.restaurantReasons.map(x=>({餐廳:x.restaurant_name,回覆筆數:x.causes.length,主要原因:x.topReason,最常見原因:x.commonText}));const details=r.restaurantReasons.flatMap(x=>x.causes.map(c=>({日期:c.date,餐廳:x.restaurant_name,訂單:c.order,原因分類:c.category,餐廳回覆:c.reason})));XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{報表期間:r.label,TC:r.totalTc,非第三方TC:r.totalNonfa,實際工時:r.totalHours,TPLH:r.totalHours?r.totalNonfa/r.totalHours:"",等餐紀錄:r.totalDelay,原因回覆:r.replied}]),"摘要");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(scores),"餐廳成績");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(causes),"原因彙總");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(details),"原因明細");XLSX.writeFile(wb,"T995_"+period+"_"+r.start+".xlsx");};
+$("export").onclick=()=>{if(!lastResult||!window.XLSX)return;const r=lastResult,wb=XLSX.utils.book_new();const scores=r.metrics.map(x=>({區域:x.region,店號:x.store_code,餐廳:x.restaurant_name,TC:x.tc,SSTG:"",D25達成率:x.d25Rate??"",D25成功數:x.d25Yes,D25有效訂單:x.d25Eligible,D7達成率:x.d7Rate??"",D7成功數:x.d7Yes,D7有效訂單:x.d7Eligible,等餐紀錄:x.delayTotal,第三方使用率:x.thirdPartyRate??"",第三方訂單:x.thirdParty}));const causes=r.restaurantReasons.map(x=>({餐廳:x.restaurant_name,回覆筆數:x.causes.length,主要原因:x.topReason,最常見原因:x.commonText}));const details=r.restaurantReasons.flatMap(x=>x.causes.map(c=>({日期:c.date,餐廳:x.restaurant_name,訂單:c.order,原因分類:c.category,餐廳回覆:c.reason})));XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{報表期間:r.label,TC:r.totalTc,SSTG:"需去年同期餐廳TC基準",D25達成率:r.d25Eligible?r.d25Yes/r.d25Eligible:"",D7達成率:r.d7Eligible?r.d7Yes/r.d7Eligible:"",等餐紀錄:r.totalDelay,第三方使用率:r.totalTc?r.totalThird/r.totalTc:"",原因回覆:r.replied}]),"摘要");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(scores),"餐廳成績");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(causes),"原因彙總");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(details),"原因明細");XLSX.writeFile(wb,"T995_"+period+"_"+r.start+".xlsx");};
 (async()=>{try{const {data,error}=await db.auth.getSession();if(error)throw error;if(!data.session){$("authMessage").classList.remove("hidden");$("authMessage").innerHTML='請先登入營運後台，再開啟分析儀表板。<br><a href="admin.html">前往登入</a>';return;}$("dashboard").classList.remove("hidden");await loadReport();}catch(e){$("authMessage").classList.remove("hidden");$("authMessage").textContent="登入狀態讀取失敗："+(e.message||"請先登入營運後台");}})();
 </script>
 </body>
