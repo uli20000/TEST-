@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f0e8">
+<title>T995｜營運分析儀表板</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--red:#c8102e;--ink:#242424;--muted:#77736d;--bg:#f4f0e8;--paper:#fff;--line:#ddd8ce;--green:#356b4b;--amber:#9a6b00;--shadow:0 5px 20px rgba(31,24,18,.06}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Helvetica Neue",Arial,sans-serif;text-align:center}
+button,input{font:inherit}button{cursor:pointer}.wrap{max-width:1260px;margin:auto;padding:0 18px 52px}
+header{background:var(--paper);border-bottom:1px solid var(--line);padding:20px 16px 18px}
+.topline{max-width:1260px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-size:12px;letter-spacing:3px;color:var(--muted);font-weight:800}.back{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;text-decoration:none;color:var(--ink);font-weight:700}
+h1{margin:14px 0 4px;font-size:clamp(25px,4vw,38px)}.subtitle{font-weight:700;color:#5f5a54}
+main{padding-top:22px}.toolbar{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:0 auto 18px}
+.periods{display:flex;gap:5px;padding:4px;border-radius:12px;background:#fff;border:1px solid var(--line)}
+.periods button{border:0;border-radius:8px;background:transparent;padding:9px 16px;font-weight:800;color:var(--ink)}
+.periods button.active{background:var(--red);color:#fff}
+.datebox{min-height:42px;padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:10px;text-align:center}
+.primary{border:0;border-radius:10px;background:var(--red);color:#fff;padding:10px 18px;font-weight:800}.primary:disabled{opacity:.55;cursor:wait}
+#periodLabel{font-size:14px;color:var(--muted);font-weight:700;min-width:150px}
+.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 10px;box-shadow:var(--shadow)}
+.kpi-label{font-size:13px;font-weight:800;color:var(--muted)}.kpi-value{font-size:28px;font-weight:900;margin-top:5px}.kpi-foot{font-size:12px;color:var(--muted);margin-top:4px}
+.insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.insight{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.insight-label{font-size:13px;color:var(--muted);font-weight:800}.insight-value{font-size:17px;font-weight:900;margin-top:6px}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.panel h2{font-size:18px;margin:0 0 12px;text-align:center}.panel .desc{font-size:12px;color:var(--muted);margin:-4px 0 12px}
+.table-scroll{overflow:auto}.table{border-collapse:collapse;width:100%;font-size:13px}.table th,.table td{border-bottom:1px solid #eee9e1;padding:9px 7px;text-align:center;vertical-align:middle;white-space:nowrap}.table th{background:#faf8f4;font-weight:900;position:sticky;top:0}.rank{font-weight:900;color:var(--red)}.area-tag{border-radius:99px;background:#f5f0e9;padding:3px 8px;font-weight:800}
+.barlist{display:grid;gap:11px;text-align:left}.barrow{display:grid;grid-template-columns:minmax(95px,150px) 1fr 40px;gap:8px;align-items:center}.barlabel{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bartrack{height:12px;background:#f1ede6;border-radius:99px;overflow:hidden}.bar{height:100%;background:var(--red);border-radius:99px}.barcount{font-weight:900;text-align:right}
+.reason-list{display:grid;gap:8px}.reason-item{padding:11px 12px;border:1px solid #eee9e1;border-radius:11px;text-align:left}.reason-head{display:flex;justify-content:space-between;gap:8px;font-weight:900}.reason-text{font-size:13px;margin-top:5px;line-height:1.5}.reason-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.message{padding:24px 12px;color:var(--muted);font-weight:700}.error{color:#b42318}.empty{padding:18px;color:var(--muted)}
+.actions{display:flex;justify-content:center;gap:10px;margin:16px 0}.secondary{border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px 16px;font-weight:800}
+.hidden{display:none!important}
+@media(max-width:900px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.grid{grid-template-columns:1fr}}
+@media(max-width:560px){.wrap{padding:0 10px 36px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kpi{padding:13px 6px}.kpi-value{font-size:24px}.insights{grid-template-columns:1fr}.toolbar{gap:7px}.periods{width:100%;justify-content:center}.periods button{flex:1;padding:9px 6px}.datebox{width:100%}.panel{padding:13px 8px}.table{font-size:11px}.table th,.table td{padding:8px 5px}.barrow{grid-template-columns:90px 1fr 30px}}
+</style>
+</head>
+<body>
+<header><div class="topline"><div class="brand">KFC DELIVERY CENTER｜T995</div><a class="back" href="admin.html">返回後台</a></div><h1>營運分析儀表板</h1><div class="subtitle">日報・週報・月報｜餐廳成績與等餐原因</div></header>
+<div class="wrap"><main>
+<div id="authMessage" class="panel message hidden"></div>
+<div id="dashboard" class="hidden">
+<div class="toolbar">
+<div class="periods" role="tablist" aria-label="報表週期"><button class="active" data-period="day" type="button">日報</button><button data-period="week" type="button">週報</button><button data-period="month" type="button">月報</button></div>
+<input id="dateInput" class="datebox" type="date" aria-label="選擇報表日期">
+<input id="monthInput" class="datebox hidden" type="month" aria-label="選擇報表月份">
+<button id="refresh" class="primary" type="button">產生報表</button><span id="periodLabel"></span>
+</div>
+<div id="status" class="message">載入報表中…</div>
+<div id="report" class="hidden">
+<div class="cards">
+<div class="kpi"><div class="kpi-label">TC 訂單</div><div id="kpiTc" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">非第三方 TC</div><div id="kpiNonFa" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">實際工時</div><div id="kpiHours" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">TPLH</div><div id="kpiTplh" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">等餐紀錄</div><div id="kpiDelay" class="kpi-value">—</div></div>
+<div class="kpi"><div class="kpi-label">已回覆原因</div><div id="kpiReplied" class="kpi-value">—</div></div>
+</div>
+<div class="insights"><div class="insight"><div class="insight-label">TPLH 最低餐廳</div><div id="insightWorst" class="insight-value">—</div></div><div class="insight"><div class="insight-label">最常見回覆原因</div><div id="insightReason" class="insight-value">—</div></div><div class="insight"><div class="insight-label">等餐原因回覆率</div><div id="insightReplyRate" class="insight-value">—</div></div></div>
+<div class="grid">
+<section class="panel"><h2>成績較弱餐廳</h2><div class="desc">依期間 TPLH 由低至高排列</div><div id="worstTable" class="table-scroll"></div></section>
+<section class="panel"><h2>等餐原因分類</h2><div id="reasonBars" class="barlist"></div></section>
+</div>
+<div class="grid">
+<section class="panel"><h2>區域成績</h2><div id="areaTable" class="table-scroll"></div></section>
+<section class="panel"><h2>餐廳回覆原因摘要</h2><div id="restaurantReasonTable" class="table-scroll"></div></section>
+</div>
+<section class="panel"><h2>餐廳原因明細</h2><div id="reasonDetails" class="reason-list"></div></section>
+<div class="actions"><button id="export" class="secondary" type="button">匯出分析 Excel</button></div>
+</div></div>
+</main></div>
+<script>
+const SUPABASE_URL="https://nurnboqwhctyswcufkyk.supabase.co";
+const SUPABASE_KEY="sb_publishable_YieSqh1zXq8wIvQiO9B_wg_ZbDkne7G";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const escapeHtml=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const shiftDate=(s,n)=>{const d=new Date(s+"T12:00:00+08:00");d.setDate(d.getDate()+n);return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);};
+const regionFor=name=>{const n=String(name||"");if(n.includes("大園"))return "G 大園";if(n.includes("大竹"))return "J 大竹";if(n.includes("大溪")||n.includes("龍潭"))return "H 大溪龍潭";if(n.includes("林口"))return "I 林口";if(n.includes("竹北")||n.includes("自強")||n.includes("中華"))return "B 竹北";if(n.includes("竹東"))return "C 竹東";if(n.includes("苗栗")||n.includes("頭份")||n.includes("竹南"))return "K 苗栗";if(n.includes("楊梅"))return "F 楊梅";if(n.includes("中壢")||n.includes("過嶺")||n.includes("領航"))return "D 中壢";if(n.includes("桃園")||n.includes("南崁"))return "E 桃園";if(n.includes("新竹")||n.includes("湖口")||n.includes("新豐"))return "A 新竹";return "未分類";};
+const normalizeName=s=>String(s||"").split(/[\/／]/)[0].replace(/\s/g,"").trim();
+const categories=[
+ {name:"餐點製作／備餐",keys:["製作","備餐","出餐","餐點","炸","烤","包裝","等餐","備料"]},
+ {name:"現場忙碌／人力",keys:["忙","尖峰","排隊","人力","人手","人員","廚房","單多"]},
+ {name:"設備／系統",keys:["設備","機器","故障","系統","當機","印單","網路"]},
+ {name:"訂單／交接溝通",keys:["訂單","單號","通知","沒收到","未收到","聯繫","溝通","交接","找不到"]},
+ {name:"其他",keys:[]}
+];
+function classifyReason(reason){const s=String(reason||"");for(const c of categories.slice(0,-1))if(c.keys.some(k=>s.includes(k)))return c.name;return "其他";}
+function primaryCategory(causes){const counts=new Map();for(const c of causes)counts.set(c.category,(counts.get(c.category)||0)+1);return [...counts].sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";}
+async function fetchAll(table,columns,build){let rows=[];for(let offset=0;;offset+=1000){let q=db.from(table).select(columns);if(build)q=build(q);const r=await q.range(offset,offset+999);if(r.error)throw r.error;rows.push(...(r.data||[]));if(!r.data||r.data.length<1000)break;}return rows;}
+let period="day", lastResult=null, storeByCode=new Map(), storeByName=new Map();
+function currentRange(){if(period==="month"){const m=$("monthInput").value||today().slice(0,7);const [y,mo]=m.split("-").map(Number);const start=m+"-01",end=new Date(Date.UTC(y,mo,0)).toISOString().slice(0,10);return {start,end,label:m};}const selected=$("dateInput").value||today();if(period==="day")return {start:selected,end:selected,label:selected};const dow=(new Date(selected+"T12:00:00+08:00").getDay()+6)%7;const start=shiftDate(selected,-dow),end=shiftDate(start,6);return {start,end,label:start+" ～ "+end};}
+function resolveStore(row){let code=String(row.store_code||"").trim();if(!/^\d{3}$/.test(code)){const m=String(row.order_number||"").match(/(?:TWI|TWB)(\d{3})/i);if(m)code=m[1];}let store=code?storeByCode.get(code):null;if(!store){store=storeByName.get(normalizeName(row.restaurant_name));if(store)code=store.store_code;}const name=store?.restaurant_name||normalizeName(row.restaurant_name)||"未分類餐廳";return {store_code:code,restaurant_name:name,region:regionFor(name)};}
+async function loadReport(){
+ const {start,end,label}=currentRange();$("periodLabel").textContent=label;$("refresh").disabled=true;$("status").className="message";$("status").textContent="正在整理成績與餐廳回覆…";$("report").classList.add("hidden");
+ try{
+  const [restaurants,batches,delay,hours]=await Promise.all([
+   fetchAll("t995_restaurants","store_code,restaurant_name,enabled",q=>q.eq("enabled",true)),
+   fetchAll("t995_score_import_batches","id,report_date,report_type,imported_at,row_count",q=>q.gte("report_date",start).lte("report_date",end).order("imported_at",{ascending:false})),
+   fetchAll("t995_delay_orders","record_date,store_code,restaurant_name,order_number,status,reason,responded_at,created_at",q=>q.gte("record_date",start).lte("record_date",end).order("created_at",{ascending:false})),
+   fetchAll("t995_score_labor_hours","record_date,store_code,total_hours,transfer_out_hours,transfer_in_hours",q=>q.gte("record_date",start).lte("record_date",end))
+  ]);
+  storeByCode=new Map(restaurants.map(x=>[x.store_code,x]));storeByName=new Map(restaurants.map(x=>[normalizeName(x.restaurant_name),x]));
+  const latest=new Map();for(const b of batches){const k=b.report_date+"|"+b.report_type;if(!latest.has(k))latest.set(k,b);}
+  const chosen=[...latest.values()],scoreMap=new Map();
+  const groups=[];for(let i=0;i<chosen.length;i+=10)groups.push(chosen.slice(i,i+10));
+  for(const group of groups){const ids=group.map(b=>b.id);const rows=await fetchAll("t995_score_import_rows","batch_id,store_code,restaurant_name,order_number,payload",q=>q.in("batch_id",ids));
+   const typeById=new Map(group.map(b=>[b.id,b.report_type]));
+   for(const row of rows){const s=resolveStore(row);const key=s.store_code||normalizeName(s.restaurant_name);const v=scoreMap.get(key)||{...s,tc:0,nonfa:0};if(typeById.get(row.batch_id)==="ByOrder")v.tc++;else v.nonfa++;scoreMap.set(key,v);}
+  }
+  const hourMap=new Map();for(const h of hours){const v=hourMap.get(h.store_code)||0;hourMap.set(h.store_code,v+Number(h.total_hours||0)-Number(h.transfer_out_hours||0)+Number(h.transfer_in_hours||0));}
+  const delayMap=new Map();for(const d of delay){const s=resolveStore(d),key=s.store_code||normalizeName(s.restaurant_name);const x=delayMap.get(key)||{total:0,replied:0,causes:[]};x.total++;if(d.status==="completed"&&String(d.reason||"").trim()){x.replied++;x.causes.push({reason:String(d.reason).trim(),date:d.record_date,order:d.order_number,restaurant:s.restaurant_name,store_code:s.store_code,category:classifyReason(d.reason)});}delayMap.set(key,x);}
+  const allKeys=new Set([...scoreMap.keys(),...hourMap.keys(),...delayMap.keys()]);
+  const metrics=[...allKeys].map(key=>{const found=scoreMap.get(key);const store=storeByCode.get(key)||null;const s=found||{store_code:store?.store_code||(/^\\d{3}$/.test(key)?key:""),restaurant_name:store?.restaurant_name||"未分類餐廳",region:regionFor(store?.restaurant_name||""),tc:0,nonfa:0};const h=hourMap.get(s.store_code)||0;const d=delayMap.get(key)||{total:0,replied:0,causes:[]};return {...s,hasScore:Boolean(found),hours:h,actualTplh:h>0?s.nonfa/h:null,delayTotal:d.total,replied:d.replied,causes:d.causes};});
+  const totalTc=metrics.reduce((n,x)=>n+x.tc,0),totalNonfa=metrics.reduce((n,x)=>n+x.nonfa,0),totalHours=metrics.reduce((n,x)=>n+x.hours,0),totalDelay=delay.length,replied=delay.filter(x=>x.status==="completed"&&String(x.reason||"").trim()).length;
+  const ranked=metrics.filter(x=>x.hasScore&&x.actualTplh!==null).sort((a,b)=>a.actualTplh-b.actualTplh);
+  const causeMap=new Map();for(const m of metrics)for(const c of m.causes){const x=causeMap.get(c.category)||{category:c.category,count:0,examples:[]};x.count++;if(x.examples.length<2)x.examples.push(c.reason);causeMap.set(c.category,x);}
+  const causeRows=[...causeMap.values()].sort((a,b)=>b.count-a.count);
+  const restaurantReasons=metrics.filter(x=>x.causes.length).map(x=>{const counts=new Map();for(const c of x.causes)counts.set(c.category,(counts.get(c.category)||0)+1);const top=[...counts].sort((a,b)=>b[1]-a[1])[0];const exact=new Map();for(const c of x.causes)exact.set(c.reason,(exact.get(c.reason)||0)+1);const common=[...exact].sort((a,b)=>b[1]-a[1])[0];return {...x,topReason:top?.[0]||"—",topReasonCount:top?.[1]||0,commonText:common?.[0]||"—"};}).sort((a,b)=>b.causes.length-a.causes.length);
+  render({start,end,label,metrics,ranked,causeRows,restaurantReasons,delay,totalTc,totalNonfa,totalHours,replied,totalDelay});
+ }catch(e){$("status").className="message error";$("status").textContent="讀取失敗："+(e.message||"請確認登入狀態與資料表設定");}
+ finally{$("refresh").disabled=false;}
+}
+function render(r){
+ lastResult=r;$("status").textContent="";$("report").classList.remove("hidden");
+ $("kpiTc").textContent=r.totalTc.toLocaleString();$("kpiNonFa").textContent=r.totalNonfa.toLocaleString();$("kpiHours").textContent=r.totalHours.toFixed(2);$("kpiTplh").textContent=r.totalHours?(r.totalNonfa/r.totalHours).toFixed(2):"—";$("kpiDelay").textContent=r.totalDelay.toLocaleString();$("kpiReplied").textContent=r.replied.toLocaleString();
+ $("insightWorst").textContent=r.ranked[0]?r.ranked[0].restaurant_name+"｜"+r.ranked[0].actualTplh.toFixed(2):"尚無工時資料";
+ $("insightReason").textContent=r.causeRows[0]?r.causeRows[0].category+"｜"+r.causeRows[0].count+" 筆":"尚無已回覆原因";
+ $("insightReplyRate").textContent=r.totalDelay?Math.round(r.replied/r.totalDelay*100)+"%":"—";
+ const worst=r.ranked.slice(0,10);$("worstTable").innerHTML=worst.length?table(["排名","區域","餐廳","TC","非第三方 TC","實際工時","TPLH","等餐","原因摘要"],worst.map((x,i)=>[String(i+1),x.region,x.restaurant_name,String(x.tc),String(x.nonfa),x.hours.toFixed(2),x.actualTplh.toFixed(2),x.replied+"/"+x.delayTotal,primaryCategory(x.causes)])):"<div class='empty'>此期間尚無已輸入工時的餐廳成績。</div>";
+ const areaMap=new Map();for(const x of r.metrics){const v=areaMap.get(x.region)||{region:x.region,tc:0,nonfa:0,hours:0,restaurants:0};v.tc+=x.tc;v.nonfa+=x.nonfa;v.hours+=x.hours;v.restaurants++;areaMap.set(x.region,v);}
+ const areaOrder=["A 新竹","B 竹北","C 竹東","D 中壢","E 桃園","F 楊梅","G 大園","H 大溪龍潭","I 林口","J 大竹","K 苗栗","未分類"];
+ const areas=[...areaMap.values()].sort((a,b)=>areaOrder.indexOf(a.region)-areaOrder.indexOf(b.region));$("areaTable").innerHTML=areas.length?table(["區域","餐廳數","TC","非第三方 TC","實際工時","TPLH"],areas.map(x=>[x.region,String(x.restaurants),String(x.tc),String(x.nonfa),x.hours.toFixed(2),x.hours?(x.nonfa/x.hours).toFixed(2):"—"])):"<div class='empty'>沒有區域成績資料。</div>";
+ const max=Math.max(1,...r.causeRows.map(x=>x.count));$("reasonBars").innerHTML=r.causeRows.length?r.causeRows.map(x=>'<div class="barrow"><div class="barlabel">'+escapeHtml(x.category)+'</div><div class="bartrack"><div class="bar" style="width:'+Math.max(4,x.count/max*100)+'%"></div></div><div class="barcount">'+x.count+'</div></div>').join(""):"<div class='empty'>此期間沒有已回覆原因。</div>";
+ $("restaurantReasonTable").innerHTML=r.restaurantReasons.length?table(["餐廳","回覆筆數","主要原因類別","最常見原因"],r.restaurantReasons.map(x=>[x.restaurant_name,String(x.causes.length),x.topReason+"（"+x.topReasonCount+"）",x.commonText])):"<div class='empty'>此期間沒有已回覆原因。</div>";
+ const details=r.restaurantReasons.flatMap(x=>x.causes.map(c=>({...c,restaurant:x.restaurant_name}))).sort((a,b)=>b.date.localeCompare(a.date));
+ $("reasonDetails").innerHTML=details.length?details.slice(0,60).map(x=>'<article class="reason-item"><div class="reason-head"><span>'+escapeHtml(x.restaurant)+'｜'+escapeHtml(x.category)+'</span><span>'+escapeHtml(x.date)+'</span></div><div class="reason-text">'+escapeHtml(x.reason)+'</div><div class="reason-meta">訂單 '+escapeHtml(x.order||"—")+'</div></article>').join(""):"<div class='empty'>尚無已回覆等餐原因。</div>";
+}
+function table(head,rows){return '<table class="table"><thead><tr>'+head.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></thead><tbody>"+rows.map((row,i)=>"<tr>"+row.map((v,j)=>"<td>"+(j===0&&/^[0-9]+$/.test(String(v))?'<span class="rank">'+escapeHtml(v)+'</span>':escapeHtml(v))+"</td>").join("")+"</tr>").join("")+"</tbody></table>";}
+document.querySelectorAll(".periods button").forEach(b=>b.onclick=()=>{period=b.dataset.period;document.querySelectorAll(".periods button").forEach(x=>x.classList.toggle("active",x===b));$("dateInput").classList.toggle("hidden",period==="month");$("monthInput").classList.toggle("hidden",period!=="month");loadReport();});
+$("refresh").onclick=loadReport;
+$("dateInput").value=today();$("monthInput").value=today().slice(0,7);
+$("export").onclick=()=>{if(!lastResult||!window.XLSX)return;const r=lastResult,wb=XLSX.utils.book_new();const scores=r.metrics.map(x=>({區域:x.region,店號:x.store_code,餐廳:x.restaurant_name,TC:x.tc,非第三方TC:x.nonfa,實際工時:x.hours,TPLH:x.actualTplh??""}));const causes=r.restaurantReasons.map(x=>({餐廳:x.restaurant_name,回覆筆數:x.causes.length,主要原因:x.topReason,最常見原因:x.commonText}));const details=r.restaurantReasons.flatMap(x=>x.causes.map(c=>({日期:c.date,餐廳:x.restaurant_name,訂單:c.order,原因分類:c.category,餐廳回覆:c.reason})));XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{報表期間:r.label,TC:r.totalTc,非第三方TC:r.totalNonfa,實際工時:r.totalHours,TPLH:r.totalHours?r.totalNonfa/r.totalHours:"",等餐紀錄:r.totalDelay,原因回覆:r.replied}]),"摘要");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(scores),"餐廳成績");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(causes),"原因彙總");XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(details),"原因明細");XLSX.writeFile(wb,"T995_"+period+"_"+r.start+".xlsx");};
+(async()=>{try{const {data,error}=await db.auth.getSession();if(error)throw error;if(!data.session){$("authMessage").classList.remove("hidden");$("authMessage").innerHTML='請先登入營運後台，再開啟分析儀表板。<br><a href="admin.html">前往登入</a>';return;}$("dashboard").classList.remove("hidden");await loadReport();}catch(e){$("authMessage").classList.remove("hidden");$("authMessage").textContent="登入狀態讀取失敗："+(e.message||"請先登入營運後台");}})();
+</script>
+</body>
+</html>
