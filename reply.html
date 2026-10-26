@@ -18,6 +18,7 @@ const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let current=[];
 async function load(){
+ $("replyForm").hidden=true;$("orders").replaceChildren();
  if(!token){$("message").textContent="連結缺少識別碼，請向值班人員索取共用回覆連結。";return;}
  try{const r=await db.rpc("t995_public_list_shared_delay_orders",{p_token:token});if(r.error)throw r.error;const d=r.data||{};current=d.orders||[];$("restaurant").textContent=(d.restaurant_name||"餐廳")+"｜"+(d.month||"")+" 待回覆訂單："+current.length;
  if(!current.length){$("message").innerHTML='<span class="success">本月目前沒有待回覆訂單。</span>';return;}

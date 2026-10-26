@@ -1,0 +1,70 @@
+#opsModePage .ops-section{max-width:1120px;margin-left:auto;margin-right:auto}
+#opsModePage h3,#opsModePage label,#opsModePage th,#opsModePage td,#opsModePage input,#opsModePage output{text-align:center}
+#opsModePage .ops-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#opsModePage .ops-tab{min-height:48px;padding:10px 6px}
+#opsModePage .ops-form-grid{max-width:720px;margin:auto;align-items:start}
+#opsModePage .ops-form-grid label{color:var(--black)}
+#opsModePage .ops-form-grid input{font-size:17px;min-height:48px}
+#opsModePage .ops-lookup{color:var(--black);font-size:15px;min-height:22px}
+#opsModePage .ops-message{color:var(--black);min-height:22px}
+.ops-store-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;max-height:230px;overflow:auto}
+.ops-store-choices:empty{display:none}
+.ops-store-choices button{border:1px solid var(--line);background:#fff;min-height:42px;border-radius:8px;padding:6px;font:inherit;font-size:14px;color:var(--black)}
+.ops-store-choices button:hover,.ops-store-choices button:focus-visible{border-color:var(--red);background:#fff4f5}
+#opsModePage .ops-toggle-group{min-height:48px;width:100%}
+#opsModePage .ops-toggle{flex:1;min-width:0;min-height:48px;color:var(--black)}
+#opsModePage .ops-toggle.selected{color:#fff;background:var(--green)}
+.ops-shared-link{border-top:1px solid var(--line);margin-top:20px;padding-top:8px}
+.ops-shared-link>button{min-width:240px}
+.ops-score-heading{display:flex;justify-content:center;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.ops-score-heading input,.ops-score-heading button{min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff;font:inherit;color:var(--black)}
+.ops-score-heading .ops-mini-tabs button{border:0;padding:8px 14px}
+.ops-score-heading .ops-mini-tabs button.active{background:var(--red);color:#fff}
+.ops-week-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 18px}
+.ops-week-tab{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 4px;min-height:56px;font:inherit;font-size:14px;color:var(--black)}
+.ops-week-tab span{display:block;font-size:12px;margin-top:4px;white-space:nowrap}
+.ops-week-tab.active{background:var(--red);border-color:var(--red);color:#fff}
+.ops-report-grid{display:grid;grid-template-columns:minmax(240px,.9fr) minmax(0,1.7fr);gap:14px;align-items:start}
+.ops-kpi-table,.ops-area-table,.ops-month-hours{width:100%;border-collapse:collapse;background:#fff;font-size:14px;font-variant-numeric:tabular-nums}
+.ops-kpi-table th,.ops-kpi-table td,.ops-area-table th,.ops-area-table td,.ops-month-hours th,.ops-month-hours td{border:1px solid var(--line);padding:9px 5px;height:42px;vertical-align:middle}
+.ops-kpi-table th{width:52%;font-weight:600}.ops-kpi-table td:nth-child(2){font-weight:800;width:33%}.ops-kpi-table td:last-child{width:15%}
+.ops-area-table thead,.ops-area-table tfoot,.ops-month-hours thead,.ops-month-hours tfoot{background:#f8f6f1;font-weight:800}
+.ops-area-table th{white-space:nowrap}.ops-area-table td{white-space:nowrap}
+.ops-area-table th:nth-child(4){white-space:normal;max-width:68px}
+.ops-area-hour{width:70px;max-width:100%;min-height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px 2px;font:inherit;color:var(--black)}
+.ops-labor-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:16px 0}
+.ops-labor-grid label{display:flex;flex-direction:column;gap:7px;font-weight:700;font-size:14px}
+.ops-labor-grid input,.ops-labor-grid output{display:block;min-height:44px;width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 4px;background:#fff;font:inherit;color:var(--black)}
+.ops-labor-grid output{font-weight:800;background:#f8f6f1}
+.ops-report-status{min-height:22px;margin:6px 0;font-size:14px;color:var(--black)}
+.ops-report-warnings{margin:8px 0;padding:10px;border-radius:8px;background:#fff8df;color:#714c00;font-size:14px}
+.ops-report-warnings[hidden]{display:none}
+#opsModePage .ops-score-upload{justify-content:center;margin:12px auto}
+#opsModePage .ops-score-file-button{font:inherit;min-height:46px;padding:12px 18px}
+#opsScoreImport{margin:8px auto 12px;min-height:44px}
+.ops-upload-block{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0 18px;background:#fff}
+.ops-upload-block h3{margin:0 0 6px!important}
+.ops-upload-block .ops-score-upload,.ops-upload-block #opsScoreImport{margin:0!important}
+.ops-upload-block #opsScorePreview,.ops-upload-block #opsScoreMessage{flex-basis:100%;order:5}
+.ops-upload-block #opsScorePreview:empty,.ops-upload-block #opsScoreMessage:empty{display:none}
+.ops-history-fold,.ops-month-fold{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+.ops-history-fold>summary,.ops-month-fold>summary{cursor:pointer;font-weight:800;font-size:17px;min-height:30px}
+.ops-month-hours{min-width:1160px;font-size:12px}.ops-month-hours th,.ops-month-hours td{height:36px;padding:7px 4px}
+.ops-month-hours th:first-child{position:sticky;left:0;background:#f8f6f1;z-index:1}
+#opsModePage .ops-export-bottom{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+#opsModePage .ops-export-bottom .action-btn{min-width:0;flex:1;min-height:46px}
+@media(min-width:1000px){body:has(#opsModePage[style*="block"]) .page{max-width:1180px}}
+@media(max-width:760px){
+  .ops-report-grid{grid-template-columns:1fr;gap:16px}
+  .ops-kpi-table{font-size:15px}.ops-kpi-table th,.ops-kpi-table td{height:40px;padding:8px}
+  .ops-area-table{font-size:12px;table-layout:fixed}.ops-area-table th,.ops-area-table td{padding:7px 2px}
+  .ops-area-table th:first-child{width:12%}.ops-area-table th:nth-child(2),.ops-area-table th:nth-child(3){width:10%}
+  .ops-area-table th:nth-child(4){width:18%}.ops-area-table th:nth-child(5),.ops-area-table th:nth-child(6){width:16%}.ops-area-table th:last-child{width:18%}
+  .ops-area-hour{width:100%;font-size:16px;min-height:38px}
+  .ops-labor-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.ops-labor-grid label:last-child{grid-column:1/-1}
+  .ops-week-tabs{gap:5px}.ops-week-tab{min-width:85px;min-height:48px;padding:6px 4px}
+  .ops-upload-block h3{flex-basis:100%}
+  #opsModePage .ops-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.ops-tab{font-size:14px}
+  #opsModePage .ops-section{padding:16px 10px}.ops-report-grid>div{min-width:0}
+  .ops-score-heading{gap:6px}.ops-score-heading input{max-width:155px;padding:8px 4px}.ops-score-heading .ops-mini-tabs button{padding:8px 10px}
+}
