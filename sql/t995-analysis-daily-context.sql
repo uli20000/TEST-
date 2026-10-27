@@ -3,9 +3,19 @@ alter table public.t995_operations_daily_reports
   add column if not exists score_excluded boolean not null default false,
   add column if not exists special_notes text not null default '';
 
-alter table public.t995_operations_daily_reports
-  add constraint t995_operations_special_notes_length
-  check (length(special_notes) <= 2000);
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 't995_operations_special_notes_length'
+      and conrelid = 'public.t995_operations_daily_reports'::regclass
+  ) then
+    alter table public.t995_operations_daily_reports
+      add constraint t995_operations_special_notes_length
+      check (length(special_notes) <= 2000);
+  end if;
+end;
+$$;
 
 create table if not exists public.t995_operations_coupon_campaigns (
   id uuid primary key default gen_random_uuid(),
@@ -55,6 +65,6 @@ on conflict(record_date) do update set
 insert into public.t995_operations_coupon_campaigns
   (campaign_name, details, active_from, active_to, source_url)
 values
-  ('雙11 111 元超值餐', '10/27 起三款個人餐 111 元；指定點心買一送一。依餐廳與通路規範使用。', '2026-10-27', '2026-11-23',
+  ('雙11 111 元超值餐', '10/27–11/23：三款 111 元個人餐，優惠代碼 50560、50495、50562。10/27–11/16：兩款 299 元多人餐。指定點心與飲料另有買一送一；PK APP 新會員限量滿 399 折 111，依券別與通路條件使用。', '2026-10-27', '2026-11-23',
    'https://tw.news.yahoo.com/%E9%9B%9911-%E8%90%AC%E8%81%96%E7%AF%80%E9%A4%90%E9%A3%B2%E7%A5%AD%E5%84%AA%E6%83%A0-%E8%82%AF%E5%BE%B7%E5%9F%BA111%E5%85%83%E9%96%8B%E5%90%83-%E6%BC%A2%E5%A0%A1%E7%8E%8B%E5%A5%97%E9%A4%90%E7%9C%8168%E5%85%83-%E6%8B%89%E4%BA%9E%E8%81%AF%E5%90%8D%E4%B8%89%E5%9C%8B%E7%84%A1%E9%9B%99-010200621.html')
 on conflict(campaign_name, active_from, active_to, source_url) do nothing;
