@@ -41,7 +41,7 @@
   }
   function model(data,r){return M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});}
   function previousRange(r){if(state.period==='day'){const d=M.addDays(r.start,-1);return {start:d,end:d};}if(state.period==='week'){const d=M.addDays(r.start,-7);return M.range(d,'week');}const d=addMonths(r.start,-1);return M.range(d,'month');}
-  async function loadWeather(month){if(state.weather.has(month))return;const result=await db.functions.invoke('t995-operations-weather',{body:{month:month+'-01'}});if(result.error||result.data?.error)throw new Error(result.data?.error||'天氣資料無法讀取');state.weather.set(month,result.data);}
+  async function loadWeather(month){const key=String(month).slice(0,7),normalized=key+'-01';if(state.weather.has(key))return;const result=await db.functions.invoke('t995-operations-weather',{body:{month:normalized}});if(result.error||result.data?.error)throw new Error(result.data?.error||'天氣資料無法讀取');state.weather.set(key,result.data);}
   async function weatherForRange(r){await Promise.all(S.months(r.start,r.end).map(loadWeather));}
   function weatherRow(date,city){return state.weather.get(date.slice(0,7))?.rows?.find(x=>x.date===date&&x.city===city)||null;}
   function cityForArea(code){return ['A','B','C','K'].includes(code)?'新竹':'桃園';}
