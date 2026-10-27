@@ -163,3 +163,17 @@
  .ops-line-records tbody tr:first-child td:first-child{font-weight:800;color:#a71930}
  .ops-records-table .ops-delete-btn{align-self:center;min-width:54px}
 }
+
+/* Daily score context, coupon research links, and period summary records. */
+.ops-daily-context{text-align:center}
+.ops-exclude-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto;font-weight:800}
+.ops-note-field{display:grid;gap:8px;max-width:680px;margin:12px auto;font-weight:700;text-align:center}
+.ops-note-field textarea{width:100%;min-height:88px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font:inherit;text-align:left;resize:vertical}
+.ops-context-list{display:grid;gap:8px;margin:12px auto;line-height:1.7;text-align:center;overflow-wrap:anywhere}
+.ops-context-list a{font-weight:700}
+.ops-coupon-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px auto}
+.ops-coupon-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:760px;margin:12px auto;text-align:center}
+.ops-coupon-form label{display:grid;align-content:start;gap:6px;font-weight:700}
+.ops-coupon-form input{width:100%;min-width:0;min-height:44px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;text-align:center}
+.ops-coupon-form button{grid-column:1/-1;justify-self:center;min-height:44px}
+@media(max-width:600px){.ops-coupon-form{grid-template-columns:1fr}.ops-coupon-form button{grid-column:auto}.ops-context-list{text-align:left}}
