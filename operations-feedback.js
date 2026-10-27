@@ -1,8 +1,8 @@
 (function(){
   'use strict';
-  const $=id=>document.getElementById(id),root=$('opsFeedbackFiles');
-  if(!root)return;
-  const prepared=[];let cachedStores;
+  const $=id=>document.getElementById(id),root=$('opsFeedbackFiles'),db=window.t995SupabaseClient;
+  if(!root||!db)return;
+  const prepared=[];let cachedStores;const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clean=v=>String(v??'').normalize('NFKC').replace(/\s+/g,' ').trim();
   const text=v=>v instanceof Date?opsIsoDate(v):String(v??'').trim();
   function opsIsoDate(value){
@@ -89,7 +89,7 @@
   }
   function render(errors=[]){
     const rows=[...prepared.map(x=>({file:x.file.name,type:x.type,period:x.start===x.end?x.start:`${x.start}～${x.end}`,count:x.rows.length,unmapped:x.unmapped,status:'待匯入'})),...errors.map(x=>({file:x.file,type:'—',period:'—',count:'—',unmapped:'—',status:x.error}))];
-    $('opsFeedbackPreview').innerHTML=rows.length?'<table class="ops-table"><thead><tr><th>檔案</th><th>類型</th><th>日期／期間</th><th>符合篩選筆數</th><th>未配對店號</th><th>狀態</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+opsEscape(x.file)+'</td><td>'+opsEscape(x.type)+'</td><td>'+opsEscape(x.period)+'</td><td>'+opsEscape(x.count)+'</td><td>'+opsEscape(x.unmapped)+'</td><td>'+opsEscape(x.status)+'</td></tr>').join('')+'</tbody></table>':'';
+    $('opsFeedbackPreview').innerHTML=rows.length?'<table class="ops-table"><thead><tr><th>檔案</th><th>類型</th><th>日期／期間</th><th>符合篩選筆數</th><th>未配對店號</th><th>狀態</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+escape(x.file)+'</td><td>'+escape(x.type)+'</td><td>'+escape(x.period)+'</td><td>'+escape(x.count)+'</td><td>'+escape(x.unmapped)+'</td><td>'+escape(x.status)+'</td></tr>').join('')+'</tbody></table>':'';
     $('opsFeedbackImport').disabled=!prepared.length;
   }
   root.addEventListener('change',async()=>{

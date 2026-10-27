@@ -21,21 +21,20 @@
     const month=date.slice(0,7);if(state.monthLoads.has(month))return state.monthLoads.get(month);if(!force&&state.monthCache.has(month))return state.monthCache.get(month);
     const work=(async()=>{
       await loadDirectory();const r=S.range(date,'month');
-      const [batchRows,reportResult,reference,couponResult]=await Promise.all([
+      const [batchRows,reportResult,reference]=await Promise.all([
         paged('t995_score_import_batches','*',q=>q.gte('report_date',r.start).lte('report_date',r.end),'report_date'),
         db.from('t995_operations_daily_reports').select('*').gte('record_date',r.start).lte('record_date',r.end).order('record_date'),
-        db.rpc('t995_get_operations_reference',{p_month:r.start}),
-        db.from('t995_operations_coupon_campaigns').select('*').lte('active_from',r.end).gte('active_to',r.start).order('active_from')
+        db.rpc('t995_get_operations_reference',{p_month:r.start})
       ]);
-      if(reportResult.error)throw reportResult.error;if(reference.error)throw reference.error;if(couponResult.error)throw couponResult.error;
+      if(reportResult.error)throw reportResult.error;if(reference.error)throw reference.error;
       const batches=M.latestBatches(batchRows),ids=batches.map(b=>b.id),rows=ids.length?await paged('t995_score_import_rows','batch_id,row_number,store_code,restaurant_name,order_number,payload',q=>q.in('batch_id',ids),'batch_id'):[];
-      return {rows,batches,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[],campaigns:couponResult.data||[]};
+      return {rows,batches,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[]};
     })();state.monthLoads.set(month,work);
     try{const data=await work;state.monthCache.set(month,data);return data;}finally{state.monthLoads.delete(month);}
   }
   async function loadRange(r,force=false){
     const parts=await Promise.all(S.months(r.start,r.end).map(d=>loadMonth(d,force))),data={};
-    for(const key of ['rows','batches','reports','history','mapping'])data[key]=parts.flatMap(p=>p[key]);data.campaigns=[...new Map(parts.flatMap(p=>p.campaigns||[]).map(x=>[x.id,x])).values()];return data;
+    for(const key of ['rows','batches','reports','history','mapping'])data[key]=parts.flatMap(p=>p[key]);return data;
   }
   function model(date,p,data=state.cache){return M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...S.range(date,p)});}
   function metricsRows(s){return [
@@ -58,26 +57,18 @@
   }
   function periodTitle(date,p){const r=S.range(date,p);return p==='day'?date:(p==='week'?S.weekLabel(date)+'　':'')+r.start+' ～ '+r.end;}
   function periodRecords(date,p,v){
-    const r=S.range(date,p),days=[...v.days.values()],notes=days.filter(d=>String(d.report?.special_notes||'').trim()),excluded=days.filter(d=>d.report?.score_excluded),campaigns=(state.cache?.campaigns||[]).filter(c=>c.active_from<=r.end&&c.active_to>=r.start);
-    const escapeUrl=value=>{try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:'#';}catch{return '#';}};
-    const list='<div class="ops-context-list">'+(excluded.length?'<div><b>不計成績</b>　'+excluded.map(d=>d.date.slice(5).replace('-','/')+(d.report?.special_notes?' '+escape(d.report.special_notes):'')).join('、')+'</div>':'')+(notes.length?notes.filter(d=>!d.report?.score_excluded).map(d=>'<div><b>'+d.date.slice(5).replace('-','/')+' 特殊事項</b>　'+escape(d.report.special_notes)+'</div>').join(''):'')+(campaigns.length?campaigns.map(c=>'<div><b>'+escape(c.campaign_name)+'</b>　'+c.active_from+'～'+c.active_to+'　'+escape(c.details||'')+'　<a href="'+escape(escapeUrl(c.source_url))+'" target="_blank" rel="noopener">來源</a></div>').join(''):'')+(!excluded.length&&!notes.length&&!campaigns.length?'<div>本期尚無特殊事項或優惠券紀錄</div>':'')+'</div>';
+    const days=[...v.days.values()],notes=days.filter(d=>String(d.report?.special_notes||'').trim()),excluded=days.filter(d=>d.report?.score_excluded);
+    const list='<div class="ops-context-list">'+(excluded.length?'<div><b>不計成績</b>　'+excluded.map(d=>d.date.slice(5).replace('-','/')+(d.report?.special_notes?' '+escape(d.report.special_notes):'')).join('、')+'</div>':'')+(notes.length?notes.filter(d=>!d.report?.score_excluded).map(d=>'<div><b>'+d.date.slice(5).replace('-','/')+' 特殊事項</b>　'+escape(d.report.special_notes)+'</div>').join(''):'')+(!excluded.length&&!notes.length?'<div>本期尚無特殊事項</div>':'')+'</div>';
     if(state.context==='summary'){
-      let target=E('opsSummaryContext');if(!target){target=document.createElement('section');target.id='opsSummaryContext';target.className='ops-report-card';E('opsSummaryTitle').after(target);}target.innerHTML='<h3>特殊事項與優惠券紀錄</h3>'+list;return;
+      let target=E('opsSummaryContext');if(!target){target=document.createElement('section');target.id='opsSummaryContext';target.className='ops-report-card';E('opsSummaryTitle').after(target);}target.innerHTML='<h3>特殊事項</h3>'+list;return;
     }
     const target=E('opsAnalysisSummary');if(!target)return;
-    const couponForm='<h3>優惠券活動紀錄</h3><div class="ops-coupon-actions"><a class="action-btn" target="_blank" rel="noopener" href="https://www.kfcclub.com.tw/coupon">開啟肯德基官方優惠券頁</a><a class="action-btn" target="_blank" rel="noopener" href="https://www.google.com/search?q='+encodeURIComponent('肯德基 KFC 優惠券 '+r.start+' '+r.end)+'">搜尋本期優惠券</a></div><div class="ops-coupon-form"><label>活動名稱<input id="opsCouponName" maxlength="160" placeholder="搜尋後記錄活動名稱"></label><label>活動開始<input id="opsCouponStart" type="date" value="'+r.start+'"></label><label>活動結束<input id="opsCouponEnd" type="date" value="'+r.end+'"></label><label>活動內容<input id="opsCouponDetails" maxlength="1000" placeholder="折扣、使用條件或適用通路"></label><label>來源網址<input id="opsCouponSource" type="url" placeholder="貼上活動來源連結"></label><button id="opsSaveCoupon" class="action-btn primary" type="button">記錄優惠券</button></div><div id="opsCouponStatus" class="ops-message" role="status"></div>';
-    if(p!=='day')target.innerHTML='<section class="ops-report-card"><h3>週期特殊事項與優惠券紀錄</h3>'+list+couponForm+'</section>';
-    else{const day=v.days.get(date),report=day?.report||{};
-      target.innerHTML='<section class="ops-report-card ops-daily-context"><h3>當日成績設定</h3><label class="ops-exclude-row"><input id="opsScoreExcluded" type="checkbox" '+(report.score_excluded?'checked':'')+'> 不計本日成績</label><label class="ops-note-field">當日特殊事項<textarea id="opsSpecialNotes" maxlength="2000" rows="3" placeholder="例如：10/23、10/24 停班課">'+escape(report.special_notes||'')+'</textarea></label><button id="opsSaveDailyContext" class="action-btn primary" type="button">儲存當日設定</button><div id="opsDailyContextStatus" class="ops-message" role="status"></div>'+couponForm+list+'</section>';
-    }
-    if(E('opsSaveDailyContext'))E('opsSaveDailyContext').onclick=async()=>{
+    if(p!=='day'){target.innerHTML='<section class="ops-report-card"><h3>週期特殊事項</h3>'+list+'</section>';return;}
+    const day=v.days.get(date),report=day?.report||{};
+    target.innerHTML='<section class="ops-report-card ops-daily-context"><h3>當日成績設定</h3><label class="ops-exclude-row"><input id="opsScoreExcluded" type="checkbox" '+(report.score_excluded?'checked':'')+'> 不計本日成績</label><label class="ops-note-field">當日特殊事項<textarea id="opsSpecialNotes" maxlength="2000" rows="3" placeholder="輸入當日特殊事項">'+escape(report.special_notes||'')+'</textarea></label><button id="opsSaveDailyContext" class="action-btn primary" type="button">儲存當日設定</button><div id="opsDailyContextStatus" class="ops-message" role="status"></div></section>';
+    E('opsSaveDailyContext').onclick=async()=>{
       const excluded=E('opsScoreExcluded').checked,notes=E('opsSpecialNotes').value.trim(),status=E('opsDailyContextStatus');status.textContent='儲存中…';
       try{const exists=await db.from('t995_operations_daily_reports').select('record_date').eq('record_date',date).maybeSingle();if(exists.error)throw exists.error;const payload={score_excluded:excluded,special_notes:notes,updated_by:(await db.auth.getUser()).data.user?.id||null,updated_at:new Date().toISOString()};const saved=exists.data?await db.from('t995_operations_daily_reports').update(payload).eq('record_date',date):await db.from('t995_operations_daily_reports').insert({record_date:date,...payload});if(saved.error)throw saved.error;status.textContent='已儲存';await refresh(true);}catch(e){status.textContent='儲存失敗：'+e.message;}
-    };
-    if(E('opsSaveCoupon'))E('opsSaveCoupon').onclick=async()=>{
-      const name=E('opsCouponName').value.trim(),start=E('opsCouponStart').value,end=E('opsCouponEnd').value,details=E('opsCouponDetails').value.trim(),source=E('opsCouponSource').value.trim(),status=E('opsCouponStatus');
-      if(!name||!start||!end||!source){status.textContent='請填活動名稱、有效日期及來源網址';return;}if(end<start){status.textContent='活動結束日不可早於開始日';return;}if(!/^https?:\/\//i.test(source)){status.textContent='來源網址需以 http:// 或 https:// 開頭';return;}
-      status.textContent='儲存中…';try{const u=await db.auth.getUser();const saved=await db.from('t995_operations_coupon_campaigns').insert({campaign_name:name,details,active_from:start,active_to:end,source_url:source,researched_at:new Date().toISOString(),updated_by:u.data.user?.id||null});if(saved.error)throw saved.error;status.textContent='已記錄';await refresh(true);}catch(e){status.textContent='儲存失敗：'+e.message;}
     };
   }
   function renderWeeks(date){
@@ -186,7 +177,6 @@
       const ws=XLSX.utils.aoa_to_sheet([['營運總覽','數值','單位'],...summary]);ws['!cols']=[{wch:24},{wch:22},{wch:12}];summary.forEach((r,i)=>{if(r[2]==='%'&&ws['B'+(i+2)])ws['B'+(i+2)].z='0.0%';});XLSX.utils.book_append_sheet(wb,ws,'營運總覽');appendScores(wb,data,r);
       appendTable(wb,'劃線簽名',S.lineExport(state.stores,records.line,r.start,r.end,opsToday()),['日期','店號','餐廳','是否登記','劃線','簽名','登記時間','更新時間']);
       appendTable(wb,'等餐紀錄',records.delay.map(x=>({日期:x.record_date,店號:x.store_code,餐廳:x.restaurant_name,訂單編號:x.order_number,狀態:x.status==='completed'?'已回覆':'待回覆',等餐原因:x.reason||'',登記時間:x.created_at,回覆時間:x.responded_at||''})),['日期','店號','餐廳','訂單編號','狀態','等餐原因','登記時間','回覆時間']);
-      appendTable(wb,'優惠券活動',data.campaigns.filter(x=>x.active_from<=r.end&&x.active_to>=r.start).map(x=>({活動名稱:x.campaign_name,內容:x.details||'',開始日期:x.active_from,結束日期:x.active_to,來源網址:x.source_url,記錄日期:x.researched_at})),['活動名稱','內容','開始日期','結束日期','來源網址','記錄日期']);
       const weather=S.dates(r.start,r.end).flatMap(date=>['新竹','桃園'].map(city=>{const x=weatherRow(date,city);return {日期:date,城市:city,測站:x?.station_name||'',測站代碼:x?.station_id||'',平均氣溫:x?.temperature??null,降雨毫米:x?.precipitation??null,微量降雨:x?.trace?'是':'否',觀測狀態:x?.status||'unavailable',來源:'https://codis.cwa.gov.tw/StationData',查詢時間:state.weather.get(date.slice(0,7))?.fetched_at||''};}));
       appendTable(wb,'天氣觀測',weather,['日期','城市','測站','測站代碼','平均氣溫','降雨毫米','微量降雨','觀測狀態','來源','查詢時間']);
       XLSX.writeFile(wb,'營運'+({day:'日報',week:'週報',month:'月報'}[p])+'_'+r.start+(r.end===r.start?'':'_'+r.end)+'.xlsx');notify('已匯出成績、劃線簽名與等餐紀錄','summary');
