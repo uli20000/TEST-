@@ -61,18 +61,18 @@
     const total=empty(),hourTotals=new Map(AREAS.map(([a])=>[a,{hours:0,count:0}]));let totalHours=0,transferOut=0,transferIn=0,completeHours=true,hasHours=false;
     const missingPairs=[],missingHourDays=[],missingBaselineDays=[],hoursWithoutScores=[],invalidHourDays=[];
     for(const day of days.values()){
-      const active=day.types.has('ByOrder');if(day.types.size&&day.types.size<2)missingPairs.push(day.date);
-      day.metrics=empty();for(const [code,x] of day.areas){if(active||start===end){add(total,x);add(day.metrics,x);if(!areas.has(code))areas.set(code,empty());add(areas.get(code),x);}}
+      day.scoreExcluded=!!day.report?.score_excluded;const active=day.types.has('ByOrder')&&!day.scoreExcluded;if(day.types.size&&day.types.size<2&&!day.scoreExcluded)missingPairs.push(day.date);
+      day.metrics=empty();for(const [code,x] of day.areas){if(!day.scoreExcluded&&(active||start===end)){add(total,x);add(day.metrics,x);if(!areas.has(code))areas.set(code,empty());add(areas.get(code),x);}}
       day.metrics=derived(day.metrics);day.hours=null;day.actualHours=null;
       const saved=day.report?.area_hours||{};let sum=0,entered=0,missing=0;
-      for(const [a] of AREAS){const n=number(saved[a]);if(n!==null){sum+=n;entered++;const x=hourTotals.get(a);x.hours+=n;x.count++;}else if((day.areas.get(a)?.tc||0)>0)missing++;}
+      for(const [a] of AREAS){const n=number(saved[a]);if(n!==null){sum+=n;entered++;if(!day.scoreExcluded){const x=hourTotals.get(a);x.hours+=n;x.count++;}}else if((day.areas.get(a)?.tc||0)>0)missing++;}
       if((day.areas.get('?')?.tc||0)>0)missing++;
-      if(entered){day.hours=sum;hasHours=true;totalHours+=sum;}
-      if(entered&&!active)hoursWithoutScores.push(day.date);
-      const out=number(day.report?.transfer_out_hours)??0,inside=number(day.report?.transfer_in_hours)??0;transferOut+=out;transferIn+=inside;
+      if(entered){day.hours=sum;if(!day.scoreExcluded){hasHours=true;totalHours+=sum;}}
+      if(entered&&!active&&!day.scoreExcluded)hoursWithoutScores.push(day.date);
+      const out=number(day.report?.transfer_out_hours)??0,inside=number(day.report?.transfer_in_hours)??0;if(!day.scoreExcluded){transferOut+=out;transferIn+=inside;}
       if(active&&(!entered||missing)){completeHours=false;missingHourDays.push(day.date);}
       if(entered&&!missing){day.actualHours=sum-out+inside;if(day.actualHours<0){day.actualHours=null;completeHours=false;invalidHourDays.push(day.date);}}
-      if((active||start===end)&&!day.baselineComplete)missingBaselineDays.push(day.date);
+      if((active||start===end)&&!day.scoreExcluded&&!day.baselineComplete)missingBaselineDays.push(day.date);
       day.missingAreas=missing;
     }
     const summary=derived(total),actualHours=hasHours&&completeHours?totalHours-transferOut+transferIn:null;
