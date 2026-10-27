@@ -32,12 +32,14 @@ body{
   margin:0;
   background:var(--linen);
   color:var(--black);
-  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Helvetica Neue",Arial,sans-serif;
+  font-family:"Microsoft JhengHei","微軟正黑體",sans-serif;
   text-align:center
 }
 
 button,input,textarea{font-family:inherit}
 button{cursor:pointer}
+body,body *{font-family:"Microsoft JhengHei","微軟正黑體",sans-serif!important}
+button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{font-weight:700!important}
 
 .page{
   max-width:900px;
@@ -1281,7 +1283,7 @@ button{cursor:pointer}
 .ops-section h3{margin:20px 0 12px;text-align:left}.ops-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}.ops-analysis{margin:14px 0}.ops-export-bottom{display:flex;justify-content:center;margin:18px 0 4px}.ops-export-bottom .action-btn{min-width:min(420px,100%)}.ops-analysis-tools{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}.ops-analysis-tools input{min-height:42px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.ops-mini-tabs{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:10px;background:#fff}.ops-mini-tabs button{border:0;background:transparent;border-radius:8px;padding:8px 12px;font:inherit}.ops-mini-tabs button.active{background:var(--red);color:#fff}.ops-hours-input{width:80px;min-width:68px;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;text-align:center}.ops-week-tabs{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin:8px}.ops-toggle-group{display:flex;gap:10px;align-items:center;justify-content:center}.ops-toggle{min-height:46px;min-width:120px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-weight:800}.ops-toggle.selected{background:var(--green);border-color:var(--green);color:#fff}.ops-tab{padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit;font-weight:800;cursor:pointer}.ops-tab.active{background:var(--red);color:#fff;border-color:var(--red)}.ops-panel{padding:12px 0}.ops-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:center}.ops-form-grid label,.ops-toolbar label{display:grid;gap:6px;font-weight:700;color:var(--black);text-align:center}.ops-form-grid input,.ops-form-grid select,.ops-form-grid textarea,.ops-toolbar input{width:100%;min-height:46px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:var(--black);text-align:center}.ops-form-grid textarea{resize:vertical}.ops-wide{grid-column:1/-1}.ops-form-grid .action-btn{min-height:46px}.ops-lookup{min-height:18px;color:var(--green);font-size:13px;font-weight:700}.ops-message{min-height:24px;margin:8px 0;text-align:center;color:var(--gray)}.ops-toolbar{display:flex;align-items:end;gap:8px;margin:14px 0;text-align:left}.ops-toolbar label{min-width:145px}.ops-toolbar .action-btn{min-height:44px}.ops-table-wrap{overflow:auto;text-align:left}.ops-table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}.ops-table th,.ops-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:center}.ops-table th{background:#f8f6f1;white-space:nowrap}.ops-status{display:inline-block;padding:4px 8px;border-radius:99px;background:#fff0ee;color:#b42318;font-weight:800;white-space:nowrap}.ops-status.done{background:#eef5f0;color:#356b4b}.ops-help{padding:12px;background:#f8f6f1;border-radius:12px;text-align:left;color:var(--gray);line-height:1.7}.ops-link-result{display:flex;gap:8px;margin-top:12px}.ops-link-result input{min-width:0;flex:1;padding:10px;border:1px solid var(--line);border-radius:10px}.ops-empty{padding:18px;color:var(--gray);text-align:center}@media(max-width:600px){.ops-form-grid{grid-template-columns:1fr}.ops-wide{grid-column:auto}.ops-tabs{grid-template-columns:1fr}.ops-toolbar{align-items:stretch;flex-direction:column}.ops-link-result{flex-direction:column}.ops-table{font-size:12px}.ops-table th,.ops-table td{padding:8px 6px}}
 .ops-score-upload{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}.ops-score-file-button{display:inline-flex;align-items:center;min-height:44px;padding:9px 14px;border-radius:10px;background:#fff;border:1px solid var(--line);font-weight:800;cursor:pointer}.ops-score-file-button input{position:absolute;width:1px;height:1px;opacity:0}.ops-score-file-hint{color:var(--gray);font-size:13px}.ops-score-divider{height:1px;background:var(--line);margin:24px 0}.ops-score-history-tools{display:flex;align-items:end;gap:10px;margin:12px 0}.ops-score-history-tools label{display:grid;gap:6px;min-width:170px;color:var(--gray);font-weight:700;text-align:left}.ops-score-history-tools input,.ops-score-history-tools select{min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit}.ops-score-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.ops-batch-link{border:0;background:transparent;color:#1683df;font:inherit;font-weight:800;cursor:pointer;text-decoration:underline}.ops-score-count{color:var(--gray);white-space:nowrap}@media(max-width:600px){.ops-score-history-tools{align-items:stretch;flex-direction:column}.ops-score-history-tools label{min-width:0}.ops-score-detail-heading{align-items:flex-start;flex-direction:column}}
 </style>
-<link rel="stylesheet" href="operations-report.css?v=20261027-range-week">
+<link rel="stylesheet" href="operations-report.css?v=20261027-font-date">
 </head>
 
 <body>
@@ -1375,8 +1377,8 @@ button{cursor:pointer}
     </div>
     <div id="opsScoresPanel" class="ops-panel" hidden>
       <div class="ops-score-heading">
-        <label class="ops-date-label">報表日期<input id="opsAnalysisDate" type="date" aria-label="成績日期"></label>
-        <div id="opsPeriodTabs" class="ops-mini-tabs"><button type="button" class="active" data-period="day">當日</button><button type="button" data-period="week">週匯總</button><button type="button" data-period="month">月匯總</button></div>
+        <label class="ops-date-label">統計日期<input id="opsAnalysisDate" type="date" aria-label="成績日期"></label>
+        <div id="opsPeriodTabs" class="ops-mini-tabs"><button type="button" class="active" data-period="day">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
         <button id="opsAnalysisRefresh" type="button" class="action-btn">重新整理</button>
       </div>
       <div id="opsWeekTabs" class="ops-week-tabs"></div>
@@ -6098,10 +6100,10 @@ $("opsScoreImport").onclick=async()=>{
 
 
 
-<script src="operations-metrics.js?v=20261027-range-week"></script>
-<script src="operations-summary.js?v=20261027-range-week"></script>
-<script src="operations-report.js?v=20261027-range-week"></script>
-<script src="operations-entry.js?v=20261027-range-week"></script>
+<script src="operations-metrics.js?v=20261027-font-date"></script>
+<script src="operations-summary.js?v=20261027-font-date"></script>
+<script src="operations-report.js?v=20261027-font-date"></script>
+<script src="operations-entry.js?v=20261027-font-date"></script>
 </body>
 </html>
 
