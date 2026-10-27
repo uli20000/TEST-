@@ -12,11 +12,12 @@
   const monthStart=d=>d.slice(0,7)+'-01';
   const addMonths=(d,n)=>{const x=new Date(monthStart(d)+'T12:00:00Z');x.setUTCMonth(x.getUTCMonth()+n);return x.toISOString().slice(0,10);};
   const selected=()=>state.period==='month'?state.month+'-01':state.date;
-  const range=()=>M.range(selected(),state.period);
+  const fullWeek=d=>{const monday=M.addDays(d,-((new Date(d+'T12:00:00Z').getUTCDay()+6)%7));return {start:monday,end:M.addDays(monday,6)};};
+  const range=()=>state.period==='week'?fullWeek(state.date):M.range(selected(),state.period);
   const dates=(r)=>S.dates(r.start,r.end);
-  function monthWeeks(d){return M.weeks(d);}
+  function monthWeeks(d){const month=M.range(d,'month'),first=fullWeek(month.start).start,rows=[];for(let start=first;start<=month.end;start=M.addDays(start,7))rows.push(fullWeek(start));return rows;}
   function quarterMonths(d){const m=Number(d.slice(5,7)),q=Math.floor((m-1)/3)*3+1,y=d.slice(0,4);return [0,1,2].map(i=>y+'-'+String(q+i).padStart(2,'0'));}
-  function weekIndex(d){const weeks=monthWeeks(d),r=M.range(d,'week');return Math.max(0,weeks.findIndex(w=>w.start===r.start));}
+  function weekIndex(d){const weeks=monthWeeks(d),r=fullWeek(d);return Math.max(0,weeks.findIndex(w=>w.start===r.start));}
   function periodLabel(r){return state.period==='day'?r.start:state.period==='week'?S.weekLabel(r.start)+'　'+r.start+' ～ '+r.end:state.month;}
   function status(message,error=false){$('status').textContent=message;$('status').className='period-status'+(error?' error':'');}
   async function paged(table,columns,filter,order='record_date'){
@@ -30,7 +31,7 @@
     const [rawBatches,reports,monthReports,references,delays]=await Promise.all([
       paged('t995_score_import_batches','id,report_date,report_type,imported_at,row_count',q=>q.gte('report_date',r.start).lte('report_date',r.end),'report_date'),
       db.from('t995_operations_daily_reports').select('*').gte('record_date',r.start).lte('record_date',r.end).order('record_date'),
-      db.from('t995_operations_daily_reports').select('*').gte('record_date',monthRange.start).lte('record_date',monthRange.end).order('record_date'),
+      db.from('t995_operations_daily_reports').select('*').gte('record_date',monthRange.start).lte('record_date',r.end).order('record_date'),
       Promise.all(months.map(m=>db.rpc('t995_get_operations_reference',{p_month:m}))),
       paged('t995_delay_orders','record_date,store_code,restaurant_name,order_number,status,reason,responded_at,created_at',q=>q.gte('record_date',r.start).lte('record_date',r.end),'record_date')
     ]);
@@ -40,7 +41,7 @@
     const data={rows,batches,reports:reports.data||[],monthReports:monthReports.data||[],history,mapping,delays:delays||[]};state.cache.set(key,data);return data;
   }
   function model(data,r){return M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});}
-  function previousRange(r){if(state.period==='day'){const d=M.addDays(r.start,-1);return {start:d,end:d};}if(state.period==='week'){const d=M.addDays(r.start,-7);return M.range(d,'week');}const d=addMonths(r.start,-1);return M.range(d,'month');}
+  function previousRange(r){if(state.period==='day'){const d=M.addDays(r.start,-1);return {start:d,end:d};}if(state.period==='week')return fullWeek(M.addDays(r.start,-7));const d=addMonths(r.start,-1);return M.range(d,'month');}
   async function loadWeather(month){const key=String(month).slice(0,7),normalized=key+'-01';if(state.weather.has(key))return;const result=await db.functions.invoke('t995-operations-weather',{body:{month:normalized}});if(result.error||result.data?.error)throw new Error(result.data?.error||'天氣資料無法讀取');state.weather.set(key,result.data);}
   async function weatherForRange(r){await Promise.all(S.months(r.start,r.end).map(loadWeather));}
   function weatherRow(date,city){return state.weather.get(date.slice(0,7))?.rows?.find(x=>x.date===date&&x.city===city)||null;}
@@ -90,7 +91,7 @@
   function waitingPage(rows,data,r){const delays=data.delays,category=new Map();for(const x of delays){if(x.status!=='completed'||!x.reason)continue;const key=reasonCategory(x.reason);category.set(key,(category.get(key)||0)+1);}const cats=[...category].sort((a,b)=>b[1]-a[1]),byHour=new Map();for(const x of delays){const hour=Number(String(x.created_at||'').slice(11,13));if(Number.isFinite(hour)){const k=hour<11?'早班':hour<15?'午餐':hour<18?'下午':hour<22?'晚餐':'深夜';byHour.set(k,(byHour.get(k)||0)+1);}}const stores=delayByRestaurant(rows);const detail=delays.slice().sort((a,b)=>String(b.record_date).localeCompare(String(a.record_date))||String(b.created_at).localeCompare(String(a.created_at))).slice(0,50).map(x=>[x.record_date,x.store_code,x.restaurant_name,x.order_number,x.status==='completed'?'已回覆':'待回覆',x.reason||'—']);return '<div class="analysis-grid"><section class="analysis-panel"><h3>原因分類</h3>'+table(['原因類別','回覆筆數'],cats.map(x=>[x[0],fmt(x[1])]))+'</section><section class="analysis-panel"><h3>時段分布</h3>'+table(['時段','等餐筆數'],[...byHour].map(x=>[x[0],fmt(x[1])]))+'</section></div><section class="analysis-panel"><h3>餐廳等餐分布</h3>'+table(['店號','餐廳','商圈','等餐筆數','TC','等餐／TC','待回覆'],stores.map(x=>[x.code,x.name,regionName(x.area),fmt(x.wait),fmt(x.tc),pct(x.waitRatio),fmt(x.delayRows.filter(y=>y.status!=='completed').length)]))+'</section><section class="analysis-panel"><h3>等餐明細</h3>'+table(['日期','店號','餐廳','訂單編號','狀態','原因'],detail)+'</section>';}
   function renderMetric(data,previous,r){const rows=storeAnalytics(data,r),titles={sstg:'SSTG 分析',d7:'D7 分析',d25:'D25 分析',fa:'FA／TPLH 分析',waiting:'等餐細項分析'};$('metricTitle').textContent=titles[state.metric];$('metricSubtitle').textContent=periodLabel(r);let content='';if(state.metric==='sstg')content=sstgPage(data,rows,r);else if(state.metric==='d7')content=d7Page(rows);else if(state.metric==='d25')content=d25Page(data,rows,r);else if(state.metric==='fa')content=faPage(data,previous,rows,r);else content=waitingPage(rows,data,r);$('metricContent').innerHTML=content;renderScoreBoard(rows);}
   function renderChoices(){const box=$('periodChoices');if(state.period==='day'){const monday=M.addDays(state.date,-((new Date(state.date+'T12:00:00Z').getUTCDay()+6)%7));const week=Array.from({length:7},(_,i)=>M.addDays(monday,i));box.innerHTML=week.map(d=>'<button type="button" class="'+(d===state.date?'active':'')+'" data-choice="'+d+'">'+Number(d.slice(8,10))+'<small>'+['日','一','二','三','四','五','六'][new Date(d+'T12:00:00Z').getUTCDay()]+'</small></button>').join('');$('periodPickerToggle').textContent='選擇日期｜'+state.date;}
-    else if(state.period==='week'){const weeks=monthWeeks(state.date),active=M.range(state.date,'week');box.innerHTML=weeks.map(w=>'<button type="button" class="'+(w.start===active.start?'active':'')+'" data-choice="'+w.start+'">'+S.weekLabel(w.start)+'<small>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</small></button>').join('');$('periodPickerToggle').textContent='選擇週次｜'+S.weekLabel(active.start)+' '+active.start.slice(0,7);}
+    else if(state.period==='week'){const weeks=monthWeeks(state.date),active=fullWeek(state.date);box.innerHTML=weeks.map(w=>'<button type="button" class="'+(w.start===active.start?'active':'')+'" data-choice="'+w.start+'">'+S.weekLabel(w.start)+'<small>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</small></button>').join('');$('periodPickerToggle').textContent='選擇週次｜'+S.weekLabel(active.start)+' '+active.start.slice(0,7);}
     else{box.innerHTML=quarterMonths(state.month).map(m=>'<button type="button" class="'+(m===state.month?'active':'')+'" data-choice="'+m+'">'+Number(m.slice(5,7))+'月</button>').join('');$('periodPickerToggle').textContent='選擇月份｜'+state.month;}
     box.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{if(state.period==='month')state.month=b.dataset.choice;else state.date=b.dataset.choice;$('periodPicker').classList.add('hidden');$('periodPickerToggle').setAttribute('aria-expanded','false');loadReport();});}
   function changePeriod(direction){if(state.period==='day')state.date=M.addDays(state.date,direction*7);else if(state.period==='week'){const index=weekIndex(state.date),target=addMonths(state.date,direction),weeks=monthWeeks(target);state.date=(weeks[Math.min(index,weeks.length-1)]||weeks[0]).start;}else state.month=addMonths(state.month,direction*3).slice(0,7);loadReport();}
