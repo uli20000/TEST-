@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 70117)
-Total output lines: 6098
+Warning: truncated output (original token count: 70139)
+Total output lines: 6100
 
 <!DOCTYPE html>
 <!-- T995 V8: multi-week opening + Taipei-week rollover refresh; confirmed UI unchanged. -->
@@ -1572,7 +1572,1047 @@ button{cursor:pointer}
             <option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option>
             <option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option>
       </select>
-      <select id="deviceRegisterS…30117 tokens truncated…=newArea||null;if((row.area_code||null)===next){t995EmployeeMessage.textContent="區域未變更";return;}
+      <select id="deviceRegisterSize" class="search-input" style="margin-top:10px;display:none">
+        <option value="large">A10／大台</option>
+        <option value="small">C100／小台</option>
+      </select>
+      <button id="deviceRegisterBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增正常電池</button>
+      <div id="deviceRegisterMessage" class="hint" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title" id="deviceInventoryTitle">目前電池設備</div>
+    <div class="search-box">
+      <button id="batteryExportBtn" class="action-btn" type="button" style="width:100%">📊 匯出目前設備</button>
+    </div>
+    <div class="summary-with-refresh">
+      <div id="batterySummary" class="survey-summary"></div>
+      <button id="batteryRefreshBtn" class="summary-refresh-btn" type="button">↻ 重新整理</button>
+    </div>
+  </section>
+  <section class="section">
+    <div id="batteryReportList" class="vehicle-list">
+      <div class="loading">尚未載入設備資料</div>
+    </div>
+  </section>
+</section>
+
+<section id="defensiveModePage" class="admin-mode-page">
+  <div class="mode-back-row"><button id="defensiveBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
+  <section class="section">
+    <div class="section-title">防禦駕駛</div>
+    <div class="search-box">
+      <select id="defensiveAdminMonth" class="search-input">
+        <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option><option value="4">4 月</option>
+        <option value="5">5 月</option><option value="6">6 月</option><option value="7">7 月</option><option value="8">8 月</option>
+        <option value="9">9 月</option><option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
+      </select>
+      <input id="defensiveSearchInput" class="search-input" type="text" placeholder="搜尋姓名" style="margin-top:12px">
+      <div class="mode-tools">
+        <button id="defensiveExportBtn" class="action-btn" type="button">📊 匯出本月防禦駕駛</button>
+      </div>
+    </div>
+    <div class="summary-with-refresh">
+      <div id="defensiveSummary" class="survey-summary"></div>
+      <button id="defensiveRefreshBtn" class="summary-refresh-btn" type="button">↻ 重新整理</button>
+    </div>
+  </section>
+  <section class="section">
+    <div id="defensiveAdminList" class="vehicle-list">
+      <div class="loading">尚未載入防禦駕駛資料</div>
+    </div>
+  </section>
+</section>
+
+<section id="rosterModePage" class="admin-mode-page">
+  <div class="mode-back-row protected-mode-actions"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="rosterPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
+  <section class="section">
+    <div class="section-title">在職員工</div>
+    <div class="employee-add-panel">
+      <input id="employeeNameInput" class="employee-add-name" type="text" maxlength="60" placeholder="輸入姓名" autocomplete="name" aria-label="新員工姓名">
+      <select id="employeeAreaInput" class="employee-add-area" aria-label="新員工區域">
+        <option value="">選擇區域</option>
+        <option value="A">A 區</option><option value="B">B 區</option><option value="C">C 區</option>
+        <option value="D">D 區</option><option value="E">E 區</option><option value="F">F 區</option>
+        <option value="G">G 區</option><option value="H">H 區</option><option value="I">I 區</option>
+        <option value="J">J 區</option><option value="K">K 區</option>
+      </select>
+      <button id="employeeAddBtn" class="action-btn employee-add-btn" type="button">＋ 新增</button>
+      <div id="employeeMessage" class="hint employee-add-message" role="status" aria-live="polite"></div>
+    </div>
+    <div class="employee-area-tabs" id="employeeAreaTabs" role="tablist" aria-label="依區域篩選在職員工"></div>
+    <div id="employeeDirectorySummary" class="employee-directory-summary" aria-live="polite"></div>
+    <div id="employeeDirectoryList" class="roster-list employee-list" style="margin-top:12px"><div class="loading">載入員工資料中…</div></div>
+  </section>
+
+  <div id="legacySurveyRosterManagement" style="display:none">
+    <section class="section">
+      <div class="section-title">問卷／訓練名單</div>
+      <div class="search-box">
+        <input id="surveyTargetNameInput" class="search-input" type="text" placeholder="輸入新人姓名" autocomplete="name">
+        <button id="surveyTargetAddBtn" class="action-btn" type="button" style="width:100%;margin-top:12px">＋ 新增在職員工</button>
+        <div id="surveyTargetMessage" class="hint" style="margin-top:8px;"></div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-title">目前問卷／訓練名單</div>
+      <div id="rosterList" class="roster-list">
+        <div class="loading">尚未載入在職名單</div>
+      </div>
+    </section>
+  </div>
+  <div id="surveyIncompleteList" style="display:none"></div>
+  <div id="surveyFailedList" style="display:none"></div>
+</section>
+<section id="shiftModePage" class="admin-mode-page">
+  <div class="mode-back-row protected-mode-actions"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="shiftPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
+  <section class="section">
+    <div class="section-title">指休管理</div>
+    <div class="shift-heading-tools">
+      <div class="hint">TPLH 2.5｜第三方 ≤20%</div>
+      <label class="shift-test-toggle"><input id="shiftTestModeToggle" type="checkbox" aria-label="測試模式"><span>測試</span></label>
+      <button id="shiftDeleteTestBtn" class="shift-mini-delete" type="button" hidden title="刪除所選週測試資料" aria-label="刪除所選週測試資料">🗑</button>
+    </div>
+    <div class="shift-admin-toolbar">
+      <select id="shiftWeekSelect" class="search-input" aria-label="選擇指休週次" hidden></select>
+      <div class="shift-toolbar-week-row">
+        <div id="shiftWeekButtons" class="shift-week-buttons" role="group" aria-label="選擇週次並設定開放"></div>
+      </div>
+      <div class="shift-toolbar-status-row">
+        <div id="shiftStatusTabs" class="shift-status-tabs" role="tablist" aria-label="指休提交狀態"></div>
+        <input id="shiftNameSearch" class="search-input shift-name-search" type="search" placeholder="搜尋姓名" autocomplete="off" aria-label="搜尋員工姓名">
+      </div>
+      <div class="shift-toolbar-search-row">
+        <button id="shiftRefreshBtn" class="action-btn" type="button">重新整理</button>
+        <select id="shiftExportWeekSelect" class="search-input shift-export-week" aria-label="選擇匯出週次"></select>
+        <button id="shiftExportBtn" class="action-btn" type="button">匯出</button>
+        <button id="shiftPurgeOldBtn" class="action-btn shift-purge-old-btn" type="button" title="刪除一個月前指休資料" aria-label="刪除一個月前指休資料">刪除一個月前</button>
+      </div>
+    </div>
+    <div id="shiftAdminSummary" class="hint" style="margin-top:10px"></div>
+  </section>
+  <section class="section">
+    <details class="shift-fold">
+      <summary class="section-title">下週人力建議</summary>
+      <div class="shift-fold-content">
+        <div class="hint forecast-formula">預估 TC＝前 8 週同星期「實際外送 TC」平均 × 1.2（各區無條件進位）｜需求工時＝預估 TC ÷ 2.5｜第三方提醒＝預估 TC × 20%</div>
+        <div id="staffingRecommendationSummary" class="summary forecast-summary-grid"></div>
+        <div id="staffingForecastDataWarning" class="forecast-data-warning" hidden role="status" aria-live="polite"></div>
+        <div id="staffingWeekGap" class="forecast-week-gap" hidden></div>
+        <div id="staffingDayTabs" class="staffing-day-tabs" role="tablist" aria-label="選擇預測日期"></div>
+        <div id="staffingRecommendationList" class="staffing-results"><div class="loading">載入歷史資料與指休資料中…</div></div>
+      </div>
+    </details>
+  </section>
+  <section class="section">
+    <details class="shift-fold">
+      <summary class="section-title">匯入歷史資料</summary>
+      <div class="shift-fold-content">
+        <div class="staffing-panel" style="width:100%">
+          <label class="staffing-file-picker" for="staffingImportFile"><span id="staffingImportFileLabel">選擇 Excel（可多選）</span><input id="staffingImportFile" type="file" accept=".xlsx,.xls" multiple aria-label="一次選取 TC 與中心實際資料 Excel"></label>
+          <button id="staffingImportBtn" class="action-btn" type="button" style="width:100%;margin-top:9px">分析並匯入</button>
+          <div id="staffingImportMessage" class="staffing-upload-preview" role="status" aria-live="polite"></div>
+        </div>
+        <div class="hint">空白／負數以 0 計</div>
+      </div>
+    </details>
+  </section>
+  <section class="section">
+    <div class="section-title">提交狀況</div>
+    <div id="shiftAdminList" class="vehicle-list"><div class="loading">載入在職員工與提交狀態中…</div></div>
+  </section>
+</section>
+
+</div>
+
+<!-- 快速清單 -->
+<div id="quickModal" class="modal">
+
+  <div class="modal-content">
+
+    <div id="quickModalTitle" class="modal-title"></div>
+
+    <div id="quickModalSubtitle" class="modal-subtitle"></div>
+
+    <div id="quickList" class="quick-list"></div>
+
+    <button id="closeQuickModal" class="close-btn">
+      關閉
+    </button>
+
+  </div>
+
+</div>
+
+<!-- 車輛詳細 -->
+<div id="modal" class="modal">
+
+  <div class="modal-content">
+
+    <div id="modalTitle" class="modal-title"></div>
+
+    <div id="modalSubtitle" class="modal-subtitle"></div>
+
+    <div id="healthPanel"></div>
+
+    <div id="oilPanel"></div>
+
+    <div id="oilHistory"></div>
+
+    <div id="claimHistory"></div>
+
+    <div id="history" class="history"></div>
+
+    <button id="closeModal" class="close-btn">
+      關閉
+    </button>
+
+  </div>
+
+</div>
+
+<div id="t995ProtectedPasswordModal" class="protected-password-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="t995ProtectedPasswordTitle">
+  <form id="t995ProtectedPasswordForm" class="protected-password-card">
+    <div class="protected-password-mark">T995</div>
+    <h2 id="t995ProtectedPasswordTitle">管理區域驗證</h2>
+    <p id="t995ProtectedPasswordDescription">請輸入共用密碼以繼續。</p>
+    <div id="t995CurrentPasswordWrap" class="protected-password-field" style="display:none"><label for="t995CurrentPassword">目前共用密碼</label><input id="t995CurrentPassword" type="password" autocomplete="current-password"></div>
+    <div id="t995NewPasswordWrap" class="protected-password-field" style="display:none"><label for="t995NewPassword">新共用密碼（至少 8 碼）</label><input id="t995NewPassword" type="password" autocomplete="new-password"></div>
+    <div id="t995ConfirmPasswordWrap" class="protected-password-field" style="display:none"><label for="t995ConfirmPassword">再次輸入新密碼</label><input id="t995ConfirmPassword" type="password" autocomplete="new-password"></div>
+    <div id="t995UnlockPasswordWrap" class="protected-password-field" style="display:none"><label for="t995UnlockPassword">共用密碼</label><input id="t995UnlockPassword" type="password" autocomplete="current-password"></div>
+    <div id="t995PasswordError" class="protected-password-error" role="status"></div>
+    <div class="protected-password-actions"><button id="t995PasswordCancel" class="action-btn" type="button">取消</button><button id="t995PasswordSubmit" class="action-btn protected-password-primary" type="submit">驗證</button></div>
+  </form>
+</div>
+
+<script>
+
+const SUPABASE_URL =
+  "https://nurnboqwhctyswcufkyk.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_YieSqh1zXq8wIvQiO9B_wg_ZbDkne7G";
+
+const db =
+  supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const OIL_INTERVAL = 1500;
+const OIL_WARNING_DISTANCE = 300;
+
+const $ = id =>
+  document.getElementById(id);
+
+const vehicleList =
+  $("vehicleList");
+
+const searchInput =
+  $("searchInput");
+
+const totalCount =
+  $("totalCount");
+
+const claimedCount =
+  $("claimedCount");
+
+const claimedCard =
+  $("claimedCard");
+
+const returnedCount =
+  $("returnedCount");
+
+const returnedCard =
+  $("returnedCard");
+
+const unresolvedCount =
+  $("unresolvedCount");
+
+const unresolvedCard =
+  $("unresolvedCard");
+
+const refreshBtn =
+  $("refreshBtn");
+
+const cleanupBtn =
+  $("cleanupBtn");
+
+const todayDate =
+  $("todayDate");
+
+const quickModal =
+  $("quickModal");
+
+const quickModalTitle =
+  $("quickModalTitle");
+
+const quickModalSubtitle =
+  $("quickModalSubtitle");
+
+const quickList =
+  $("quickList");
+
+const closeQuickModal =
+  $("closeQuickModal");
+
+const modal =
+  $("modal");
+
+const modalTitle =
+  $("modalTitle");
+
+const modalSubtitle =
+  $("modalSubtitle");
+
+const healthPanel =
+  $("healthPanel");
+
+const oilPanel =
+  $("oilPanel");
+
+const oilHistory =
+  $("oilHistory");
+
+const claimHistory =
+  $("claimHistory");
+
+const historyContainer =
+  $("history");
+
+const closeModal =
+  $("closeModal");
+
+const exportMonth =
+  $("exportMonth");
+
+const exportExcelBtn =
+  $("exportExcelBtn");
+
+const adminTitle = $("adminTitle");
+const adminModeMenu = $("adminModeMenu");
+const vehicleModePage = $("vehicleModePage");
+const surveyModePage = $("surveyModePage");
+const vehicleModeBtn = $("vehicleModeBtn");
+const surveyModeBtn = $("surveyModeBtn");
+const vehicleBackBtn = $("vehicleBackBtn");
+const surveyBackBtn = $("surveyBackBtn");
+const surveySearchInput = $("surveySearchInput");
+const surveyExportBtn = $("surveyExportBtn");
+const surveyRefreshBtn = $("surveyRefreshBtn");
+const surveySummary = $("surveySummary");
+const surveyStatusList = $("surveyStatusList");
+const surveyResponseList = $("surveyResponseList");
+const batteryModePage = $("batteryModePage");
+const batteryModeBtn = $("batteryModeBtn");
+const batteryBackBtn = $("batteryBackBtn");
+const batteryRefreshBtn = $("batteryRefreshBtn");
+const batteryExportBtn = $("batteryExportBtn");
+const batterySearchInput = $("batterySearchInput");
+const batterySummary = $("batterySummary");
+const batteryReportList = $("batteryReportList");
+const deviceAdminType = $("deviceAdminType");
+const deviceBatteryTypeBtn = $("deviceBatteryTypeBtn");
+const deviceRecorderTypeBtn = $("deviceRecorderTypeBtn");
+const deviceSearchTitle = $("deviceSearchTitle");
+const deviceSearchMessage = $("deviceSearchMessage");
+const deviceInventoryTitle = $("deviceInventoryTitle");
+const deviceRegisterPanel = $("deviceRegisterPanel");
+const deviceRegisterRestaurant = $("deviceRegisterRestaurant");
+const deviceRegisterSize = $("deviceRegisterSize");
+const deviceRegisterBtn = $("deviceRegisterBtn");
+const deviceRegisterMessage = $("deviceRegisterMessage");
+const rosterModePage = $("rosterModePage");
+const rosterModeBtn = $("rosterModeBtn");
+const rosterBackBtn = $("rosterBackBtn");
+const rosterList = $("rosterList");
+const defensiveModePage = $("defensiveModePage");
+const defensiveModeBtn = $("defensiveModeBtn");
+const defensiveBackBtn = $("defensiveBackBtn");
+const defensiveAdminMonth = $("defensiveAdminMonth");
+const defensiveRefreshBtn = $("defensiveRefreshBtn");
+const defensiveExportBtn = $("defensiveExportBtn");
+const defensiveSearchInput = $("defensiveSearchInput");
+const defensiveSummary = $("defensiveSummary");
+const defensiveAdminList = $("defensiveAdminList");
+defensiveAdminMonth.value = String(trainingTaipeiParts().month);
+const newVehicleFullPlate = $("newVehicleFullPlate");
+const newVehicleCenter = $("newVehicleCenter");
+const addVehicleBtn = $("addVehicleBtn");
+const addVehicleMessage = $("addVehicleMessage");
+const surveyRoundSelect = $("surveyRoundSelect");
+const surveyPeriodLabel = $("surveyPeriodLabel");
+function trainingTaipeiParts(date = new Date()){
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "numeric", day: "numeric"
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return {year:Number(values.year), month:Number(values.month), day:Number(values.day)};
+}
+function surveyRoundInfo(round, year = trainingTaipeiParts().year){
+  const isM7 = round === "M7";
+  return {
+    round: isM7 ? "M7" : "M1",
+    year,
+    start: isM7 ? `${year}-07-01T00:00:00+08:00` : `${year}-01-01T00:00:00+08:00`,
+    end: isM7 ? `${year + 1}-01-01T00:00:00+08:00` : `${year}-07-01T00:00:00+08:00`,
+    label: isM7 ? `${year}/07–12` : `${year}/01–06`
+  };
+}
+function updateSurveyPeriodLabel(){
+  if(!surveyPeriodLabel) return;
+  const info = surveyRoundInfo(surveyRoundSelect.value);
+  surveyPeriodLabel.textContent = `目前檢視：${info.label}（${info.round}）`;
+}
+surveyRoundSelect.value = trainingTaipeiParts().month >= 7 ? "M7" : "M1";
+updateSurveyPeriodLabel();
+const surveyTargetNameInput = $("surveyTargetNameInput");
+const surveyTargetAddBtn = $("surveyTargetAddBtn");
+const surveyTargetMessage = $("surveyTargetMessage");
+const surveyIncompleteList = $("surveyIncompleteList");
+const surveyFailedList = $("surveyFailedList");
+let surveyResponses = [];
+let surveyTargets = [];
+let activeSurveyStatus = "required";
+let batteryReports = [];
+let batteryInventory = [];
+let recorderReports = [];
+let recorderInventory = [];
+let defensiveResponses = [];
+let defensiveTargets = [];
+let activeDefensiveStatus = "required";
+
+let vehicles = [];
+let allReports = [];
+let todayReports = [];
+let latestReports = [];
+let unresolvedReports = [];
+let allClaims = [];
+let claimLoadError = null;
+
+function esc(v){
+
+  return String(v ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+function fmt(v){
+
+  if(!v)
+    return "尚無紀錄";
+
+  const d =
+    new Date(v);
+
+  if(Number.isNaN(d.getTime()))
+    return "日期錯誤";
+
+  return d.toLocaleString(
+    "zh-TW",
+    {
+      year:"numeric",
+      month:"2-digit",
+      day:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit"
+    }
+  );
+
+}
+
+function ranges(){
+
+  const n =
+    new Date();
+
+  const s =
+    new Date(
+      n.getFullYear(),
+      n.getMonth(),
+      n.getDate()
+    );
+
+  const e =
+    new Date(
+      n.getFullYear(),
+      n.getMonth(),
+      n.getDate()+1
+    );
+
+  return {
+    s,
+    e
+  };
+
+}
+
+/* =========================
+   車輛詳細頁只顯示最近 5 天
+   注意：只限制畫面顯示，不刪除雲端資料
+========================= */
+
+function fiveDayCutoff(){
+
+  const n = new Date();
+
+  return new Date(
+    n.getFullYear(),
+    n.getMonth(),
+    n.getDate()-4
+  );
+
+}
+
+function isWithinFiveDays(v){
+
+  if(!v)
+    return false;
+
+  const t = new Date(v).getTime();
+  const cutoff = fiveDayCutoff().getTime();
+
+  return !Number.isNaN(t) && t >= cutoff;
+
+}
+
+/* =========================
+   今日巡檢
+========================= */
+
+function todayReport(v){
+  const rows = todayReports
+    .filter(r => r.vehicle_id === v.id)
+    .sort((a,b) => new Date(b.reported_at || 0).getTime() - new Date(a.reported_at || 0).getTime());
+  return rows[0] || null;
+}
+
+/* =========================
+   最新巡檢
+========================= */
+
+function latestReport(v){
+
+  return latestReports.find(
+    r => r.vehicle_id === v.id
+  ) || null;
+
+}
+
+/* =========================
+   所有未解決異常
+   注意：
+   只要 abnormal + 尚未 resolved
+   不分今天或歷史
+========================= */
+
+function unresolvedForVehicle(v){
+
+  return unresolvedReports.filter(
+    r => r.vehicle_id === v.id
+  );
+
+}
+
+/* =========================
+   異常文字
+========================= */
+
+function abnormalText(r){
+
+  if(!r?.abn…20139 tokens truncated… XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "電池異常回報");
+  XLSX.writeFile(wb, `KFC_電池異常回報_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function deleteBatteryReport(id){
+  const row = batteryReports.find(item => String(item.id || "") === String(id || ""));
+  if(!row) return;
+  if(!confirm(`確定要刪除電池「${row.battery_number || "未填編號"}」的這筆異常回報嗎？\n\n刪除後無法復原。`)) return;
+  try{
+    const result = await db.from("battery_issue_reports").delete().eq("id", id);
+    if(result.error) throw result.error;
+    batteryReports = batteryReports.filter(item => String(item.id || "") !== String(id || ""));
+    renderBatterySummary();
+    renderBatteryReports();
+    alert("✅ 電池異常回報已刪除。");
+  }catch(e){
+    alert(`刪除電池異常回報失敗：${e.message || "請確認 Supabase DELETE 權限"}`);
+  }
+}
+
+function showAdminMode(mode){
+  adminModeMenu.style.display = mode === "home" ? "grid" : "none";
+  vehicleModePage.style.display = mode === "vehicle" ? "block" : "none";
+  surveyModePage.style.display = mode === "survey" ? "block" : "none";
+  batteryModePage.style.display = mode === "battery" ? "block" : "none";
+  defensiveModePage.style.display = mode === "defensive" ? "block" : "none";
+  rosterModePage.style.display = mode === "roster" ? "block" : "none";
+  if(mode === "vehicle") loadData();
+  if(mode === "survey") loadSurveyData();
+  if(mode === "battery") loadDeviceData(true);
+  if(mode === "defensive") loadDefensiveAdminData();
+  if(mode === "roster") loadRosterData();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* =========================
+   事件
+========================= */
+
+searchInput.oninput =
+  renderVehicles;
+
+vehicleModeBtn.onclick =
+  () => showAdminMode("vehicle");
+
+surveyModeBtn.onclick =
+  () => showAdminMode("survey");
+
+rosterModeBtn.onclick =
+  () => showAdminMode("roster");
+
+batteryModeBtn.onclick =
+  () => showAdminMode("battery");
+
+vehicleBackBtn.onclick =
+  () => showAdminMode("home");
+
+surveyBackBtn.onclick =
+  () => showAdminMode("home");
+
+rosterBackBtn.onclick =
+  () => showAdminMode("home");
+
+batteryBackBtn.onclick =
+  () => showAdminMode("home");
+
+batteryRefreshBtn.onclick =
+  () => loadDeviceData(false);
+
+document.querySelectorAll(".device-admin-type-btn").forEach(button => {
+  button.onclick = () => {
+    deviceAdminType.value = button.dataset.deviceType;
+    deviceRegisterMessage.textContent = "";
+    loadDeviceData(true);
+  };
+});
+deviceRegisterBtn.onclick = addDeviceFromAdmin;
+let deviceSearchTimer = null;
+let deviceSearchToken = 0;
+
+async function searchCurrentDeviceByNumber(){
+  const keyword = batterySearchInput.value.trim();
+  if(!keyword){
+    if(deviceAdminType.value === "recorder") renderRecorderReports(); else renderBatteryReports();
+    syncDeviceSearchState();
+    return;
+  }
+  const token = ++deviceSearchToken;
+  const recorder = deviceAdminType.value === "recorder";
+  const table = recorder ? "recorders" : "batteries";
+  const column = recorder ? "recorder_number" : "battery_number";
+  deviceRegisterPanel.style.display = "none";
+  deviceSearchMessage.textContent = `正在查詢${currentDeviceLabel()}…`;
+  try{
+    const result = await db.from(table).select("*").eq(column, keyword).maybeSingle();
+    if(token !== deviceSearchToken || keyword !== batterySearchInput.value.trim()) return;
+    if(result.error) throw result.error;
+    if(result.data){
+      if(recorder){
+        recorderInventory = [...recorderInventory.filter(row => String(row.id) !== String(result.data.id)), result.data];
+        renderRecorderReports();
+      }else{
+        batteryInventory = [...batteryInventory.filter(row => String(row.id) !== String(result.data.id)), result.data];
+        renderBatteryReports();
+      }
+      deviceRegisterPanel.style.display = "none";
+      deviceSearchMessage.textContent = `已找到 1 筆${currentDeviceLabel()}設備，已顯示設備小卡。`;
+      return;
+    }
+    if(recorder) renderRecorderReports(); else renderBatteryReports();
+    deviceRegisterPanel.style.display = "block";
+    deviceRegisterMessage.textContent = `查無此${currentDeviceLabel()}，請確認編號後新增正常設備。`;
+    deviceSearchMessage.textContent = `查無此${currentDeviceLabel()}，可直接新增正常設備。`;
+  }catch(error){
+    if(token !== deviceSearchToken) return;
+    console.error(error);
+    deviceSearchMessage.textContent = `設備查詢失敗：${error.message || "請稍後再試"}`;
+  }
+}
+
+batterySearchInput.oninput = () => {
+  clearTimeout(deviceSearchTimer);
+  deviceSearchMessage.textContent = "輸入完成後自動查詢…";
+  deviceSearchTimer = setTimeout(searchCurrentDeviceByNumber, 350);
+};
+batterySearchInput.onblur = () => {
+  clearTimeout(deviceSearchTimer);
+  searchCurrentDeviceByNumber();
+};
+
+surveySummary.onclick = e => {
+  const card = e.target.closest("[data-survey-status]");
+  if(!card) return;
+  activeSurveyStatus = card.dataset.surveyStatus;
+  surveySummary.querySelectorAll("[data-survey-status]").forEach(item => item.classList.toggle("active", item === card));
+  renderSurveyStatusList(activeSurveyStatus);
+};
+surveyStatusList.onclick = e => {
+  const deleteButton = e.target.closest(".survey-status-delete");
+  if(deleteButton){
+    e.stopPropagation();
+    deleteSurveyResponse(deleteButton.dataset.id, deleteButton.dataset.name, deleteButton.dataset.submittedAt);
+    return;
+  }
+  const card = e.target.closest("[data-survey-detail-name]");
+  if(card) focusSurveyResponse(card.dataset.surveyDetailName);
+};
+
+defensiveSummary.onclick = e => {
+  const card = e.target.closest("[data-defensive-status]");
+  if(!card) return;
+  activeDefensiveStatus = card.dataset.defensiveStatus;
+  defensiveSummary.querySelectorAll("[data-defensive-status]").forEach(item => item.classList.toggle("active", item === card));
+  renderDefensiveStatusList(activeDefensiveStatus);
+  defensiveAdminList.scrollIntoView({behavior:"smooth", block:"start"});
+};
+defensiveAdminList.onclick = e => {
+  const recordButton = e.target.closest(".defensive-status-delete");
+  if(recordButton){
+    deleteDefensiveResponse(recordButton.dataset.name, recordButton.dataset.month, recordButton.dataset.year);
+    return;
+  }
+  const targetButton = e.target.closest(".defensive-target-delete");
+  if(targetButton) deleteSurveyTarget(targetButton.dataset.name, targetButton.dataset.round);
+};
+
+surveySearchInput.oninput =
+  () => {
+    renderSurveyStatusList(activeSurveyStatus);
+    renderSurveyResponses();
+  };
+
+surveyExportBtn.onclick =
+  exportSurveyResponses;
+
+surveyRefreshBtn.onclick =
+  loadSurveyData;
+
+surveyResponseList.onclick =
+  e => {
+    const button = e.target.closest(".survey-delete-btn");
+    if(button) deleteSurveyResponse(button.dataset.id, button.dataset.name, button.dataset.submittedAt);
+  };
+
+batteryReportList.onclick =
+  e => {
+    if(deviceAdminType.value === "recorder") {
+      const repairButton = e.target.closest(".recorder-repair-btn");
+      if(repairButton){ updateRecorderIssue(repairButton.dataset.id, "repaired"); return; }
+      const scrapButton = e.target.closest(".recorder-scrap-btn");
+      if(scrapButton){ updateRecorderIssue(scrapButton.dataset.id, "scrapped"); return; }
+      return;
+    }
+    const repairButton = e.target.closest(".battery-repair-btn");
+    if(repairButton){ updateBatteryIssue(repairButton.dataset.id, "repaired"); return; }
+    const scrapButton = e.target.closest(".battery-scrap-btn");
+    if(scrapButton){ updateBatteryIssue(scrapButton.dataset.id, "scrapped"); return; }
+  };
+
+batteryExportBtn.onclick = exportCurrentDevices;
+
+claimedCard.onclick =
+  () => openQuickList("claimed");
+
+returnedCard.onclick =
+  () => openQuickList("returned");
+
+addVehicleBtn.onclick = addVehicleFromAdmin;
+surveyTargetAddBtn.onclick = addSurveyTarget;
+surveyRoundSelect.onchange = () => { updateSurveyPeriodLabel(); loadSurveyData(); };
+defensiveModeBtn.onclick = () => showAdminMode("defensive");
+defensiveBackBtn.onclick = () => showAdminMode("home");
+defensiveRefreshBtn.onclick = loadDefensiveAdminData;
+defensiveExportBtn.onclick = exportDefensiveResponses;
+defensiveAdminMonth.onchange = loadDefensiveAdminData;
+defensiveSearchInput.oninput = () => renderDefensiveStatusList(activeDefensiveStatus);
+const rosterDeleteHandler = e => {
+  const button = e.target.closest(".survey-target-delete-btn");
+  if(button) deleteSurveyTarget(button.dataset.name, button.dataset.round);
+};
+rosterList.onclick = rosterDeleteHandler;
+surveyIncompleteList.onclick = rosterDeleteHandler;
+surveyFailedList.onclick = e => {
+  const button = e.target.closest(".survey-failed-btn");
+  if(button) focusSurveyResponse(button.dataset.name);
+};
+unresolvedCard.onclick =
+  () => openQuickList("unresolved");
+
+refreshBtn.onclick =
+  async () => {
+
+    refreshBtn.disabled = true;
+
+    refreshBtn.textContent =
+      "↻ 更新中…";
+
+    await loadData();
+
+    refreshBtn.disabled = false;
+
+    refreshBtn.textContent =
+      "↻ 重新整理資料";
+
+  };
+
+cleanupBtn.onclick =
+  cleanupOldReports;
+
+exportExcelBtn.onclick =
+  exportMonthlyExcel;
+
+closeQuickModal.onclick =
+  () =>
+    quickModal.classList.remove("show");
+
+quickModal.onclick =
+  e => {
+
+    if(e.target === quickModal)
+      quickModal.classList.remove("show");
+
+  };
+
+closeModal.onclick =
+  () =>
+    modal.classList.remove("show");
+
+modal.onclick =
+  e => {
+
+    if(e.target === modal)
+      modal.classList.remove("show");
+
+  };
+
+todayDate.textContent =
+  new Date().toLocaleDateString(
+    "zh-TW",
+    {
+      year:"numeric",
+      month:"long",
+      day:"numeric",
+      weekday:"long"
+    }
+  );
+
+const now = new Date();
+exportMonth.value =
+  `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+
+/* =========================
+   管理員登入
+========================= */
+const authGate = document.getElementById("authGate");
+const authForm = document.getElementById("authForm");
+const authEmailInput = document.getElementById("authEmail");
+const authPasswordInput = document.getElementById("authPassword");
+const authPasswordToggle = document.getElementById("authPasswordToggle");
+const authSubmit = document.getElementById("authSubmit");
+const authMessage = document.getElementById("authMessage");
+const adminApp = document.getElementById("adminApp");
+const adminSessionBar = document.getElementById("adminSessionBar");
+const adminSessionEmail = document.getElementById("adminSessionEmail");
+const authLogoutBtn = document.getElementById("authLogoutBtn");
+let authBusy = false;
+
+function showAuthMessage(message, success=false){
+  authMessage.textContent = message || "";
+  authMessage.style.color = success ? "var(--green)" : "var(--danger)";
+}
+
+function lockAdmin(message=""){ 
+  authGate.style.display = "flex";
+  adminApp.style.display = "none";
+  adminSessionBar.style.display = "none";
+  showAuthMessage(message);
+}
+
+async function unlockAdmin(session){
+  if(!session?.user?.email){ lockAdmin(); return; }
+  const email = String(session.user.email).trim().toLowerCase();
+  const allow = await db.from("admin_allowlist").select("email").ilike("email", email).eq("active", true).maybeSingle();
+  if(allow.error){
+    await db.auth.signOut();
+    lockAdmin("管理員白名單尚未設定，請先執行 T995 管理員 SQL。");
+    return;
+  }
+  if(!allow.data){
+    await db.auth.signOut();
+    lockAdmin("此帳號尚未授權使用本區後台。");
+    return;
+  }
+  authGate.style.display = "none";
+  adminApp.style.display = "block";
+  adminSessionBar.style.display = "flex";
+  adminSessionEmail.textContent = `已登入：${email}`;
+  showAuthMessage("", true);
+  showAdminMode("home");
+}
+
+authPasswordToggle.onclick = () => {
+  const visible = authPasswordInput.type === "text";
+  authPasswordInput.type = visible ? "password" : "text";
+  authPasswordToggle.textContent = visible ? "顯示" : "隱藏";
+};
+
+authForm.onsubmit = async event => {
+  event.preventDefault();
+  if(authBusy) return;
+  authBusy = true;
+  authSubmit.disabled = true;
+  authSubmit.textContent = "登入中…";
+  showAuthMessage("");
+  try{
+    const result = await db.auth.signInWithPassword({email:authEmailInput.value.trim(),password:authPasswordInput.value});
+    if(result.error){
+      showAuthMessage("登入失敗，請確認帳號與密碼。", false);
+    }else{
+      await unlockAdmin(result.data.session);
+    }
+  }catch(error){
+    console.error(error);
+    showAuthMessage("登入服務暫時無法使用，請稍後再試。", false);
+  }finally{
+    authBusy = false;
+    authSubmit.disabled = false;
+    authSubmit.textContent = "登入後台";
+  }
+};
+
+authLogoutBtn.onclick = async () => {
+  await db.auth.signOut();
+  authPasswordInput.value = "";
+  lockAdmin("已安全登出。");
+};
+
+db.auth.onAuthStateChange((_event, session) => {
+  setTimeout(() => unlockAdmin(session).catch(() => lockAdmin("登入狀態檢查失敗，請重新登入。")), 0);
+});
+
+db.auth.getSession().then(({data}) => unlockAdmin(data.session)).catch(() => lockAdmin("登入狀態讀取失敗，請重新登入。"));
+
+
+showAdminMode("home");
+
+/* =========================================================
+   T995 員工區域、指休管理、人力資料匯入與設備永久刪除
+========================================================= */
+const t995EmployeeNameInput=$("employeeNameInput");
+const t995EmployeeAreaInput=$("employeeAreaInput");
+const t995EmployeeAddBtn=$("employeeAddBtn");
+const t995EmployeeMessage=$("employeeMessage");
+const t995EmployeeDirectoryList=$("employeeDirectoryList");
+const t995EmployeeAreaTabs=$("employeeAreaTabs");
+const t995EmployeeDirectorySummary=$("employeeDirectorySummary");
+const t995ShiftModePage=$("shiftModePage");
+const t995ShiftModeBtn=$("shiftModeBtn");
+const t995ShiftBackBtn=$("shiftBackBtn");
+const t995ShiftWeekSelect=$("shiftWeekSelect");
+const t995ShiftWeekButtons=$("shiftWeekButtons");
+const t995ShiftNameSearch=$("shiftNameSearch");
+const t995ShiftStatusTabs=$("shiftStatusTabs");
+const t995ShiftRefreshBtn=$("shiftRefreshBtn");
+const t995ShiftExportBtn=$("shiftExportBtn");
+const t995ShiftDeleteTestBtn=$("shiftDeleteTestBtn");
+const t995ShiftPurgeOldBtn=$("shiftPurgeOldBtn");
+const t995ShiftSummary=$("shiftAdminSummary");
+const t995ShiftAdminList=$("shiftAdminList");
+const t995StaffingSummary=$("staffingRecommendationSummary");
+const t995StaffingList=$("staffingRecommendationList");
+const t995StaffingWeekGap=$("staffingWeekGap");
+const t995StaffingForecastDataWarning=$("staffingForecastDataWarning");
+const t995StaffingDayTabs=$("staffingDayTabs");
+let t995StaffingForecastData=[];
+let t995StaffingDayOffset=0;
+t995StaffingDayTabs.onclick=e=>{
+  const b=e.target.closest("[data-t995-forecast-day]");if(!b)return;
+  t995StaffingDayOffset=Number(b.dataset.t995ForecastDay)||0;
+  t995StaffingDayTabs.querySelectorAll("[data-t995-forecast-day]").forEach(tab=>{
+    const active=Number(tab.dataset.t995ForecastDay)===t995StaffingDayOffset;
+    tab.classList.toggle("active",active);tab.setAttribute("aria-selected",active?"true":"false");
+  });
+  t995RenderStaffingDay();
+};
+const t995TcFile=$("staffingImportFile");
+const t995TcImportBtn=$("staffingImportBtn");
+const t995TcImportMessage=$("staffingImportMessage");
+const t995ActualsFile=t995TcFile;
+const t995ActualsImportBtn=t995TcImportBtn;
+const t995ActualsImportMessage=t995TcImportMessage;
+let t995Employees=[];
+let t995EmployeeAreaFilter="ALL";
+let t995ShiftRows=[];
+let t995ShiftExportRows=[];
+let t995ShiftStatusFilter="all";
+let t995ShiftTestRecordCount=0;
+let t995ShiftOpenWeeks=new Set();
+let t995StaffingSettings={target_tplh:2.5,max_third_party_usage_pct:20,forecast_weeks:8,shift_test_mode:false};
+let t995AreaMap=new Map();
+let t995AreaMapLoaded=false;
+
+function t995RenderEmployeeDirectory(){
+  const areas=['A','B','C','D','E','F','G','H','I','J','K'];
+  const counts=Object.fromEntries(areas.map(a=>[a,t995Employees.filter(row=>row.area_code===a).length]));
+  const tabItems=[['ALL','ALL',t995Employees.length],...areas.map(a=>[a,`${a}區`,counts[a]])];
+  t995EmployeeAreaTabs.innerHTML=tabItems.map(([code,label,count])=>`<button type="button" class="employee-area-tab ${t995EmployeeAreaFilter===code?'active':''}" data-t995-area-filter="${code}" aria-pressed="${t995EmployeeAreaFilter===code?'true':'false'}">${label}<br><small>${count}</small></button>`).join('');
+  const areaOrder=Object.fromEntries(areas.map((a,i)=>[a,i]));
+  const sorted=[...t995Employees].sort((a,b)=>{const ai=areaOrder[a.area_code]??areas.length,bi=areaOrder[b.area_code]??areas.length;return ai-bi||String(a.full_name||'').localeCompare(String(b.full_name||''),'zh-Hant');});
+  const rows=t995EmployeeAreaFilter==='ALL'?sorted:sorted.filter(row=>row.area_code===t995EmployeeAreaFilter);
+  t995EmployeeDirectorySummary.textContent=`${rows.length} 人｜依 A–K 區排序`;
+  if(!rows.length){t995EmployeeDirectoryList.innerHTML='<div class="empty">目前沒有員工</div>';return;}
+  t995EmployeeDirectoryList.innerHTML=rows.map(row=>{
+    const options=['<option value="" '+(!row.area_code?'selected':'')+'>未設定</option>',...areas.map(x=>`<option value="${x}" ${row.area_code===x?'selected':''}>${x}區</option>`)].join('');
+    return `<article class="employee-directory-card">
+      <div class="employee-admin-name">${esc(row.full_name)}</div>
+      <span class="employee-badge">${esc(row.area_code?`${row.area_code}區`:'未分類')}</span>
+      <select id="employee-area-${esc(row.id)}" aria-label="${esc(row.full_name)} 區域" data-t995-employee-area="${esc(row.id)}">${options}</select>
+      <button type="button" class="employee-area-save-btn" data-t995-employee-area-save="${esc(row.id)}" aria-label="更換 ${esc(row.full_name)} 區域">換區</button>
+      <button type="button" class="permanent-delete-employee" data-t995-employee-delete="${esc(row.id)}" aria-label="刪除 ${esc(row.full_name)} 及相關紀錄">刪除</button>
+    </article>`;
+  }).join('');
+}
+async function t995LoadEmployees(){
+  t995EmployeeDirectoryList.innerHTML='<div class="loading">載入員工名單中…</div>';
+  try{
+    const r=await db.from("employee_directory").select("id,full_name,area_code,is_active,updated_at").eq("is_active",true).order("full_name",{ascending:true});
+    if(r.error)throw r.error;
+    t995Employees=r.data||[];
+    t995RenderEmployeeDirectory();
+    await loadRosterData();
+  }catch(e){t995EmployeeDirectoryList.innerHTML=`<div class="empty">員工名單讀取失敗：${esc(e.message||"請確認管理員權限與 SQL 更新")}</div>`;}
+}
+async function t995AddEmployee(){
+  const name=t995EmployeeNameInput.value.trim();const area=t995EmployeeAreaInput.value;
+  if(!name){t995EmployeeMessage.textContent="請輸入員工姓名。";t995EmployeeNameInput.focus();return;}
+  if(!area){t995EmployeeMessage.textContent="請選擇 A–K 區。";t995EmployeeAreaInput.focus();return;}
+  t995EmployeeAddBtn.disabled=true;t995EmployeeMessage.textContent="新增中…";
+  try{
+    const existing=await db.from("employee_directory").select("id,is_active,area_code").eq("full_name",name).maybeSingle();if(existing.error)throw existing.error;
+    if(existing.data){t995EmployeeMessage.textContent=`「${name}」已在職名單中，請在員工卡片修改區域。`;return;}
+    const r=await db.from("employee_directory").insert({full_name:name,area_code:area,is_active:true});if(r.error)throw r.error;
+    t995EmployeeNameInput.value="";t995EmployeeAreaInput.value="";t995EmployeeMessage.textContent=`✅ 已新增 ${name}｜${area} 區`;await t995LoadEmployees();
+  }catch(e){t995EmployeeMessage.textContent=`新增失敗：${e.message||"請確認管理員權限"}`;}
+  finally{t995EmployeeAddBtn.disabled=false;}
+}
+async function t995UpdateEmployeeArea(id,newArea,button){
+  const row=t995Employees.find(x=>String(x.id)===String(id));if(!row)return;
+  const next=newArea||null;if((row.area_code||null)===next){t995EmployeeMessage.textContent="區域未變更";return;}
   const label=next?`${next}區`:"未分類";
   if(!confirm(`將「${row.full_name}」改為${label}？`)){t995RenderEmployeeDirectory();return;}
   if(button)button.disabled=true;
@@ -2368,6 +3408,7 @@ vehicleList.addEventListener("click",event=>{
 },true);
 
 
+/* T995 營運管理：延遲訂單、月度餐廳回覆連結與劃線／簽名。 */
 /* 營運管理共用介面。分頁與登記邏輯位於 operations-entry.js。 */
 const opsToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 function opsEscape(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -2473,5 +3514,6 @@ $("opsScoreImport").onclick=async()=>{
 <script src="operations-entry.js?v=20261027-tabs4"></script>
 </body>
 </html>
+
 
 
