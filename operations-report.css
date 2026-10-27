@@ -177,3 +177,9 @@
 .ops-coupon-form input{width:100%;min-width:0;min-height:44px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;text-align:center}
 .ops-coupon-form button{grid-column:1/-1;justify-self:center;min-height:44px}
 @media(max-width:600px){.ops-coupon-form{grid-template-columns:1fr}.ops-coupon-form button{grid-column:auto}.ops-context-list{text-align:left}}
+
+.ops-feedback-upload{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
+.ops-feedback-upload .ops-score-upload{justify-content:center}
+.ops-feedback-upload .ops-message{min-height:24px;margin-top:8px;font-weight:700}
+.ops-feedback-upload .ops-table-wrap{margin:10px 0}
+@media(max-width:600px){.ops-feedback-upload .ops-table{font-size:12px}.ops-feedback-upload .ops-table th,.ops-feedback-upload .ops-table td{padding:7px 4px}}
