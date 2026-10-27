@@ -181,7 +181,7 @@
   window.opsFindRestaurant=findRestaurant;
   for(const id of ['opsDelayStore','opsLineStore'])E(id).oninput=async()=>{if(id==='opsLineStore'){opsSetToggle('opsLineMark',false);opsSetToggle('opsSignMark',false);}try{const store=await findRestaurant(id);if(store&&id==='opsLineStore')await fillLineState(store.store_code);}catch(e){E(id+'Name').textContent=e.message;}};
   E('opsAnalysisDate').value=opsToday();E('opsSummaryDate').value=opsToday();
-  E('opsAnalysisDate').onchange=()=>{state.period='day';refresh().catch(error);};E('opsSummaryDate').onchange=()=>refresh().catch(error);
+  E('opsAnalysisDate').onchange=()=>refresh().catch(error);E('opsSummaryDate').onchange=()=>refresh().catch(error);
   E('opsAnalysisRefresh').onclick=()=>refresh(true).catch(error);E('opsSummaryRefresh').onclick=()=>refresh(true).catch(error);
   E('opsPeriodTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.period=b.dataset.period;refresh().catch(error);});
   E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.summaryPeriod=b.dataset.period;refresh().catch(error);});
