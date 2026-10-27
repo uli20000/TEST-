@@ -21,20 +21,21 @@
     const month=date.slice(0,7);if(state.monthLoads.has(month))return state.monthLoads.get(month);if(!force&&state.monthCache.has(month))return state.monthCache.get(month);
     const work=(async()=>{
       await loadDirectory();const r=S.range(date,'month');
-      const [batchRows,reportResult,reference]=await Promise.all([
+      const [batchRows,reportResult,reference,couponResult]=await Promise.all([
         paged('t995_score_import_batches','*',q=>q.gte('report_date',r.start).lte('report_date',r.end),'report_date'),
         db.from('t995_operations_daily_reports').select('*').gte('record_date',r.start).lte('record_date',r.end).order('record_date'),
-        db.rpc('t995_get_operations_reference',{p_month:r.start})
+        db.rpc('t995_get_operations_reference',{p_month:r.start}),
+        db.from('t995_operations_coupon_campaigns').select('*').lte('active_from',r.end).gte('active_to',r.start).order('active_from')
       ]);
-      if(reportResult.error)throw reportResult.error;if(reference.error)throw reference.error;
+      if(reportResult.error)throw reportResult.error;if(reference.error)throw reference.error;if(couponResult.error)throw couponResult.error;
       const batches=M.latestBatches(batchRows),ids=batches.map(b=>b.id),rows=ids.length?await paged('t995_score_import_rows','batch_id,row_number,store_code,restaurant_name,order_number,payload',q=>q.in('batch_id',ids),'batch_id'):[];
-      return {rows,batches,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[]};
+      return {rows,batches,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[],campaigns:couponResult.data||[]};
     })();state.monthLoads.set(month,work);
     try{const data=await work;state.monthCache.set(month,data);return data;}finally{state.monthLoads.delete(month);}
   }
   async function loadRange(r,force=false){
     const parts=await Promise.all(S.months(r.start,r.end).map(d=>loadMonth(d,force))),data={};
-    for(const key of ['rows','batches','reports','history','mapping'])data[key]=parts.flatMap(p=>p[key]);return data;
+    for(const key of ['rows','batches','reports','history','mapping'])data[key]=parts.flatMap(p=>p[key]);data.campaigns=[...new Map(parts.flatMap(p=>p.campaigns||[]).map(x=>[x.id,x])).values()];return data;
   }
   function model(date,p,data=state.cache){return M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...S.range(date,p)});}
   function metricsRows(s){return [
@@ -56,6 +57,29 @@
     if(v.areas.has('?'))messages.push('有餐廳尚未設定區域');return messages;
   }
   function periodTitle(date,p){const r=S.range(date,p);return p==='day'?date:(p==='week'?S.weekLabel(date)+'　':'')+r.start+' ～ '+r.end;}
+  function periodRecords(date,p,v){
+    const r=S.range(date,p),days=[...v.days.values()],notes=days.filter(d=>String(d.report?.special_notes||'').trim()),excluded=days.filter(d=>d.report?.score_excluded),campaigns=(state.cache?.campaigns||[]).filter(c=>c.active_from<=r.end&&c.active_to>=r.start);
+    const escapeUrl=value=>{try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:'#';}catch{return '#';}};
+    const list='<div class="ops-context-list">'+(excluded.length?'<div><b>不計成績</b>　'+excluded.map(d=>d.date.slice(5).replace('-','/')+(d.report?.special_notes?' '+escape(d.report.special_notes):'')).join('、')+'</div>':'')+(notes.length?notes.filter(d=>!d.report?.score_excluded).map(d=>'<div><b>'+d.date.slice(5).replace('-','/')+' 特殊事項</b>　'+escape(d.report.special_notes)+'</div>').join(''):'')+(campaigns.length?campaigns.map(c=>'<div><b>'+escape(c.campaign_name)+'</b>　'+c.active_from+'～'+c.active_to+'　'+escape(c.details||'')+'　<a href="'+escape(escapeUrl(c.source_url))+'" target="_blank" rel="noopener">來源</a></div>').join(''):'')+(!excluded.length&&!notes.length&&!campaigns.length?'<div>本期尚無特殊事項或優惠券紀錄</div>':'')+'</div>';
+    if(state.context==='summary'){
+      let target=E('opsSummaryContext');if(!target){target=document.createElement('section');target.id='opsSummaryContext';target.className='ops-report-card';E('opsSummaryTitle').after(target);}target.innerHTML='<h3>特殊事項與優惠券紀錄</h3>'+list;return;
+    }
+    const target=E('opsAnalysisSummary');if(!target)return;
+    const couponForm='<h3>優惠券活動紀錄</h3><div class="ops-coupon-actions"><a class="action-btn" target="_blank" rel="noopener" href="https://www.kfcclub.com.tw/coupon">開啟肯德基官方優惠券頁</a><a class="action-btn" target="_blank" rel="noopener" href="https://www.google.com/search?q='+encodeURIComponent('肯德基 KFC 優惠券 '+r.start+' '+r.end)+'">搜尋本期優惠券</a></div><div class="ops-coupon-form"><label>活動名稱<input id="opsCouponName" maxlength="160" placeholder="搜尋後記錄活動名稱"></label><label>活動開始<input id="opsCouponStart" type="date" value="'+r.start+'"></label><label>活動結束<input id="opsCouponEnd" type="date" value="'+r.end+'"></label><label>活動內容<input id="opsCouponDetails" maxlength="1000" placeholder="折扣、使用條件或適用通路"></label><label>來源網址<input id="opsCouponSource" type="url" placeholder="貼上活動來源連結"></label><button id="opsSaveCoupon" class="action-btn primary" type="button">記錄優惠券</button></div><div id="opsCouponStatus" class="ops-message" role="status"></div>';
+    if(p!=='day')target.innerHTML='<section class="ops-report-card"><h3>週期特殊事項與優惠券紀錄</h3>'+list+couponForm+'</section>';
+    else{const day=v.days.get(date),report=day?.report||{};
+      target.innerHTML='<section class="ops-report-card ops-daily-context"><h3>當日成績設定</h3><label class="ops-exclude-row"><input id="opsScoreExcluded" type="checkbox" '+(report.score_excluded?'checked':'')+'> 不計本日成績</label><label class="ops-note-field">當日特殊事項<textarea id="opsSpecialNotes" maxlength="2000" rows="3" placeholder="例如：10/23、10/24 停班課">'+escape(report.special_notes||'')+'</textarea></label><button id="opsSaveDailyContext" class="action-btn primary" type="button">儲存當日設定</button><div id="opsDailyContextStatus" class="ops-message" role="status"></div>'+couponForm+list+'</section>';
+    }
+    if(E('opsSaveDailyContext'))E('opsSaveDailyContext').onclick=async()=>{
+      const excluded=E('opsScoreExcluded').checked,notes=E('opsSpecialNotes').value.trim(),status=E('opsDailyContextStatus');status.textContent='儲存中…';
+      try{const exists=await db.from('t995_operations_daily_reports').select('record_date').eq('record_date',date).maybeSingle();if(exists.error)throw exists.error;const payload={score_excluded:excluded,special_notes:notes,updated_by:(await db.auth.getUser()).data.user?.id||null,updated_at:new Date().toISOString()};const saved=exists.data?await db.from('t995_operations_daily_reports').update(payload).eq('record_date',date):await db.from('t995_operations_daily_reports').insert({record_date:date,...payload});if(saved.error)throw saved.error;status.textContent='已儲存';await refresh(true);}catch(e){status.textContent='儲存失敗：'+e.message;}
+    };
+    if(E('opsSaveCoupon'))E('opsSaveCoupon').onclick=async()=>{
+      const name=E('opsCouponName').value.trim(),start=E('opsCouponStart').value,end=E('opsCouponEnd').value,details=E('opsCouponDetails').value.trim(),source=E('opsCouponSource').value.trim(),status=E('opsCouponStatus');
+      if(!name||!start||!end||!source){status.textContent='請填活動名稱、有效日期及來源網址';return;}if(end<start){status.textContent='活動結束日不可早於開始日';return;}if(!/^https?:\/\//i.test(source)){status.textContent='來源網址需以 http:// 或 https:// 開頭';return;}
+      status.textContent='儲存中…';try{const u=await db.auth.getUser();const saved=await db.from('t995_operations_coupon_campaigns').insert({campaign_name:name,details,active_from:start,active_to:end,source_url:source,researched_at:new Date().toISOString(),updated_by:u.data.user?.id||null});if(saved.error)throw saved.error;status.textContent='已記錄';await refresh(true);}catch(e){status.textContent='儲存失敗：'+e.message;}
+    };
+  }
   function renderWeeks(date){
     const selected=S.range(date,'week');E('opsWeekTabs').innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(state.period==='week'&&w.start===selected.start?'active':'')+'" data-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
     E('opsWeekTabs').querySelectorAll('[data-week-date]').forEach(b=>b.onclick=()=>{E('opsAnalysisDate').value=b.dataset.weekDate;state.period='week';refresh().catch(error);});
@@ -71,7 +95,7 @@
     E('opsAnalysisTable').innerHTML='<table class="ops-area-table"><thead><tr><th>區域</th><th>TC</th><th>FA</th><th>第三方佔比</th><th>D7</th><th>D25</th><th>總工時</th></tr></thead><tbody>'+areaRows.map(([a,label])=>{const hours=isDay?M.number(day?.report?.area_hours?.[a]):v.hourTotals.get(a)?.count?v.hourTotals.get(a).hours:null;return '<tr><th>'+label+'</th>'+cells(v.areas.get(a))+'<td data-label="總工時">'+(isDay&&a!=='?'?valueInput(a,date,hours):fmt(hours,2))+'</td></tr>';}).join('')+'</tbody><tfoot><tr><th>合計</th>'+cells(s)+'<td data-label="總工時">'+fmt(s.totalHours,2)+'</td></tr></tfoot></table>';
     const report=day?.report;
     E('opsLaborAdjustments').innerHTML='<div class="ops-labor-grid"><label>合計總工時<output>'+fmt(s.totalHours,2)+'</output></label><label>調出工時'+(isDay?'<input id="opsTransferOut" type="number" min="0" max="9999" step="0.25" inputmode="decimal" value="'+(report?.transfer_out_hours??0)+'">':'<output>'+fmt(s.transferOut,2)+'</output>')+'</label><label>調入工時'+(isDay?'<input id="opsTransferIn" type="number" min="0" max="9999" step="0.25" inputmode="decimal" value="'+(report?.transfer_in_hours??0)+'">':'<output>'+fmt(s.transferIn,2)+'</output>')+'</label><label>實際工時<output>'+fmt(s.actualHours,2)+'</output></label></div>';
-    bindHours();renderMonthHours(date);renderDayList(S.range(date,state.period));
+    bindHours();renderMonthHours(date);renderDayList(S.range(date,state.period));periodRecords(date,state.period,v);
   }
   function renderRank(target,result,key,details,empty){
     E(target).innerHTML=result.top.length?'<ol class="ops-rank-list">'+result.top.map(x=>'<li><span class="ops-rank-number">'+x.rank+'</span><div><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><span>'+details(x)+'</span></div><b>'+x[key]+(key==='count'?' 筆':' 項')+'</b></li>').join('')+'</ol>'+(result.tiedOthers?'<p class="ops-tie-note">同分另 '+result.tiedOthers+' 間；同分依店號排列</p>':''):'<div class="ops-empty">'+empty+'</div>';
@@ -90,7 +114,7 @@
     E('opsDelayRankTitle').textContent=prefix+'等餐最多餐廳｜前三名';E('opsLineRankTitle').textContent=prefix+'劃線簽名未完成最多｜前三名';
     renderRank('opsDelayRank',S.delayRanking(state.records.delay,r.start,r.end),'count',x=>'待回覆 '+x.pending+' 筆','本期沒有等餐紀錄');
     renderRank('opsLineRank',S.lineRanking(state.stores,state.records.line,r.start,r.end,opsToday()),'missing',x=>'劃線缺 '+x.missingLine+'／簽名缺 '+x.missingSignature,'本期沒有未完成項目');
-    E('opsLineRank').insertAdjacentHTML('beforeend','<p class="ops-ranking-basis">每日劃線、簽名各計 1 項；排除桃園新屋</p>');
+    E('opsLineRank').insertAdjacentHTML('beforeend','<p class="ops-ranking-basis">每日劃線、簽名各計 1 項；排除桃園新屋</p>');periodRecords(date,p,v);
   }
   function render(){
     if(!state.cache)return;const d=selectedDate(),p=period(),v=model(d,p),messages=warnings(v,p==='day',d),target=E(state.context==='summary'?'opsSummaryWarnings':'opsReportWarnings');target.textContent=messages.join('；');target.hidden=!messages.length;
@@ -103,7 +127,7 @@
   }
   function renderMonthHours(date){const rows=monthHourRows(date);E('opsMonthHours').innerHTML='<h3>'+date.slice(0,7)+' 各區工時</h3><div class="ops-table-wrap"><table class="ops-month-hours"><thead><tr>'+rows[0].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr><th>'+row[0]+'</th>'+row.slice(1).map(x=>'<td>'+fmt(x,2)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
   function renderDayList(r){
-    const rows=S.dates(r.start,r.end).filter(date=>date<=opsToday()).map(date=>{const v=model(date,'day'),d=v.days.get(date),s=v.summary,active=d.types.has('ByOrder');return '<tr><th><button type="button" data-report-date="'+date+'">'+date.slice(5).replace('-','/')+'</button></th><td>'+(active?fmt(s.tc):'—')+'</td><td>'+(active?pct(s.sstg):'—')+'</td><td>'+(active?pct(s.tcAchievement):'—')+'</td><td>'+fmt(s.actualHours,2)+'</td><td>'+(active?fmt(s.tplh,2):'—')+'</td><td>'+(active?pct(s.faShare):'—')+'</td><td>'+(active?pct(s.d7):'—')+'</td><td>'+(active?pct(s.d25):'—')+'</td><td>'+(d.types.size===2?'齊全':d.types.size?'缺一檔':'待匯入')+'</td></tr>';});
+    const rows=S.dates(r.start,r.end).filter(date=>date<=opsToday()).map(date=>{const v=model(date,'day'),d=v.days.get(date),s=v.summary,active=d.types.has('ByOrder')&&!d.scoreExcluded;return '<tr><th><button type="button" data-report-date="'+date+'">'+date.slice(5).replace('-','/')+'</button></th><td>'+(active?fmt(s.tc):'—')+'</td><td>'+(active?pct(s.sstg):'—')+'</td><td>'+(active?pct(s.tcAchievement):'—')+'</td><td>'+(!d.scoreExcluded?fmt(s.actualHours,2):'—')+'</td><td>'+(active?fmt(s.tplh,2):'—')+'</td><td>'+(active?pct(s.faShare):'—')+'</td><td>'+(active?pct(s.d7):'—')+'</td><td>'+(active?pct(s.d25):'—')+'</td><td>'+(d.scoreExcluded?'不計成績':d.types.size===2?'齊全':d.types.size?'缺一檔':'待匯入')+(d.report?.special_notes?'｜'+escape(d.report.special_notes):'')+'</td></tr>';});
     E('opsDayList').innerHTML='<table class="ops-daily-table"><thead><tr><th>日期</th><th>TC</th><th>SSTG</th><th>預估達成率</th><th>實際工時</th><th>TPLH</th><th>FA佔比</th><th>D7</th><th>D25</th><th>成績檔</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
     E('opsDayList').querySelectorAll('[data-report-date]').forEach(b=>b.onclick=()=>{E('opsAnalysisDate').value=b.dataset.reportDate;state.period='day';refresh().catch(error);});
   }
@@ -145,23 +169,24 @@
   function appendScores(wb,data,r){
     const daily=[],areas=[];
     for(const date of S.dates(r.start,r.end)){
-      const v=model(date,'day',data),d=v.days.get(date),s=v.summary,active=d.types.has('ByOrder');
-      daily.push({日期:date,週次:S.week(date).year+'-'+S.weekLabel(date),去年單:s.forecast===null?null:s.prior,預估單:s.forecast,實際單:active?s.tc:null,FA:active?s.fa:null,SSTG:active?s.sstg:null,預估達成率:active?s.tcAchievement:null,合計工時:s.totalHours,調出工時:s.transferOut,調入工時:s.transferIn,實際工時:s.actualHours,TPLH:active?s.tplh:null,第三方佔比:active?s.faShare:null,D7:active?s.d7:null,D25:active?s.d25:null,D7達成單:active?s.d7Y:null,D7有效單:active?s.d7Y+s.d7N:null,D25達成單:active?s.d25Y:null,D25有效單:active?s.d25Y+s.d25N:null,ByDate已匯入:d.types.has('ByDate')?'是':'否',ByOrder已匯入:active?'是':'否',工時完整:d.actualHours!==null?'是':'否',去年單完整:d.baselineComplete?'是':'否'});
-      for(const [a,label] of [...M.AREAS,...(v.areas.has('?')?[['?','未分類']]:[])]){const x=v.areas.get(a);areas.push({日期:date,區域代碼:a,區域:label,TC:active?x.tc:null,FA:active?x.fa:null,FA佔比:active?x.faShare:null,D7:active?x.d7:null,D25:active?x.d25:null,區域工時:M.number(d.report?.area_hours?.[a]),D7達成單:active?x.d7Y:null,D7有效單:active?x.d7Y+x.d7N:null,D25達成單:active?x.d25Y:null,D25有效單:active?x.d25Y+x.d25N:null});}
+      const v=model(date,'day',data),d=v.days.get(date),s=v.summary,active=d.types.has('ByOrder')&&!d.scoreExcluded;
+      daily.push({日期:date,週次:S.week(date).year+'-'+S.weekLabel(date),不計成績:d.scoreExcluded?'是':'否',特殊事項:d.report?.special_notes||'',去年單:s.forecast===null?null:s.prior,預估單:s.forecast,實際單:active?s.tc:null,FA:active?s.fa:null,SSTG:active?s.sstg:null,預估達成率:active?s.tcAchievement:null,合計工時:d.scoreExcluded?null:s.totalHours,調出工時:d.scoreExcluded?null:s.transferOut,調入工時:d.scoreExcluded?null:s.transferIn,實際工時:d.scoreExcluded?null:s.actualHours,TPLH:active?s.tplh:null,第三方佔比:active?s.faShare:null,D7:active?s.d7:null,D25:active?s.d25:null,D7達成單:active?s.d7Y:null,D7有效單:active?s.d7Y+s.d7N:null,D25達成單:active?s.d25Y:null,D25有效單:active?s.d25Y+s.d25N:null,ByDate已匯入:d.types.has('ByDate')?'是':'否',ByOrder已匯入:d.types.has('ByOrder')?'是':'否',工時完整:d.scoreExcluded?'不計':d.actualHours!==null?'是':'否',去年單完整:d.baselineComplete?'是':'否'});
+      for(const [a,label] of [...M.AREAS,...(v.areas.has('?')?[['?','未分類']]:[])]){const x=v.areas.get(a);areas.push({日期:date,不計成績:d.scoreExcluded?'是':'否',特殊事項:d.report?.special_notes||'',區域代碼:a,區域:label,TC:active?x.tc:null,FA:active?x.fa:null,FA佔比:active?x.faShare:null,D7:active?x.d7:null,D25:active?x.d25:null,區域工時:d.scoreExcluded?null:M.number(d.report?.area_hours?.[a]),D7達成單:active?x.d7Y:null,D7有效單:active?x.d7Y+x.d7N:null,D25達成單:active?x.d25Y:null,D25有效單:active?x.d25Y+x.d25N:null});}
     }
-    appendTable(wb,'每日成績',daily,['日期','週次','去年單','預估單','實際單','FA','SSTG','預估達成率','合計工時','調出工時','調入工時','實際工時','TPLH','第三方佔比','D7','D25','D7達成單','D7有效單','D25達成單','D25有效單','ByDate已匯入','ByOrder已匯入','工時完整','去年單完整'],['SSTG','預估達成率','第三方佔比','D7','D25']);
-    appendTable(wb,'區域每日成績',areas,['日期','區域代碼','區域','TC','FA','FA佔比','D7','D25','區域工時','D7達成單','D7有效單','D25達成單','D25有效單'],['FA佔比','D7','D25']);
+    appendTable(wb,'每日成績',daily,['日期','週次','不計成績','特殊事項','去年單','預估單','實際單','FA','SSTG','預估達成率','合計工時','調出工時','調入工時','實際工時','TPLH','第三方佔比','D7','D25','D7達成單','D7有效單','D25達成單','D25有效單','ByDate已匯入','ByOrder已匯入','工時完整','去年單完整'],['SSTG','預估達成率','第三方佔比','D7','D25']);
+    appendTable(wb,'區域每日成績',areas,['日期','不計成績','特殊事項','區域代碼','區域','TC','FA','FA佔比','D7','D25','區域工時','D7達成單','D7有效單','D25達成單','D25有效單'],['FA佔比','D7','D25']);
   }
   async function exportCombined(p){
     const buttons=[...E('opsSummaryPanel').querySelectorAll('.ops-export-bottom button')];buttons.forEach(b=>b.disabled=true);
     try{
       await state.saveQueue;if(state.saveError)throw new Error('工時尚未儲存成功，請先重新儲存');
       const d=E('opsSummaryDate').value||opsToday(),r=S.range(d,p);if(r.start>opsToday())throw new Error('所選日期尚未到');if(r.end>opsToday())r.end=opsToday();notify('匯出中…','summary');
-      const [data,records]=await Promise.all([loadRange(r,true),loadRecords(r),loadWeatherRange(r)]);const v=M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r}),wb=XLSX.utils.book_new(),hasScores=[...v.days.values()].some(x=>x.types.has('ByOrder'));
+      const [data,records]=await Promise.all([loadRange(r,true),loadRecords(r),loadWeatherRange(r)]);const v=M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r}),wb=XLSX.utils.book_new(),hasScores=[...v.days.values()].some(x=>x.types.has('ByOrder')&&!x.scoreExcluded);
       const summary=[['起始日期',r.start],['結束日期',r.end],['成績已匯入日數',[...v.days.values()].filter(x=>x.types.size===2).length],...metricsRows(v.summary).map(([k,value,unit])=>[k,!hasScores&&!['去年單數','預估單數','預估工時','實際工時'].includes(k)?null:value,unit])];
       const ws=XLSX.utils.aoa_to_sheet([['營運總覽','數值','單位'],...summary]);ws['!cols']=[{wch:24},{wch:22},{wch:12}];summary.forEach((r,i)=>{if(r[2]==='%'&&ws['B'+(i+2)])ws['B'+(i+2)].z='0.0%';});XLSX.utils.book_append_sheet(wb,ws,'營運總覽');appendScores(wb,data,r);
       appendTable(wb,'劃線簽名',S.lineExport(state.stores,records.line,r.start,r.end,opsToday()),['日期','店號','餐廳','是否登記','劃線','簽名','登記時間','更新時間']);
       appendTable(wb,'等餐紀錄',records.delay.map(x=>({日期:x.record_date,店號:x.store_code,餐廳:x.restaurant_name,訂單編號:x.order_number,狀態:x.status==='completed'?'已回覆':'待回覆',等餐原因:x.reason||'',登記時間:x.created_at,回覆時間:x.responded_at||''})),['日期','店號','餐廳','訂單編號','狀態','等餐原因','登記時間','回覆時間']);
+      appendTable(wb,'優惠券活動',data.campaigns.filter(x=>x.active_from<=r.end&&x.active_to>=r.start).map(x=>({活動名稱:x.campaign_name,內容:x.details||'',開始日期:x.active_from,結束日期:x.active_to,來源網址:x.source_url,記錄日期:x.researched_at})),['活動名稱','內容','開始日期','結束日期','來源網址','記錄日期']);
       const weather=S.dates(r.start,r.end).flatMap(date=>['新竹','桃園'].map(city=>{const x=weatherRow(date,city);return {日期:date,城市:city,測站:x?.station_name||'',測站代碼:x?.station_id||'',平均氣溫:x?.temperature??null,降雨毫米:x?.precipitation??null,微量降雨:x?.trace?'是':'否',觀測狀態:x?.status||'unavailable',來源:'https://codis.cwa.gov.tw/StationData',查詢時間:state.weather.get(date.slice(0,7))?.fetched_at||''};}));
       appendTable(wb,'天氣觀測',weather,['日期','城市','測站','測站代碼','平均氣溫','降雨毫米','微量降雨','觀測狀態','來源','查詢時間']);
       XLSX.writeFile(wb,'營運'+({day:'日報',week:'週報',month:'月報'}[p])+'_'+r.start+(r.end===r.start?'':'_'+r.end)+'.xlsx');notify('已匯出成績、劃線簽名與等餐紀錄','summary');
