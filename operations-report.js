@@ -76,10 +76,17 @@
   function renderRank(target,result,key,details,empty){
     E(target).innerHTML=result.top.length?'<ol class="ops-rank-list">'+result.top.map(x=>'<li><span class="ops-rank-number">'+x.rank+'</span><div><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><span>'+details(x)+'</span></div><b>'+x[key]+(key==='count'?' 筆':' 項')+'</b></li>').join('')+'</ol>'+(result.tiedOthers?'<p class="ops-tie-note">同分另 '+result.tiedOthers+' 間；同分依店號排列</p>':''):'<div class="ops-empty">'+empty+'</div>';
   }
+  function renderSummaryWeeks(date){
+    let container=E('opsSummaryWeekTabs');
+    if(!container){container=document.createElement('div');container.id='opsSummaryWeekTabs';container.className='ops-week-tabs';E('opsSummaryPeriodTabs').parentElement.after(container);}
+    const selected=S.range(date,'week');
+    container.innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(state.summaryPeriod==='week'&&w.start===selected.start?'active':'')+'" data-summary-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
+    container.querySelectorAll('[data-summary-week-date]').forEach(b=>b.onclick=()=>{E('opsSummaryDate').value=b.dataset.summaryWeekDate;state.summaryPeriod='week';refresh().catch(error);});
+  }
   function renderSummary(date,v){
     const p=state.summaryPeriod,r=S.range(date,p),prefix=p==='day'?'本日':p==='week'?'本週':'本月',n=[...v.days.values()].filter(d=>d.types.has('ByOrder')).length,total=S.dates(r.start,r.end<opsToday()?r.end:opsToday()).length;
     E('opsSummaryTitle').textContent='營運總覽　'+periodTitle(date,p)+(p!=='day'?'（成績 '+n+'/'+total+' 日）':'');
-    E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.period===p));renderMetrics(v);
+    E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.period===p));renderSummaryWeeks(date);renderMetrics(v);
     E('opsDelayRankTitle').textContent=prefix+'等餐最多餐廳｜前三名';E('opsLineRankTitle').textContent=prefix+'劃線簽名未完成最多｜前三名';
     renderRank('opsDelayRank',S.delayRanking(state.records.delay,r.start,r.end),'count',x=>'待回覆 '+x.pending+' 筆','本期沒有等餐紀錄');
     renderRank('opsLineRank',S.lineRanking(state.stores,state.records.line,r.start,r.end,opsToday()),'missing',x=>'劃線缺 '+x.missingLine+'／簽名缺 '+x.missingSignature,'本期沒有未完成項目');
