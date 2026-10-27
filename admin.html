@@ -1281,7 +1281,7 @@ button{cursor:pointer}
 .ops-section h3{margin:20px 0 12px;text-align:left}.ops-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}.ops-analysis{margin:14px 0}.ops-export-bottom{display:flex;justify-content:center;margin:18px 0 4px}.ops-export-bottom .action-btn{min-width:min(420px,100%)}.ops-analysis-tools{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}.ops-analysis-tools input{min-height:42px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.ops-mini-tabs{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:10px;background:#fff}.ops-mini-tabs button{border:0;background:transparent;border-radius:8px;padding:8px 12px;font:inherit}.ops-mini-tabs button.active{background:var(--red);color:#fff}.ops-hours-input{width:80px;min-width:68px;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;text-align:center}.ops-week-tabs{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin:8px}.ops-toggle-group{display:flex;gap:10px;align-items:center;justify-content:center}.ops-toggle{min-height:46px;min-width:120px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-weight:800}.ops-toggle.selected{background:var(--green);border-color:var(--green);color:#fff}.ops-tab{padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit;font-weight:800;cursor:pointer}.ops-tab.active{background:var(--red);color:#fff;border-color:var(--red)}.ops-panel{padding:12px 0}.ops-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;text-align:center}.ops-form-grid label,.ops-toolbar label{display:grid;gap:6px;font-weight:700;color:var(--black);text-align:center}.ops-form-grid input,.ops-form-grid select,.ops-form-grid textarea,.ops-toolbar input{width:100%;min-height:46px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:var(--black);text-align:center}.ops-form-grid textarea{resize:vertical}.ops-wide{grid-column:1/-1}.ops-form-grid .action-btn{min-height:46px}.ops-lookup{min-height:18px;color:var(--green);font-size:13px;font-weight:700}.ops-message{min-height:24px;margin:8px 0;text-align:center;color:var(--gray)}.ops-toolbar{display:flex;align-items:end;gap:8px;margin:14px 0;text-align:left}.ops-toolbar label{min-width:145px}.ops-toolbar .action-btn{min-height:44px}.ops-table-wrap{overflow:auto;text-align:left}.ops-table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}.ops-table th,.ops-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:center}.ops-table th{background:#f8f6f1;white-space:nowrap}.ops-status{display:inline-block;padding:4px 8px;border-radius:99px;background:#fff0ee;color:#b42318;font-weight:800;white-space:nowrap}.ops-status.done{background:#eef5f0;color:#356b4b}.ops-help{padding:12px;background:#f8f6f1;border-radius:12px;text-align:left;color:var(--gray);line-height:1.7}.ops-link-result{display:flex;gap:8px;margin-top:12px}.ops-link-result input{min-width:0;flex:1;padding:10px;border:1px solid var(--line);border-radius:10px}.ops-empty{padding:18px;color:var(--gray);text-align:center}@media(max-width:600px){.ops-form-grid{grid-template-columns:1fr}.ops-wide{grid-column:auto}.ops-tabs{grid-template-columns:1fr}.ops-toolbar{align-items:stretch;flex-direction:column}.ops-link-result{flex-direction:column}.ops-table{font-size:12px}.ops-table th,.ops-table td{padding:8px 6px}}
 .ops-score-upload{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}.ops-score-file-button{display:inline-flex;align-items:center;min-height:44px;padding:9px 14px;border-radius:10px;background:#fff;border:1px solid var(--line);font-weight:800;cursor:pointer}.ops-score-file-button input{position:absolute;width:1px;height:1px;opacity:0}.ops-score-file-hint{color:var(--gray);font-size:13px}.ops-score-divider{height:1px;background:var(--line);margin:24px 0}.ops-score-history-tools{display:flex;align-items:end;gap:10px;margin:12px 0}.ops-score-history-tools label{display:grid;gap:6px;min-width:170px;color:var(--gray);font-weight:700;text-align:left}.ops-score-history-tools input,.ops-score-history-tools select{min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit}.ops-score-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.ops-batch-link{border:0;background:transparent;color:#1683df;font:inherit;font-weight:800;cursor:pointer;text-decoration:underline}.ops-score-count{color:var(--gray);white-space:nowrap}@media(max-width:600px){.ops-score-history-tools{align-items:stretch;flex-direction:column}.ops-score-history-tools label{min-width:0}.ops-score-detail-heading{align-items:flex-start;flex-direction:column}}
 </style>
-<link rel="stylesheet" href="operations-report.css?v=20261027-tabs4">
+<link rel="stylesheet" href="operations-report.css?v=20261027-range-week">
 </head>
 
 <body>
@@ -6004,10 +6004,21 @@ function opsXlsxValue(value){
   if(value instanceof Date){const d=new Date(value.getTime()-value.getTimezoneOffset()*60000);return d.toISOString().slice(0,19).replace("T"," ");}
   return value;
 }
-function opsReportDate(fileName,records){
-  const inName=String(fileName).match(/20\d{2}-\d{2}-\d{2}/);if(inName)return inName[0];
-  for(const row of records){const m=String(row.record_date||"").match(/20\d{2}-\d{2}-\d{2}/);if(m)return m[0];}
+function opsDateIso(value){
+  if(value instanceof Date&&!Number.isNaN(value.getTime())){const d=new Date(value.getTime()-value.getTimezoneOffset()*60000);return d.toISOString().slice(0,10);}
+  if(typeof value==="number"&&window.XLSX?.SSF?.parse_date_code){const d=XLSX.SSF.parse_date_code(value);if(d?.y&&d?.m&&d?.d)return String(d.y).padStart(4,"0")+"-"+String(d.m).padStart(2,"0")+"-"+String(d.d).padStart(2,"0");}
+  const text=String(value??"").trim();let m=text.match(/^(20\d{2})[./-](\d{1,2})[./-](\d{1,2})/);
+  if(m)return opsValidIsoDate(Number(m[1]),Number(m[2]),Number(m[3]));
+  m=text.match(/^(\d{1,2})[./-](\d{1,2})[./-](20\d{2})/);
+  if(m)return opsValidIsoDate(Number(m[3]),Number(m[1]),Number(m[2]));
   return "";
+}
+function opsValidIsoDate(y,m,d){const value=new Date(Date.UTC(y,m-1,d));return value.getUTCFullYear()===y&&value.getUTCMonth()===m-1&&value.getUTCDate()===d?String(y).padStart(4,"0")+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0"):"";}
+function opsScorePair(){
+  if(opsPreparedScoreFiles.length!==2)return null;
+  const byType=Object.fromEntries(opsPreparedScoreFiles.map(x=>[x.type,x]));if(!byType.ByDate||!byType.ByOrder)return null;
+  const a=byType.ByDate.dates,b=byType.ByOrder.dates;if(a.length!==b.length||a.some((d,i)=>d!==b[i]))return null;
+  return {byType,dates:a};
 }
 async function opsParseScoreFile(file){
   if(!window.XLSX)throw new Error("Excel 元件尚未載入，請重新整理後再試。");
@@ -6026,6 +6037,7 @@ async function opsParseScoreFile(file){
   const orderHeader=type==="ByDate"?"訂單號碼":"reg order id";
   const dateHeader=type==="ByDate"?"訂單日期":"落單時間";
   const restaurantHeader=type==="ByDate"?"ID（門市名稱／代號）":"ID";
+  const fileDates=[...new Set([...String(file.name).matchAll(/20\d{2}[.-]\d{2}[.-]\d{2}/g)].map(x=>x[0]))],fileDate=fileDates.length===1?opsDateIso(fileDates[0]):"";
   const rows=[];
   matrix.slice(1).forEach((cells,index)=>{
     if(!cells.some(v=>v!==""&&v!==null&&v!==undefined))return;
@@ -6036,24 +6048,22 @@ async function opsParseScoreFile(file){
     const codeMatch=(type==="ByDate"?restaurantRaw:orderNo).match(/(?:TWI|TWB)(\d{3})/i);
     const storeCode=codeMatch?codeMatch[1]:"";
     const restaurantName=type==="ByDate"?restaurantRaw.split(/[/／]/)[0].trim():restaurantRaw;
-    const dateValue=payload[dateHeader];
-    const dateText=dateValue instanceof Date?opsXlsxValue(dateValue):String(dateValue??"");
+    const dateValue=cells[headers.indexOf(dateHeader)],dateText=opsDateIso(dateValue)||fileDate;
     rows.push({row_number:index+2,record_date:dateText,store_code:storeCode,restaurant_name:restaurantName,order_number:orderNo,payload});
   });
   if(!rows.length)throw new Error("報表沒有可匯入的訂單資料列。");
-  const reportDate=opsReportDate(file.name,rows);
-  if(!reportDate)throw new Error("無法從檔名或資料列辨識報表日期。");
-  return {file,type,reportDate,rows};
+  if(rows.some(r=>!r.record_date))throw new Error("有訂單列沒有可辨識的日期；請使用含日期欄的報表。");
+  const dates=[...new Set(rows.map(r=>r.record_date))].sort();
+  return {file,type,dates,rows};
 }
 function opsRenderPreparedScoreFiles(errors=[]){
-  const data=opsPreparedScoreFiles.map(x=>({file:x.file.name,type:x.type,date:x.reportDate,count:x.rows.length,status:"待匯入"}));
+  const data=opsPreparedScoreFiles.map(x=>({file:x.file.name,type:x.type,date:x.dates.length===1?x.dates[0]:x.dates[0]+"～"+x.dates.at(-1)+"（"+x.dates.length+"天）",count:x.rows.length,status:"待匯入"}));
   const failed=errors.map(x=>({file:x.file,type:"—",date:"—",count:"—",status:x.error}));
   const all=[...data,...failed];
   $("opsScorePreview").innerHTML=all.length
     ?'<table class="ops-table"><thead><tr><th>檔案</th><th>報表類型</th><th>日期</th><th>資料筆數</th><th>狀態</th></tr></thead><tbody>'+all.map(x=>'<tr><td>'+opsEscape(x.file)+'</td><td>'+opsEscape(x.type)+'</td><td>'+opsEscape(x.date)+'</td><td>'+opsEscape(x.count)+'</td><td>'+opsEscape(x.status)+'</td></tr>').join("")+'</tbody></table>'
     :"";
-  const pair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;
-  $("opsScoreImport").disabled=!pair;
+  $("opsScoreImport").disabled=!opsScorePair();
 }
 opsScoreFileInput.addEventListener("change",async()=>{
   opsPreparedScoreFiles=[];$("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="讀取與辨識檔案中…";
@@ -6063,25 +6073,24 @@ opsScoreFileInput.addEventListener("change",async()=>{
     catch(e){errors.push({file:file.name,error:e.message||"檔案無法讀取"});}
   }
   opsRenderPreparedScoreFiles(errors);
-  const pair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;$("opsScoreMessage").textContent=errors.length?"辨識完成；"+errors.length+" 個檔案格式不符或無法讀取。":pair?"兩個檔案日期一致且類型齊全，可匯入。":"請同時選擇相同日期的 ByDate 與 ByOrder 兩個檔案。";
+  const pair=opsScorePair();$("opsScoreMessage").textContent=errors.length?"辨識完成；"+errors.length+" 個檔案格式不符或無法讀取。":pair?"兩份檔案日期一致，共 "+pair.dates.length+" 天，可匯入。":"請選擇一份 ByDate 與一份 ByOrder 檔案，且兩份檔案的日期範圍需一致。";
 });
 $("opsScoreImport").onclick=async()=>{
-  const validPair=opsPreparedScoreFiles.length===2&&new Set(opsPreparedScoreFiles.map(x=>x.type)).size===2&&new Set(opsPreparedScoreFiles.map(x=>x.reportDate)).size===1;if(!validPair){$("opsScoreMessage").textContent="請同時選擇相同日期的 ByDate 與 ByOrder 兩個檔案。";return;}
+  const pair=opsScorePair();if(!pair){$("opsScoreMessage").textContent="請選擇一份 ByDate 與一份 ByOrder 檔案，且兩份檔案的日期範圍需一致。";return;}
   $("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="匯入資料中…";
-  const importedDate=opsPreparedScoreFiles[0].reportDate;
-  let completed=0;
+  const importedDate=pair.dates.at(-1);let completed=0;
   try{
-    for(const item of opsPreparedScoreFiles){
-      const result=await db.rpc("t995_import_score_batch",{p_report_date:item.reportDate,p_report_type:item.type,p_source_file:item.file.name,p_rows:item.rows});
-      if(result.error)throw new Error(item.file.name+"："+result.error.message);
-      completed++;
+    for(let i=0;i<pair.dates.length;i+=4){
+      const dates=pair.dates.slice(i,i+4),results=await Promise.all(dates.flatMap(date=>Object.values(pair.byType).map(item=>db.rpc("t995_import_score_batch",{p_report_date:date,p_report_type:item.type,p_source_file:item.file.name,p_rows:item.rows.filter(row=>row.record_date===date)}))));
+      completed+=results.filter(r=>!r.error).length;if(results.some(r=>r.error))throw new Error("已完成 "+Math.floor(completed/2)+"／"+pair.dates.length+" 天；"+results.find(r=>r.error).error.message);
+      $("opsScoreMessage").textContent="匯入中… "+Math.floor(completed/2)+"／"+pair.dates.length+" 天";
     }
-    $("opsScoreMessage").textContent="完成匯入 "+completed+" 個檔案。";
+    $("opsScoreMessage").textContent="完成匯入 "+pair.dates.length+" 天（兩種報表已分別按日整理）。";
     opsPreparedScoreFiles=[];opsScoreFileInput.value="";opsRenderPreparedScoreFiles();
     $("opsAnalysisDate").value=importedDate||opsToday();
     await opsLoadDailyAnalytics();
   }catch(e){$("opsScoreMessage").textContent="匯入中止："+(e.message||"請檢查資料庫 migration 與登入狀態");}
-  finally{$("opsScoreImport").disabled=!opsPreparedScoreFiles.length;}
+  finally{$("opsScoreImport").disabled=!opsScorePair();}
 };
 
 </script>
@@ -6089,10 +6098,10 @@ $("opsScoreImport").onclick=async()=>{
 
 
 
-<script src="operations-metrics.js?v=20261027-tabs4"></script>
-<script src="operations-summary.js?v=20261027-tabs4"></script>
-<script src="operations-report.js?v=20261027-tabs4"></script>
-<script src="operations-entry.js?v=20261027-tabs4"></script>
+<script src="operations-metrics.js?v=20261027-range-week"></script>
+<script src="operations-summary.js?v=20261027-range-week"></script>
+<script src="operations-report.js?v=20261027-range-week"></script>
+<script src="operations-entry.js?v=20261027-range-week"></script>
 </body>
 </html>
 
