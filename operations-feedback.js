@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  const $=id=>document.getElementById(id),root=$('opsFeedbackFiles'),db=window.t995SupabaseClient;
-  if(!root||!db)return;
+  const $=id=>document.getElementById(id),db=window.t995SupabaseClient;
+  if(!db)return;
   const prepared=[];let cachedStores;const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clean=v=>String(v??'').normalize('NFKC').replace(/\s+/g,' ').trim();
   const text=v=>v instanceof Date?opsIsoDate(v):String(v??'').trim();
@@ -92,13 +92,14 @@
     $('opsFeedbackPreview').innerHTML=rows.length?'<table class="ops-table"><thead><tr><th>檔案</th><th>類型</th><th>日期／期間</th><th>符合篩選筆數</th><th>未配對店號</th><th>狀態</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+escape(x.file)+'</td><td>'+escape(x.type)+'</td><td>'+escape(x.period)+'</td><td>'+escape(x.count)+'</td><td>'+escape(x.unmapped)+'</td><td>'+escape(x.status)+'</td></tr>').join('')+'</tbody></table>':'';
     $('opsFeedbackImport').disabled=!prepared.length;
   }
-  root.addEventListener('change',async()=>{
+  document.addEventListener('change',async event=>{
+    const root=event.target.closest('#opsFeedbackFiles');if(!root)return;
     prepared.length=0;$('opsFeedbackImport').disabled=true;$('opsFeedbackMessage').textContent='讀取與篩選檔案中…';const errors=[];
     for(const file of [...(root.files||[])])try{prepared.push(await parseFile(file));}catch(e){errors.push({file:file.name,error:e.message||'無法讀取'});}
     render(errors);$('opsFeedbackMessage').textContent=errors.length?`完成辨識；${errors.length} 個檔案未匯入。`:prepared.length?`已辨識 ${prepared.length} 個檔案，共 ${prepared.reduce((n,x)=>n+x.rows.length,0)} 筆符合條件資料。`:'請選取 0800、4128 或 GES Excel 檔案。';
   });
-  $('opsFeedbackImport').addEventListener('click',async()=>{
-    if(!prepared.length)return;$('opsFeedbackImport').disabled=true;$('opsFeedbackMessage').textContent='匯入資料中…';let done=0,total=prepared.reduce((n,x)=>n+x.rows.length,0);
+  document.addEventListener('click',async event=>{
+    const button=event.target.closest('#opsFeedbackImport');if(!button||!prepared.length)return;const root=$('opsFeedbackFiles');if(!root)return;$('opsFeedbackImport').disabled=true;$('opsFeedbackMessage').textContent='匯入資料中…';let done=0,total=prepared.reduce((n,x)=>n+x.rows.length,0);
     try{
       for(const batch of prepared){
         for(let i=0;i<batch.rows.length;i+=150){const rows=batch.rows.slice(i,i+150),result=await db.from('t995_feedback_import_rows').upsert(rows,{onConflict:'source_type,source_key'});if(result.error)throw new Error(`${batch.file.name}：${result.error.message}`);done+=rows.length;$('opsFeedbackMessage').textContent=`匯入中 ${done.toLocaleString()}／${total.toLocaleString()} 筆`;
@@ -107,6 +108,6 @@
       $('opsFeedbackMessage').textContent=`完成匯入 ${done.toLocaleString()} 筆篩選資料；重複鍵值已更新。`;
       prepared.length=0;root.value='';render();
     }catch(e){$('opsFeedbackMessage').textContent='匯入中止：'+(e.message||'請檢查登入狀態與資料庫 migration')+'；重新上傳同檔可更新已匯入資料。';}
-    finally{$('opsFeedbackImport').disabled=!prepared.length;}
+    finally{const currentButton=$('opsFeedbackImport');if(currentButton)currentButton.disabled=!prepared.length;}
   });
 })();
