@@ -5028,6 +5028,7 @@ function lockAdmin(message=""){
 
 async function unlockAdmin(session){
   if(!session?.user?.email){ lockAdmin(); return; }
+  const startAtHome = adminApp.style.display !== "block";
   const email = String(session.user.email).trim().toLowerCase();
   const allow = await db.from("admin_allowlist").select("email").ilike("email", email).eq("active", true).maybeSingle();
   if(allow.error){
@@ -5045,7 +5046,7 @@ async function unlockAdmin(session){
   adminSessionBar.style.display = "flex";
   adminSessionEmail.textContent = `已登入：${email}`;
   showAuthMessage("", true);
-  showAdminMode("home");
+  if(startAtHome) showAdminMode("home");
 }
 
 authPasswordToggle.onclick = () => {
