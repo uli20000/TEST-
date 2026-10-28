@@ -6005,7 +6005,7 @@ const opsSetToggle=(id,on)=>{const b=$(id);b.classList.toggle("selected",on);b.s
 const opsScoreFileInput=$("opsScoreFiles");
 let opsPreparedScoreFiles=[];
 const opsByDateColumns=["訂單號碼","ID（門市名稱／代號）","訂單日期","指派時間","QT","留店時間","外送時間（去）","外送達成時間（D30)","外出時間 (車程)","完成整張外送時間","距離"];
-const opsByOrderColumns=["reg order id","RC","AC","ID","訂單","自動/手動","落單時間","預計送達時間","原預計送達時間","指派時間","門市到達時間","外送出發","到達時間","到店時間","外送員留店時間","遲到時間","Quote Time","配送費","餐點金額","結算金額","距離","D7","D25"];
+const opsByOrderColumns=["reg order id","RC","AC","ID","訂單","自動/手動","落單時間","預計送達時間","原預計送達時間","指派時間","門市到達時間","外送出發","到達時間","到店時間","外送員留店時間","遲到時間","Quote Time","配送費","餐點金額","結算金額","距離","外送員","D7","D25"];
 function opsXlsxValue(value){
   if(value instanceof Date){const d=new Date(value.getTime()-value.getTimezoneOffset()*60000);return d.toISOString().slice(0,19).replace("T"," ");}
   return value;
@@ -6057,6 +6057,27 @@ async function opsParseScoreFile(file){
     const dateValue=cells[headers.indexOf(dateHeader)],dateText=opsDateIso(dateValue)||fileDate;
     rows.push({row_number:index+2,record_date:dateText,store_code:storeCode,restaurant_name:restaurantName,order_number:orderNo,payload});
   });
+  if(type==="ByOrder"){
+    const courierIds=new Map(),courierOrders=new Map(),dispatchWaves=new Map();
+    for(const row of rows){
+      const payload=row.payload||{},courierName=String(payload["外送員"]??"").trim(),assigned=String(payload["指派時間"]??"").trim().replace("T"," ").slice(0,19);
+      delete payload["外送員"];
+      if(!courierName||String(payload["自動/手動"]||"").trim()==="第三方")continue;
+      const courierKey=row.record_date+"|"+courierName.toLocaleLowerCase();
+      if(!courierIds.has(courierKey))courierIds.set(courierKey,window.crypto?.randomUUID?.()||("courier-"+(courierIds.size+1)));
+      const courierId=courierIds.get(courierKey);payload._courier_day_id=courierId;
+      const riderOrders=courierOrders.get(courierId)||[];riderOrders.push(row);courierOrders.set(courierId,riderOrders);
+      if(assigned){const waveKey=row.record_date+"|"+courierId+"|"+assigned,wave=dispatchWaves.get(waveKey)||[];wave.push(row);dispatchWaves.set(waveKey,wave);}
+    }
+    for(const riderOrders of courierOrders.values()){
+      const storeCount=new Set(riderOrders.map(row=>row.store_code).filter(Boolean)).size;
+      for(const row of riderOrders)row.payload._courier_day_store_count=storeCount;
+    }
+    for(const wave of dispatchWaves.values()){
+      const storeCount=new Set(wave.map(row=>row.store_code).filter(Boolean)).size;
+      for(const row of wave){row.payload._dispatch_wave_size=wave.length;row.payload._dispatch_wave_store_count=storeCount;}
+    }
+  }
   if(!rows.length)throw new Error("報表沒有可匯入的訂單資料列。");
   if(rows.some(r=>!r.record_date))throw new Error("有訂單列沒有可辨識的日期；請使用含日期欄的報表。");
   const dates=[...new Set(rows.map(r=>r.record_date))].sort();
