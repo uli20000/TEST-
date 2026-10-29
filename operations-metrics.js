@@ -1,6 +1,14 @@
 (function(root){
   'use strict';
   const AREAS=[['A','新竹'],['B','竹北'],['C','竹東'],['D','中壢'],['E','桃園'],['F','楊梅'],['G','大園'],['H','大溪'],['I','林口'],['J','大竹'],['K','苗栗']];
+  const AC_ASSIGNMENTS=[
+    {name:'Abby',stores:['133','144','203']},
+    {name:'Avery',stores:['025','173','066','214','587','594','235','562']},
+    {name:'Chance',stores:['095','209','099','018','093','137','062','154','201']},
+    {name:'Jewel',stores:['098','179','165','182','183','142','190','167','013']},
+    {name:'Renee',stores:['041','161','227','516','544','084','242','248','580']}
+  ];
+  const NON_DELIVERY_STORES=new Set(['201','203']);
   // 23:00 回饋範本：L3=L5*1.04，L7=L3/2，L10=L4/L5-1。
   const GROWTH=0.04,FORECAST_TPLH=2;
   const number=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
@@ -79,6 +87,6 @@
     if(missingBaselineDays.length){summary.forecast=null;summary.forecastHours=null;summary.sstg=null;summary.sstgExFA=null;summary.tcAchievement=null;}
     return {days,areas:new Map([...areas].map(([a,x])=>[a,derived(x)])),summary:{...summary,totalHours:hasHours?totalHours:null,transferOut,transferIn,actualHours,tplh:hoursWithoutScores.length?null:ratio(summary.nonfa,actualHours),hoursAchievement:hoursWithoutScores.length?null:ratio(actualHours,summary.forecastHours)},hourTotals,missingPairs,missingHourDays,missingBaselineDays,hoursWithoutScores,invalidHourDays};
   }
-  const api={AREAS,GROWTH,FORECAST_TPLH,number,ratio,clean,duration,addDays,range,dates,weeks,latestBatches,areaFor,build};
+  const api={AREAS,AC_ASSIGNMENTS,NON_DELIVERY_STORES,GROWTH,FORECAST_TPLH,number,ratio,clean,duration,addDays,range,dates,weeks,latestBatches,areaFor,build};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OpsMetrics=api;
 })(typeof window!=='undefined'?window:globalThis);

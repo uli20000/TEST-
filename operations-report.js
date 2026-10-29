@@ -105,7 +105,19 @@
     E('opsDelayRankTitle').textContent=prefix+'等餐最多餐廳｜前三名';E('opsLineRankTitle').textContent=prefix+'劃線簽名未完成最多｜前三名';
     renderRank('opsDelayRank',S.delayRanking(state.records.delay,r.start,r.end),'count',x=>'待回覆 '+x.pending+' 筆','本期沒有等餐紀錄');
     renderRank('opsLineRank',S.lineRanking(state.stores,state.records.line,r.start,r.end,opsToday()),'missing',x=>'劃線缺 '+x.missingLine+'／簽名缺 '+x.missingSignature,'本期沒有未完成項目');
-    E('opsLineRank').insertAdjacentHTML('beforeend','<p class="ops-ranking-basis">每日劃線、簽名各計 1 項；排除桃園新屋</p>');periodRecords(date,p,v);
+    E('opsLineRank').insertAdjacentHTML('beforeend','<p class="ops-ranking-basis">每日劃線、簽名各計 1 項；排除桃園新屋</p>');renderAcWaitSummary(state.records.delay,r);periodRecords(date,p,v);
+  }
+  function renderAcWaitSummary(records,r){
+    const assignments=M.AC_ASSIGNMENTS,byStore=new Map();for(const ac of assignments)for(const code of ac.stores)if(!M.NON_DELIVERY_STORES.has(code))byStore.set(code,ac.name);
+    const grouped=new Map(assignments.map(ac=>[ac.name,{name:ac.name,orders:0,pending:0,replied:0,stores:new Set()}]));
+    for(const row of records){if(row.record_date<r.start||row.record_date>r.end)continue;const ac=byStore.get(String(row.store_code||''));if(!ac)continue;const item=grouped.get(ac);item.orders++;item.stores.add(String(row.store_code));if(row.status==='completed')item.replied++;else item.pending++;}
+    const ordered=[...grouped.values()].sort((a,b)=>b.orders-a.orders||a.name.localeCompare(b.name));
+    E('opsDelayAcSummary').innerHTML='<h3>AC 等餐彙總</h3><div class="ops-table-wrap"><table class="ops-kpi-table ops-ac-wait-table"><thead><tr><th>AC</th><th>等餐餐廳數</th><th>等餐筆數</th><th>待回覆</th><th>已回覆</th></tr></thead><tbody>'+ordered.map(x=>'<tr><th>'+escape(x.name)+'</th><td>'+x.stores.size+'</td><td>'+x.orders+'</td><td>'+x.pending+'</td><td>'+x.replied+'</td></tr>').join('')+'</tbody></table></div>';
+  }
+  function shiftPeriodDate(inputId,p,direction){
+    const input=E(inputId),date=new Date((input.value||opsToday())+'T12:00:00Z');
+    if(p==='month'){date.setUTCDate(1);date.setUTCMonth(date.getUTCMonth()+direction);}else date.setUTCDate(date.getUTCDate()+direction*(p==='week'?7:1));
+    input.value=date.toISOString().slice(0,10);refresh().catch(error);
   }
   function render(){
     if(!state.cache)return;const d=selectedDate(),p=period(),v=model(d,p),messages=warnings(v,p==='day',d),target=E(state.context==='summary'?'opsSummaryWarnings':'opsReportWarnings');target.textContent=messages.join('；');target.hidden=!messages.length;
@@ -200,6 +212,8 @@
   E('opsAnalysisRefresh').onclick=()=>refresh(true).catch(error);E('opsSummaryRefresh').onclick=()=>refresh(true).catch(error);
   E('opsPeriodTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.period=b.dataset.period;refresh().catch(error);});
   E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.summaryPeriod=b.dataset.period;refresh().catch(error);});
+  E('opsAnalysisPrev').onclick=()=>shiftPeriodDate('opsAnalysisDate',state.period,-1);E('opsAnalysisNext').onclick=()=>shiftPeriodDate('opsAnalysisDate',state.period,1);
+  E('opsSummaryPrev').onclick=()=>shiftPeriodDate('opsSummaryDate',state.summaryPeriod,-1);E('opsSummaryNext').onclick=()=>shiftPeriodDate('opsSummaryDate',state.summaryPeriod,1);
   for(const [id,p] of [['opsExportDay','day'],['opsExportWeek','week'],['opsExportMonth','month']])E(id).onclick=()=>exportCombined(p);
   window.opsLoadDailyAnalytics=()=>{state.context='scores';state.period='day';return refresh(true);};
   window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,open:context=>{state.context=context;return refresh(true);}};
