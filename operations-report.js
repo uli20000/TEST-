@@ -1,12 +1,12 @@
 (function(){
   'use strict';
   const M=window.OpsMetrics,S=window.OpsSummary,E=id=>document.getElementById(id),escape=opsEscape,labels=new Map(M.AREAS);
-  const state={context:'scores',period:'day',summaryPeriod:'day',cache:null,monthCache:new Map(),monthLoads:new Map(),request:0,saveQueue:Promise.resolve(),saveError:null,stores:[],catalog:new Map(),weather:new Map(),weatherLoads:new Map(),weatherError:new Map(),records:{delay:[],line:[]}};
+  const state={context:'scores',cache:null,monthCache:new Map(),monthLoads:new Map(),request:0,saveQueue:Promise.resolve(),saveError:null,stores:[],catalog:new Map(),weather:new Map(),weatherLoads:new Map(),weatherError:new Map(),records:{delay:[],line:[]}};
   const fmt=(v,d=0)=>v===null||v===undefined?'—':Number(v).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
   const pct=v=>v===null||v===undefined?'—':fmt(v*100,1)+'%';
   const time=v=>v===null||v===undefined?'—':Math.floor(Math.round(v)/60)+'分'+String(Math.round(v)%60).padStart(2,'0')+'秒';
-  const selectedDate=()=>E(state.context==='summary'?'opsSummaryDate':'opsAnalysisDate').value||opsToday();
-  const period=()=>state.context==='summary'?state.summaryPeriod:state.period;
+  const selectedDate=()=>window.OpsDateControl?.date||opsToday();
+  const period=()=>window.OpsDateControl?.period||'day';
   const notify=(message,context=state.context)=>{E(context==='summary'?'opsSummaryStatus':'opsReportStatus').textContent=message;};
   const error=e=>notify(e.message||String(e));
   async function paged(table,columns,filter,order='record_date'){
@@ -72,35 +72,34 @@
     };
   }
   function renderWeeks(date){
-    const selected=S.range(date,'week');E('opsWeekTabs').innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(state.period==='week'&&w.start===selected.start?'active':'')+'" data-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
-    E('opsWeekTabs').querySelectorAll('[data-week-date]').forEach(b=>b.onclick=()=>{E('opsAnalysisDate').value=b.dataset.weekDate;state.period='week';refresh().catch(error);});
+    const selected=S.range(date,'week');E('opsWeekTabs').innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(period()==='week'&&w.start===selected.start?'active':'')+'" data-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
+    E('opsWeekTabs').querySelectorAll('[data-week-date]').forEach(b=>b.onclick=()=>window.OpsDateControl.set(b.dataset.weekDate,'week'));
   }
   function valueInput(area,date,value){return '<input class="ops-area-hour" type="number" min="0" max="9999" step="0.25" inputmode="decimal" data-area="'+area+'" data-date="'+date+'" value="'+(value===null?'':value)+'" aria-label="'+escape(labels.get(area))+'總工時">';}
   function renderScores(date,v){
-    const day=v.days.get(date),isDay=state.period==='day',s=v.summary,hasScores=[...v.days.values()].some(d=>d.types.has('ByOrder'));
-    E('opsPeriodLabel').textContent='區域成績　'+periodTitle(date,state.period);
-    E('opsPeriodTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.period===state.period));renderWeeks(date);
+    const p=period(),day=v.days.get(date),isDay=p==='day',s=v.summary,hasScores=[...v.days.values()].some(d=>d.types.has('ByOrder'));
+    E('opsPeriodLabel').textContent='區域成績　'+periodTitle(date,p);renderWeeks(date);
     E('opsFileStatus').innerHTML=['ByDate','ByOrder'].map(type=>{const b=state.cache.batches.find(x=>x.report_date===date&&x.report_type===type);return '<div class="ops-file-card '+(b?'ready':'')+'"><b>'+type+'</b><span>'+date+'</span><strong>'+(b?'已匯入 '+fmt(b.row_count)+' 筆':'尚未匯入')+'</strong></div>';}).join('');
     const areaRows=[...M.AREAS,...(v.areas.has('?')?[['?','未分類']]:[])];
     const cells=x=>'<td data-label="TC">'+(hasScores?fmt(x.tc):'—')+'</td><td data-label="FA">'+(hasScores?fmt(x.fa):'—')+'</td><td data-label="第三方佔比">'+pct(x.faShare)+'</td><td data-label="D7">'+pct(x.d7)+'</td><td data-label="D25">'+pct(x.d25)+'</td>';
     E('opsAnalysisTable').innerHTML='<table class="ops-area-table"><thead><tr><th>區域</th><th>TC</th><th>FA</th><th>第三方佔比</th><th>D7</th><th>D25</th><th>總工時</th></tr></thead><tbody>'+areaRows.map(([a,label])=>{const hours=isDay?M.number(day?.report?.area_hours?.[a]):v.hourTotals.get(a)?.count?v.hourTotals.get(a).hours:null;return '<tr><th>'+label+'</th>'+cells(v.areas.get(a))+'<td data-label="總工時">'+(isDay&&a!=='?'?valueInput(a,date,hours):fmt(hours,2))+'</td></tr>';}).join('')+'</tbody><tfoot><tr><th>合計</th>'+cells(s)+'<td data-label="總工時">'+fmt(s.totalHours,2)+'</td></tr></tfoot></table>';
     const report=day?.report;
     E('opsLaborAdjustments').innerHTML='<div class="ops-labor-grid"><label>合計總工時<output>'+fmt(s.totalHours,2)+'</output></label><label>調出工時'+(isDay?'<input id="opsTransferOut" type="number" min="0" max="9999" step="0.25" inputmode="decimal" value="'+(report?.transfer_out_hours??0)+'">':'<output>'+fmt(s.transferOut,2)+'</output>')+'</label><label>調入工時'+(isDay?'<input id="opsTransferIn" type="number" min="0" max="9999" step="0.25" inputmode="decimal" value="'+(report?.transfer_in_hours??0)+'">':'<output>'+fmt(s.transferIn,2)+'</output>')+'</label><label>實際工時<output>'+fmt(s.actualHours,2)+'</output></label></div>';
-    bindHours();renderMonthHours(date);renderDayList(S.range(date,state.period));periodRecords(date,state.period,v);
+    bindHours();renderMonthHours(date);renderDayList(S.range(date,p));periodRecords(date,p,v);
   }
   function renderRank(target,result,key,details,empty){
     E(target).innerHTML=result.top.length?'<ol class="ops-rank-list">'+result.top.map(x=>'<li><span class="ops-rank-number">'+x.rank+'</span><div><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><span>'+details(x)+'</span></div><b>'+x[key]+(key==='count'?' 筆':' 項')+'</b></li>').join('')+'</ol>':'<div class="ops-empty">'+empty+'</div>';
   }
   function renderSummaryWeeks(date){
     let container=E('opsSummaryWeekTabs');
-    if(!container){container=document.createElement('div');container.id='opsSummaryWeekTabs';container.className='ops-week-tabs';E('opsSummaryPeriodTabs').parentElement.after(container);}
+    if(!container){container=document.createElement('div');container.id='opsSummaryWeekTabs';container.className='ops-week-tabs';E('opsSummaryWarnings').after(container);}
     const selected=S.range(date,'week');
-    container.innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(state.summaryPeriod==='week'&&w.start===selected.start?'active':'')+'" data-summary-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
-    container.querySelectorAll('[data-summary-week-date]').forEach(b=>b.onclick=()=>{E('opsSummaryDate').value=b.dataset.summaryWeekDate;state.summaryPeriod='week';refresh().catch(error);});
+    container.innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(period()==='week'&&w.start===selected.start?'active':'')+'" data-summary-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
+    container.querySelectorAll('[data-summary-week-date]').forEach(b=>b.onclick=()=>window.OpsDateControl.set(b.dataset.summaryWeekDate,'week'));
   }
   function renderSummary(date,v){
-    const p=state.summaryPeriod,r=S.range(date,p);
-    E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.period===p));renderSummaryWeeks(date);renderMetrics(v);
+    const p=period(),r=S.range(date,p);
+    renderSummaryWeeks(date);renderMetrics(v);
     const acStoreCodes=new Set(M.AC_ASSIGNMENTS.flatMap(ac=>ac.stores).filter(code=>!M.NON_DELIVERY_STORES.has(code)));
     const eligibleDelay=state.records.delay.filter(x=>acStoreCodes.has(String(x.store_code)));
     renderRank('opsDelayRank',S.delayRanking(eligibleDelay,r.start,r.end),'count',x=>'待回覆 '+x.pending+' 筆','本期沒有等餐紀錄');
@@ -122,11 +121,6 @@
     const worstStores=[...storeStats.values()].map(x=>({...x,rate:x.done/(x.count*2)})).sort((a,b)=>a.rate-b.rate||a.store_code.localeCompare(b.store_code)).slice(0,3);
     E('opsLineRank').innerHTML=worstStores.length?'<ol class="ops-period-rank-list">'+worstStores.map((x,i)=>'<li><span>'+(i+1)+'</span><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><b>'+(x.rate*100).toFixed(1)+'%</b></li>').join('')+'</ol>':'<div class="ops-empty">本期沒有劃線簽名紀錄</div>';
   }
-  function shiftPeriodDate(inputId,p,direction){
-    const input=E(inputId),date=new Date((input.value||opsToday())+'T12:00:00Z');
-    if(p==='month'){date.setUTCDate(1);date.setUTCMonth(date.getUTCMonth()+direction);}else date.setUTCDate(date.getUTCDate()+direction*(p==='week'?7:1));
-    input.value=date.toISOString().slice(0,10);refresh().catch(error);
-  }
   function render(){
     if(!state.cache)return;const d=selectedDate(),p=period(),v=model(d,p),messages=warnings(v,p==='day',d),target=E(state.context==='summary'?'opsSummaryWarnings':'opsReportWarnings');target.textContent=messages.join('；');target.hidden=!messages.length;
     if(state.context==='summary')renderSummary(d,v);else renderScores(d,v);renderWeather();
@@ -140,7 +134,7 @@
   function renderDayList(r){
     const rows=S.dates(r.start,r.end).filter(date=>date<=opsToday()).map(date=>{const v=model(date,'day'),d=v.days.get(date),s=v.summary,active=d.types.has('ByOrder')&&!d.scoreExcluded;return '<tr><th><button type="button" data-report-date="'+date+'">'+date.slice(5).replace('-','/')+'</button></th><td>'+(active?fmt(s.tc):'—')+'</td><td>'+(active?pct(s.sstg):'—')+'</td><td>'+(active?pct(s.tcAchievement):'—')+'</td><td>'+(!d.scoreExcluded?fmt(s.actualHours,2):'—')+'</td><td>'+(active?fmt(s.tplh,2):'—')+'</td><td>'+(active?pct(s.faShare):'—')+'</td><td>'+(active?pct(s.d7):'—')+'</td><td>'+(active?pct(s.d25):'—')+'</td><td>'+(d.scoreExcluded?'不計成績':d.types.size===2?'齊全':d.types.size?'缺一檔':'待匯入')+(d.report?.special_notes?'｜'+escape(d.report.special_notes):'')+'</td></tr>';});
     E('opsDayList').innerHTML='<table class="ops-daily-table"><thead><tr><th>日期</th><th>TC</th><th>SSTG</th><th>預估達成率</th><th>實際工時</th><th>TPLH</th><th>FA佔比</th><th>D7</th><th>D25</th><th>成績檔</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
-    E('opsDayList').querySelectorAll('[data-report-date]').forEach(b=>b.onclick=()=>{E('opsAnalysisDate').value=b.dataset.reportDate;state.period='day';refresh().catch(error);});
+    E('opsDayList').querySelectorAll('[data-report-date]').forEach(b=>b.onclick=()=>window.OpsDateControl.set(b.dataset.reportDate,'day'));
   }
   function bindHours(){
     E('opsAnalysisTable').querySelectorAll('.ops-area-hour').forEach(input=>input.onchange=()=>{const hours=M.number(input.value);if(input.value!==''&&(hours===null||hours<0||hours>9999)){notify('工時請填入 0～9999');return;}queueSave({p_record_date:input.dataset.date,p_area_code:input.dataset.area,p_area_hours:hours});});
@@ -191,7 +185,7 @@
     const buttons=[...E('opsSummaryPanel').querySelectorAll('.ops-export-bottom button')];buttons.forEach(b=>b.disabled=true);
     try{
       await state.saveQueue;if(state.saveError)throw new Error('工時尚未儲存成功，請先重新儲存');
-      const d=E('opsSummaryDate').value||opsToday(),r=S.range(d,p);if(r.start>opsToday())throw new Error('所選日期尚未到');if(r.end>opsToday())r.end=opsToday();notify('匯出中…','summary');
+      const d=selectedDate(),r=S.range(d,p);if(r.start>opsToday())throw new Error('所選日期尚未到');if(r.end>opsToday())r.end=opsToday();notify('匯出中…','summary');
       const [data,records]=await Promise.all([loadRange(r,true),loadRecords(r),loadWeatherRange(r)]);const v=M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r}),wb=XLSX.utils.book_new(),hasScores=[...v.days.values()].some(x=>x.types.has('ByOrder')&&!x.scoreExcluded);
       const summary=[['起始日期',r.start],['結束日期',r.end],['成績已匯入日數',[...v.days.values()].filter(x=>x.types.size===2).length],...metricsRows(v.summary).map(([k,value,unit])=>[k,!hasScores&&!['去年單數','預估單數','預估工時','實際工時'].includes(k)?null:value,unit])];
       const ws=XLSX.utils.aoa_to_sheet([['營運總覽','數值','單位'],...summary]);ws['!cols']=[{wch:24},{wch:22},{wch:12}];summary.forEach((r,i)=>{if(r[2]==='%'&&ws['B'+(i+2)])ws['B'+(i+2)].z='0.0%';});XLSX.utils.book_append_sheet(wb,ws,'營運總覽');appendScores(wb,data,r);
@@ -215,14 +209,7 @@
   }
   window.opsFindRestaurant=findRestaurant;
   for(const id of ['opsDelayStore','opsLineStore'])E(id).oninput=async()=>{if(id==='opsLineStore'){opsSetToggle('opsLineMark',false);opsSetToggle('opsSignMark',false);}try{const store=await findRestaurant(id);if(store&&id==='opsLineStore')await fillLineState(store.store_code);}catch(e){E(id+'Name').textContent=e.message;}};
-  E('opsAnalysisDate').value=opsToday();E('opsSummaryDate').value=opsToday();
-  E('opsAnalysisDate').onchange=()=>refresh().catch(error);E('opsSummaryDate').onchange=()=>refresh().catch(error);
-  E('opsAnalysisRefresh').onclick=()=>refresh(true).catch(error);E('opsSummaryRefresh').onclick=()=>refresh(true).catch(error);
-  E('opsPeriodTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.period=b.dataset.period;refresh().catch(error);});
-  E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.summaryPeriod=b.dataset.period;refresh().catch(error);});
-  E('opsAnalysisPrev').onclick=()=>shiftPeriodDate('opsAnalysisDate',state.period,-1);E('opsAnalysisNext').onclick=()=>shiftPeriodDate('opsAnalysisDate',state.period,1);
-  E('opsSummaryPrev').onclick=()=>shiftPeriodDate('opsSummaryDate',state.summaryPeriod,-1);E('opsSummaryNext').onclick=()=>shiftPeriodDate('opsSummaryDate',state.summaryPeriod,1);
   for(const [id,p] of [['opsExportDay','day'],['opsExportWeek','week'],['opsExportMonth','month']])E(id).onclick=()=>exportCombined(p);
-  window.opsLoadDailyAnalytics=()=>{state.context='scores';state.period='day';return refresh(true);};
-  window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,open:context=>{state.context=context;return refresh(true);}};
+  window.opsLoadDailyAnalytics=()=>{state.context='scores';return refresh(true);};
+  window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,open:(context,force=true)=>{state.context=context;return refresh(force);}};
 })();
