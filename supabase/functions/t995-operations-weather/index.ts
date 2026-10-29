@@ -24,7 +24,9 @@ Deno.serve(async req=>{
     const {data:cached}=await service.from('t995_operations_weather_months').select('payload,fetched_at').eq('month',month).maybeSingle();
     const recent=month>=today.slice(0,7)+'-01',ttl=recent?2*3600000:7*86400000;
     const hasFailure=cached?.payload?.some((r:{status:string})=>r.status==='unavailable');
-    if(cached&&Date.now()-Date.parse(cached.fetched_at)<(hasFailure?5*60000:ttl))return reply({rows:cached.payload,fetched_at:cached.fetched_at,source:'中央氣象署 CODiS'});
+    const yesterdayDate=new Date(today+'T00:00:00Z');yesterdayDate.setUTCDate(yesterdayDate.getUTCDate()-1);const yesterday=yesterdayDate.toISOString().slice(0,10);
+    const needsRecentRecheck=recent&&cached?.payload?.some((r:{date:string;status:string})=>r.date===yesterday&&['missing','partial'].includes(r.status));
+    if(cached&&Date.now()-Date.parse(cached.fetched_at)<(hasFailure?5*60000:needsRecentRecheck?15*60000:ttl))return reply({rows:cached.payload,fetched_at:cached.fetched_at,source:'中央氣象署 CODiS'});
     let rows=await fetchMonth(month,today);const fetched_at=new Date().toISOString();
     // An upstream outage must not overwrite previously observed weather.
     if(cached)rows=rows.map(row=>row.status==='unavailable'?(cached.payload.find((old:any)=>old.date===row.date&&old.city===row.city&&['observed','partial'].includes(old.status))||row):row);
