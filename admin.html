@@ -1345,6 +1345,11 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
   <div class="mode-back-row"><button id="opsBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section ops-section">
     <div class="section-title">營運管理</div>
+    <div id="opsGlobalDateToolbar" class="ops-entry-date-toolbar ops-global-date-toolbar">
+      <div class="ops-date-nav"><button id="opsGlobalPrev" type="button" aria-label="前一個日期區間">‹</button><input id="opsGlobalDate" type="date" aria-label="營運統計日期"><button id="opsGlobalNext" type="button" aria-label="後一個日期區間">›</button></div>
+      <div id="opsGlobalPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
+      <button id="opsGlobalRefresh" type="button" class="action-btn">重新整理</button>
+    </div>
     <div class="ops-tabs">
       <button type="button" class="ops-tab active" data-ops-tab="delay">等餐紀錄</button>
       <button type="button" class="ops-tab" data-ops-tab="line">劃線／簽名</button>
@@ -1352,11 +1357,6 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       <button type="button" class="ops-tab" data-ops-tab="summary">匯總資料</button>
     </div>
     <div id="opsDelayPanel" class="ops-panel">
-      <div class="ops-entry-date-toolbar" data-ops-toolbar="delay">
-        <div class="ops-date-nav"><button type="button" data-ops-shift="-1" aria-label="前一個日期區間">‹</button><input id="opsDelayDate" type="date" aria-label="等餐檢視日期"><button type="button" data-ops-shift="1" aria-label="後一個日期區間">›</button></div>
-        <div id="opsDelayPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
-        <button id="opsDelayRefresh" type="button" class="action-btn">重新整理</button>
-      </div>
       <div class="ops-form-grid ops-entry-row ops-delay-entry-row">
         
         <label>店號<input id="opsDelayStore" type="text" inputmode="numeric" maxlength="3" placeholder="輸入店號" autocomplete="off"><span id="opsDelayStoreName" class="ops-lookup" aria-live="polite"></span><div id="opsDelayStoreChoices" class="ops-store-choices"></div></label>
@@ -1369,11 +1369,6 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       <div id="opsDelayList" class="ops-table-wrap"></div>
     </div>
     <div id="opsLinePanel" class="ops-panel" hidden>
-      <div class="ops-entry-date-toolbar" data-ops-toolbar="line">
-        <div class="ops-date-nav"><button type="button" data-ops-shift="-1" aria-label="前一個日期區間">‹</button><input id="opsLineDate" type="date" aria-label="劃線簽名檢視日期"><button type="button" data-ops-shift="1" aria-label="後一個日期區間">›</button></div>
-        <div id="opsLinePeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
-        <button id="opsLineRefresh" type="button" class="action-btn">重新整理</button>
-      </div>
       <div class="ops-line-toolbar-row">
         <div id="opsLineStats" class="ops-line-stats"></div>
         <label class="ops-line-search"><input id="opsLineSearch" type="search" aria-label="餐廳查詢" placeholder="輸入店號或餐廳名稱"></label>
@@ -1390,11 +1385,6 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       <h3 id="opsLineListTitle">餐廳狀態</h3><div id="opsLineList" class="ops-table-wrap"></div>
     </div>
     <div id="opsScoresPanel" class="ops-panel" hidden>
-      <div class="ops-score-heading">
-        <div class="ops-date-label"><span>統計日期</span><div class="ops-date-nav"><button id="opsAnalysisPrev" type="button" aria-label="前一個日期區間">‹</button><input id="opsAnalysisDate" type="date" aria-label="成績日期"><button id="opsAnalysisNext" type="button" aria-label="後一個日期區間">›</button></div></div>
-        <div id="opsPeriodTabs" class="ops-mini-tabs"><button type="button" class="active" data-period="day">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
-        <button id="opsAnalysisRefresh" type="button" class="action-btn">重新整理</button>
-      </div>
       <div id="opsWeekTabs" class="ops-week-tabs"></div>
       <div class="ops-upload-block"><h3>匯入當日成績</h3><div class="ops-score-upload"><label class="ops-score-file-button">選擇兩個 Excel<input id="opsScoreFiles" type="file" accept=".xlsx,.xls,.xlsm" multiple></label></div><div id="opsScorePreview" class="ops-table-wrap"></div><button id="opsScoreImport" type="button" class="action-btn primary" disabled>匯入當日成績</button><div id="opsScoreMessage" class="ops-message" role="status"></div></div>
       <div id="opsFileStatus" class="ops-file-status"></div><h3 id="opsPeriodLabel">區域成績</h3>
@@ -1405,11 +1395,6 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       <details class="ops-month-fold"><summary>各區每日／整月工時</summary><div id="opsMonthHours"></div></details>
     </div>
     <div id="opsSummaryPanel" class="ops-panel" hidden>
-      <div class="ops-score-heading">
-        <div class="ops-date-label"><span>統計日期</span><div class="ops-date-nav"><button id="opsSummaryPrev" type="button" aria-label="前一個日期區間">‹</button><input id="opsSummaryDate" type="date" aria-label="匯總日期"><button id="opsSummaryNext" type="button" aria-label="後一個日期區間">›</button></div></div>
-        <div id="opsSummaryPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
-        <button id="opsSummaryRefresh" type="button" class="action-btn">重新整理</button>
-      </div>
       <div id="opsSummaryWarnings" class="ops-report-warnings" hidden></div>
       <div id="opsSummaryMetrics"></div>
       <div class="ops-ranking-grid">
@@ -6127,7 +6112,7 @@ $("opsScoreImport").onclick=async()=>{
     }
     $("opsScoreMessage").textContent="完成匯入 "+pair.dates.length+" 天（兩種報表已分別按日整理）。";
     opsPreparedScoreFiles=[];opsScoreFileInput.value="";opsRenderPreparedScoreFiles();
-    $("opsAnalysisDate").value=importedDate||opsToday();
+    window.OpsDateControl?.set(importedDate||opsToday(),"day",false);
     await opsLoadDailyAnalytics();
   }catch(e){$("opsScoreMessage").textContent="匯入中止："+(e.message||"請檢查資料庫 migration 與登入狀態");}
   finally{$("opsScoreImport").disabled=!opsScorePair();}
@@ -6140,8 +6125,8 @@ $("opsScoreImport").onclick=async()=>{
 
 <script src="operations-metrics.js?v=20261029-ops-align3"></script>
 <script src="operations-summary.js?v=20261029-ops-align3"></script>
-<script src="operations-report.js?v=20261029-ops-align3"></script>
-<script src="operations-entry.js?v=20261029-ops-align4"></script>
+<script src="operations-report.js?v=20261030-shared-date1"></script>
+<script src="operations-entry.js?v=20261030-shared-date1"></script>
 </body>
 </html>
 
