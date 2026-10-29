@@ -10,18 +10,18 @@ export function monthDates(month){
 export function stationsFor(month){
   const h={city:'新竹',id:'467571',name:'新竹',type:'cwb'};
   const t=month<'2026-01-01'?{city:'桃園',id:'C0C480',name:'桃園',type:'auto'}:month<'2026-03-01'?{city:'桃園',id:'467050',name:'新屋',type:'cwb'}:{city:'桃園',id:'C2C480',name:'桃園',type:'agr'};
-  return month==='2026-03-01'?[h,t,{city:'桃園',id:'467050',name:'新屋',type:'cwb'}]:[h,t];
+  return month>='2026-03-01'?[h,t,{city:'桃園',id:'467050',name:'新屋',type:'cwb'}]:[h,t];
 }
 function validNumber(value,flag,min,max){
-  if(value===null||value===undefined||value===''||(flag!==undefined&&flag!==null&&flag!==0))return null;
+  if(value===null||value===undefined||String(value).trim()===''||(flag!==undefined&&flag!==null&&String(flag).trim()!=='0'))return null;
   const n=Number(value);return Number.isFinite(n)&&n>=min&&n<=max?n:null;
 }
 export function observation(row,station){
   const rain=row?.Precipitation,temperature=row?.AirTemperature;
-  const trace=Number(rain?.Accumulation)===-9.8&&(rain?.Accumulationf===0||rain?.Accumulationf==null);
+  const trace=Number(rain?.Accumulation)===-9.8&&(rain?.Accumulationf==null||String(rain.Accumulationf).trim()==='0');
   const amount=validNumber(rain?.Accumulation,rain?.Accumulationf,0,3000);
   const mean=validNumber(temperature?.Mean,temperature?.Meanf,-50,60);
-  return {date:row.DataDate.slice(0,10),city:station.city,station_id:station.id,station_name:station.name,temperature:mean,precipitation:trace?null:amount,trace,status:mean!==null&&(amount!==null||trace)?'observed':'partial',source_url:SOURCE};
+  return {date:String(row?.DataDate||'').slice(0,10),city:station.city,station_id:station.id,station_name:station.name,temperature:mean,precipitation:trace?null:amount,trace,status:mean!==null&&(amount!==null||trace)?'observed':'partial',source_url:SOURCE};
 }
 export async function fetchMonth(month,today,fetcher=fetch){
   const dates=monthDates(month),stations=stationsFor(month),results=await Promise.all(stations.map(async station=>{
@@ -36,9 +36,11 @@ export async function fetchMonth(month,today,fetcher=fetch){
   }));
   return dates.flatMap(date=>['新竹','桃園'].map(city=>{
     const id=city==='新竹'?'467571':date>='2026-03-16'?'C2C480':date>='2026-01-01'?'467050':'C0C480';
-    const result=results.find(r=>r.station.city===city&&r.station.id===id),station=result.station;
+    const result=results.find(r=>r.station.city===city&&r.station.id===id),station=result?.station;
     // A calendar day's observation is complete only after that day ends in Taiwan.
-    if(date<today){const found=result.rows.find(r=>r.date===date);if(found)return found;}
-    return {date,city,station_id:station.id,station_name:station.name,temperature:null,precipitation:null,trace:false,status:date>=today?'pending':result.failed?'unavailable':'missing',source_url:SOURCE};
+    const alternatives=results.filter(r=>r.station.city===city&&r.station.id!==id),primaryRow=result?.rows.find(r=>r.date===date),backupRows=alternatives.map(r=>r.rows.find(x=>x.date===date)).filter(Boolean),completeBackup=backupRows.find(r=>r.status==='observed');
+    if(date<today){if(primaryRow?.status==='observed')return primaryRow;if(completeBackup)return completeBackup;if(primaryRow)return primaryRow;const partialBackup=backupRows[0];if(partialBackup)return partialBackup;}
+    const unavailable=Boolean(result?.failed)&&alternatives.every(x=>x.failed);
+    return {date,city,station_id:station?.id||id,station_name:station?.name||(city==='新竹'?'新竹':'桃園'),temperature:null,precipitation:null,trace:false,status:date>=today?'pending':unavailable?'unavailable':'missing',source_url:SOURCE};
   }));
 }
