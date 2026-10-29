@@ -6106,10 +6106,10 @@ $("opsScoreImport").onclick=async()=>{
   $("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="匯入資料中…";
   const importedDate=pair.dates.at(-1);let completed=0;
   try{
-    for(let i=0;i<pair.dates.length;i+=4){
-      const dates=pair.dates.slice(i,i+4),results=await Promise.all(dates.flatMap(date=>Object.values(pair.byType).map(item=>db.rpc("t995_import_score_batch",{p_report_date:date,p_report_type:item.type,p_source_file:item.file.name,p_rows:item.rows.filter(row=>row.record_date===date)}))));
-      completed+=results.filter(r=>!r.error).length;if(results.some(r=>r.error))throw new Error("已完成 "+Math.floor(completed/2)+"／"+pair.dates.length+" 天；"+results.find(r=>r.error).error.message);
-      $("opsScoreMessage").textContent="匯入中… "+Math.floor(completed/2)+"／"+pair.dates.length+" 天";
+    for(const date of pair.dates){
+      const results=await Promise.all(Object.values(pair.byType).map(item=>db.rpc("t995_import_score_batch",{p_report_date:date,p_report_type:item.type,p_source_file:item.file.name,p_rows:item.rows.filter(row=>row.record_date===date)})));
+      const failed=results.find(r=>r.error);if(failed)throw new Error("已完成 "+completed+"／"+pair.dates.length+" 天；日期 "+date+"："+failed.error.message);
+      completed++;$("opsScoreMessage").textContent="匯入中… "+completed+"／"+pair.dates.length+" 天";
     }
     $("opsScoreMessage").textContent="完成匯入 "+pair.dates.length+" 天（兩種報表已分別按日整理）。";
     opsPreparedScoreFiles=[];opsScoreFileInput.value="";opsRenderPreparedScoreFiles();
