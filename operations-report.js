@@ -60,7 +60,7 @@
     const days=[...v.days.values()],notes=days.filter(d=>String(d.report?.special_notes||'').trim()),excluded=days.filter(d=>d.report?.score_excluded);
     const list='<div class="ops-context-list">'+(excluded.length?'<div><b>不計成績</b>　'+excluded.map(d=>d.date.slice(5).replace('-','/')+(d.report?.special_notes?' '+escape(d.report.special_notes):'')).join('、')+'</div>':'')+(notes.length?notes.filter(d=>!d.report?.score_excluded).map(d=>'<div><b>'+d.date.slice(5).replace('-','/')+' 特殊事項</b>　'+escape(d.report.special_notes)+'</div>').join(''):'')+(!excluded.length&&!notes.length?'<div>本期尚無特殊事項</div>':'')+'</div>';
     if(state.context==='summary'){
-      let target=E('opsSummaryContext');if(!target){target=document.createElement('section');target.id='opsSummaryContext';target.className='ops-report-card';E('opsSummaryTitle').after(target);}target.innerHTML='<h3>特殊事項</h3>'+list;return;
+      let target=E('opsSummaryContext');if(!target){target=document.createElement('section');target.id='opsSummaryContext';target.className='ops-report-card';E('opsSummaryWarnings').after(target);}target.innerHTML='<h3>特殊事項</h3>'+list;return;
     }
     const target=E('opsAnalysisSummary');if(!target)return;
     if(p!=='day'){target.innerHTML='<section class="ops-report-card"><h3>週期特殊事項</h3>'+list+'</section>';return;}
@@ -99,8 +99,7 @@
     container.querySelectorAll('[data-summary-week-date]').forEach(b=>b.onclick=()=>{E('opsSummaryDate').value=b.dataset.summaryWeekDate;state.summaryPeriod='week';refresh().catch(error);});
   }
   function renderSummary(date,v){
-    const p=state.summaryPeriod,r=S.range(date,p),prefix=p==='day'?'本日':p==='week'?'本週':'本月',n=[...v.days.values()].filter(d=>d.types.has('ByOrder')).length,total=S.dates(r.start,r.end<opsToday()?r.end:opsToday()).length;
-    E('opsSummaryTitle').textContent='營運總覽　'+periodTitle(date,p)+(p!=='day'?'（成績 '+n+'/'+total+' 日）':'');
+    const p=state.summaryPeriod,r=S.range(date,p);
     E('opsSummaryPeriodTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.period===p));renderSummaryWeeks(date);renderMetrics(v);
     const acStoreCodes=new Set(M.AC_ASSIGNMENTS.flatMap(ac=>ac.stores).filter(code=>!M.NON_DELIVERY_STORES.has(code)));
     const eligibleDelay=state.records.delay.filter(x=>acStoreCodes.has(String(x.store_code)));
