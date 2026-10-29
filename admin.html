@@ -1286,7 +1286,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
 .ops-section{font-size:16px;line-height:1.65}.ops-section button,.ops-section input,.ops-section select,.ops-section textarea{font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",sans-serif!important;font-size:16px!important}.ops-section button{font-weight:800!important}.ops-section .ops-table{font-size:15px}.ops-section .ops-message,.ops-section .ops-empty{color:#49443e;font-size:14px;font-weight:600}
 @media(max-width:600px){.ops-section .ops-table{font-size:14px}.ops-section .ops-table th,.ops-section .ops-table td{padding:9px 7px}}
 </style>
-<link rel="stylesheet" href="operations-report.css?v=20261029-ops-summary2">
+<link rel="stylesheet" href="operations-report.css?v=20261029-ops-align3">
 </head>
 
 <body>
@@ -1352,24 +1352,23 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       <button type="button" class="ops-tab" data-ops-tab="summary">匯總資料</button>
     </div>
     <div id="opsDelayPanel" class="ops-panel">
-      <h3>等餐紀錄</h3>
       <div class="ops-entry-date-toolbar" data-ops-toolbar="delay">
         <div class="ops-date-nav"><button type="button" data-ops-shift="-1" aria-label="前一個日期區間">‹</button><input id="opsDelayDate" type="date" aria-label="等餐檢視日期"><button type="button" data-ops-shift="1" aria-label="後一個日期區間">›</button></div>
         <div id="opsDelayPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
         <button id="opsDelayRefresh" type="button" class="action-btn">重新整理</button>
       </div>
-      <div class="ops-form-grid ops-entry-row">
+      <div class="ops-form-grid ops-entry-row ops-delay-entry-row">
         
         <label>店號<input id="opsDelayStore" type="text" inputmode="numeric" maxlength="3" placeholder="輸入店號" autocomplete="off"><span id="opsDelayStoreName" class="ops-lookup" aria-live="polite"></span><div id="opsDelayStoreChoices" class="ops-store-choices"></div></label>
         <label>編號<input id="opsDelayOrder" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="4 碼"></label>
+        <label>餐廳查詢<input id="opsDelaySearch" type="search" placeholder="輸入店號或餐廳名稱"></label>
         <button id="opsDelaySave" type="button" class="action-btn primary">新增</button>
       </div>
       <div id="opsDelayMessage" class="ops-message" role="status"></div>
-      <div class="ops-filter-row ops-record-search"><label>餐廳查詢<input id="opsDelaySearch" type="search" placeholder="輸入店號或餐廳名稱"></label></div><h3 id="opsDelayListTitle">當日紀錄</h3>
+      <h3 id="opsDelayListTitle">當日紀錄</h3>
       <div id="opsDelayList" class="ops-table-wrap"></div>
     </div>
     <div id="opsLinePanel" class="ops-panel" hidden>
-      <h3>每日劃線／簽名紀錄</h3>
       <div class="ops-entry-date-toolbar" data-ops-toolbar="line">
         <div class="ops-date-nav"><button type="button" data-ops-shift="-1" aria-label="前一個日期區間">‹</button><input id="opsLineDate" type="date" aria-label="劃線簽名檢視日期"><button type="button" data-ops-shift="1" aria-label="後一個日期區間">›</button></div>
         <div id="opsLinePeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
@@ -1377,7 +1376,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       </div>
       <div class="ops-line-toolbar-row">
         <div id="opsLineStats" class="ops-line-stats"></div>
-        <label class="ops-line-search">餐廳查詢<input id="opsLineSearch" type="search" placeholder="輸入店號或餐廳名稱"></label>
+        <label class="ops-line-search"><input id="opsLineSearch" type="search" aria-label="餐廳查詢" placeholder="輸入店號或餐廳名稱"></label>
       </div>
       <div class="ops-form-grid ops-entry-row">
         
@@ -1389,8 +1388,6 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       </div>
       <div id="opsLineMessage" class="ops-message" role="status"></div>
       <h3 id="opsLineListTitle">餐廳狀態</h3><div id="opsLineList" class="ops-table-wrap"></div>
-    <div id="opsLinksPanel" class="ops-shared-link"><h3>等餐原因回覆連結</h3><button id="opsLinkCreate" type="button" class="action-btn primary">產生共用回覆連結</button><div id="opsLinkMessage" class="ops-message" role="status"></div><div id="opsLinkResult" class="ops-link-result" hidden><input id="opsLinkUrl" type="text" readonly><button id="opsLinkCopy" type="button" class="action-btn">複製連結</button></div></div>
-
     </div>
     <div id="opsScoresPanel" class="ops-panel" hidden>
       <div class="ops-score-heading">
@@ -1413,7 +1410,6 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
         <div id="opsSummaryPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
         <button id="opsSummaryRefresh" type="button" class="action-btn">重新整理</button>
       </div>
-      <h3 id="opsSummaryTitle">營運總覽</h3>
       <div id="opsSummaryWarnings" class="ops-report-warnings" hidden></div>
       <div id="opsSummaryMetrics"></div>
       <div class="ops-ranking-grid">
@@ -1422,7 +1418,8 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       </div>
       <section class="ops-report-card"><h3>新竹／桃園天氣</h3><div id="opsSummaryWeather" aria-live="polite"></div></section>
       <div id="opsSummaryStatus" class="ops-report-status" role="status"></div>
-      <div class="ops-export-bottom"><button id="opsExportDay" type="button" class="action-btn primary">每日匯出</button><button id="opsExportWeek" type="button" class="action-btn">每週匯出</button><button id="opsExportMonth" type="button" class="action-btn">每月匯出</button></div>
+      <div class="ops-export-bottom"><button id="opsExportDay" type="button" class="action-btn primary">每日匯出</button><button id="opsExportWeek" type="button" class="action-btn">每週匯出</button><button id="opsExportMonth" type="button" class="action-btn">每月匯出</button><button id="opsLinkCreate" type="button" class="action-btn">產生等餐連結</button></div>
+      <div id="opsLinksPanel" class="ops-shared-link"><div id="opsLinkMessage" class="ops-message" role="status"></div><div id="opsLinkResult" class="ops-link-result" hidden><input id="opsLinkUrl" type="text" readonly><button id="opsLinkCopy" type="button" class="action-btn">複製連結</button></div></div>
     </div>
   </section>
 </section>
@@ -6141,10 +6138,10 @@ $("opsScoreImport").onclick=async()=>{
 
 
 
-<script src="operations-metrics.js?v=20261029-ops-summary2"></script>
-<script src="operations-summary.js?v=20261029-ops-summary2"></script>
-<script src="operations-report.js?v=20261029-ops-summary2"></script>
-<script src="operations-entry.js?v=20261029-ops-summary2"></script>
+<script src="operations-metrics.js?v=20261029-ops-align3"></script>
+<script src="operations-summary.js?v=20261029-ops-align3"></script>
+<script src="operations-report.js?v=20261029-ops-align3"></script>
+<script src="operations-entry.js?v=20261029-ops-align3"></script>
 </body>
 </html>
 
