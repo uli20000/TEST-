@@ -61,12 +61,13 @@
 .ops-entry-date-toolbar .ops-mini-tabs button{min-height:36px;min-width:44px;border:0;border-radius:8px;background:transparent;padding:6px 12px;font:inherit;font-weight:800;color:var(--black)}
 .ops-entry-date-toolbar .ops-mini-tabs button.active{background:var(--red);color:#fff}
 .ops-record-search{grid-template-columns:minmax(0,1fr);max-width:960px;margin:12px auto}
-.ops-line-toolbar-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.48fr);gap:12px;align-items:center;max-width:960px;margin:14px auto}
+.ops-line-toolbar-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:stretch;max-width:1100px;margin:14px auto}
+.ops-line-toolbar-row #opsLineStats{display:contents}
 #opsModePage .ops-line-toolbar-row .ops-line-stats{max-width:none;margin:0}
 .ops-line-stat[data-line-filter]{border:1px solid var(--line);background:#fff;color:var(--black);font:inherit;cursor:pointer}
 .ops-line-stat[data-line-filter][aria-pressed="true"]{border-color:var(--red);background:#fff4f5;box-shadow:inset 0 0 0 1px var(--red)}
-.ops-line-search{display:grid;gap:6px;font-weight:700;text-align:center}
-.ops-line-search input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:7px 10px;font:inherit;text-align:center}
+.ops-line-search{display:block;min-width:0;margin:0}
+.ops-line-search input{width:100%;height:100%;min-height:78px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px;font:inherit;text-align:center}
 #opsSummaryPanel .ops-ranking-grid>.ops-report-card>h4{margin:12px 0 8px;text-align:center;font-size:15px}
 #opsSummaryPanel .ops-ac-focus{margin:8px 0 16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);font-size:18px;font-weight:800;text-align:center}
 #opsSummaryPanel .ops-period-rank-list{margin:0;padding:0;list-style:none}
@@ -87,7 +88,7 @@
   #opsModePage .ops-section{padding:16px 10px}.ops-report-grid>div{min-width:0}
   .ops-score-heading{gap:6px}.ops-score-heading input{max-width:155px;padding:8px 4px}.ops-score-heading .ops-mini-tabs button{padding:8px 10px}
   .ops-entry-date-toolbar{justify-content:center;flex-wrap:wrap;padding:9px;gap:8px}.ops-entry-date-toolbar>.action-btn{min-height:40px}
-  .ops-line-toolbar-row{grid-template-columns:1fr;gap:8px}.ops-line-search{max-width:none}
+  .ops-line-toolbar-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ops-line-search{max-width:none}
 }
 
 /* Daily operations workspace: equal cards, compact centered controls. */
@@ -153,6 +154,10 @@
 #opsModePage .ops-entry-row .ops-toggle{min-height:46px;padding:8px 4px;font-size:15px}
 #opsModePage .ops-entry-row .ops-lookup{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;min-height:20px;font-size:13px}
 #opsModePage .ops-entry-row .ops-store-choices{position:absolute;top:100%;left:0;z-index:10;background:white;min-width:260px;border-radius:10px;box-shadow:0 8px 24px #0002}
+#opsModePage .ops-delay-entry-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:1100px}
+#opsModePage #opsLinePanel .ops-entry-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:900px}
+#opsModePage .ops-shared-link{margin:0}
+#opsModePage .ops-shared-link .ops-message:empty{display:none}
 .ops-filter-row{display:grid;grid-template-columns:1fr 1.3fr 1.2fr;gap:10px;max-width:780px;margin:16px auto 22px}
 .ops-filter-row label{display:grid;gap:7px;min-width:0;font-weight:700;font-size:14px}
 .ops-filter-row input,.ops-filter-row select{min-width:0;width:100%;min-height:44px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:7px;color:var(--black);font:inherit;text-align:center}
@@ -164,14 +169,17 @@
 .ops-rank-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}.ops-rank-list li{display:grid;grid-template-columns:30px minmax(0,1fr) 64px;align-items:center;gap:8px;padding:12px 8px;border:1px solid var(--line);border-radius:10px;text-align:center}
 .ops-rank-number{font-weight:800;font-size:19px;color:#a71930}.ops-rank-list strong{display:block;font-size:15px;overflow-wrap:anywhere}.ops-rank-list span:not(.ops-rank-number){display:block;margin-top:6px;font-size:12px}.ops-rank-list b{font-size:18px;color:#a71930}
 .ops-ranking-basis,.ops-tie-note{text-align:center;font-size:12px;line-height:1.7;margin:12px 0 0;color:var(--black)}
-#opsSummaryPanel .ops-export-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}#opsSummaryPanel .ops-export-bottom button:first-child{grid-column:auto}
+#opsSummaryPanel .ops-export-bottom{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}#opsSummaryPanel .ops-export-bottom button:first-child{grid-column:auto}
+#opsSummaryPanel .ops-export-bottom .action-btn{width:100%;min-width:0;min-height:46px;padding:8px 6px;white-space:nowrap}
 @media(max-width:760px){
  #opsModePage .ops-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}#opsModePage .ops-tab{font-size:13px;padding:8px 2px;white-space:nowrap}
  #opsModePage .ops-entry-row{grid-template-columns:minmax(0,1fr) minmax(112px,1.1fr) 60px;gap:7px}
+ #opsModePage .ops-delay-entry-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #opsModePage #opsLinePanel .ops-entry-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
  #opsModePage .ops-entry-row>.action-btn{margin-top:26px;font-size:14px}#opsModePage .ops-entry-row .ops-toggle{font-size:14px;padding:6px 2px}
  .ops-filter-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:6px}.ops-filter-row input,.ops-filter-row select{font-size:13px;padding:6px 2px}
  .ops-ranking-grid{grid-template-columns:1fr;gap:14px}.ops-rank-list li{padding:12px 6px}
- #opsSummaryPanel .ops-export-bottom{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}#opsSummaryPanel .ops-export-bottom .action-btn{font-size:14px;padding:10px 4px}
+ #opsSummaryPanel .ops-export-bottom{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#opsSummaryPanel .ops-export-bottom .action-btn{font-size:14px;padding:10px 4px}
 }
 #opsModePage .ops-link-result[hidden]{display:none}
 @media(max-width:600px){
@@ -190,6 +198,8 @@
 #opsModePage .ops-line-view-tools label{display:grid;gap:6px;font-weight:700;text-align:center}
 #opsModePage .ops-line-view-tools input{width:100%;min-width:0;min-height:44px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit;text-align:center}
 #opsModePage .ops-line-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:780px;margin:12px auto}
+#opsModePage .ops-line-toolbar-row #opsLineStats{display:contents}
+#opsModePage .ops-line-toolbar-row .ops-line-stat{min-width:0;min-height:78px;width:100%;padding:10px 6px}
 #opsModePage .ops-line-stat{display:flex;justify-content:center;align-items:center;gap:9px;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700}
 #opsModePage .ops-line-stat strong{color:#a71930;font-size:19px}
 #opsModePage .ops-line-analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
