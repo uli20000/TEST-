@@ -193,7 +193,6 @@
  .ops-records-table td{display:flex;flex-direction:column;justify-content:center;min-width:0;overflow-wrap:anywhere;padding:7px 3px!important;border:0;text-align:center;white-space:normal}
  .ops-records-table td::before{content:attr(data-label);margin-bottom:5px;color:var(--black);font-size:11px;font-weight:700}
  .ops-line-records tbody tr:first-child{border-color:#c77c87;background:#fff8f8}
- .ops-line-records tbody tr:first-child td:first-child{font-weight:800;color:#a71930}
  .ops-records-table .ops-delete-btn{align-self:center;min-width:54px}
 }
 
