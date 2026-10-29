@@ -1286,7 +1286,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
 .ops-section{font-size:16px;line-height:1.65}.ops-section button,.ops-section input,.ops-section select,.ops-section textarea{font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",sans-serif!important;font-size:16px!important}.ops-section button{font-weight:800!important}.ops-section .ops-table{font-size:15px}.ops-section .ops-message,.ops-section .ops-empty{color:#49443e;font-size:14px;font-weight:600}
 @media(max-width:600px){.ops-section .ops-table{font-size:14px}.ops-section .ops-table th,.ops-section .ops-table td{padding:9px 7px}}
 </style>
-<link rel="stylesheet" href="operations-report.css?v=20261027-report1">
+<link rel="stylesheet" href="operations-report.css?v=20261029-ops-inspection1">
 </head>
 
 <body>
@@ -1374,13 +1374,16 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
         <button id="opsLineSave" type="button" class="action-btn primary">新增</button>
       </div>
       <div id="opsLineMessage" class="ops-message" role="status"></div>
-      <h3>當日紀錄</h3><div id="opsLineList" class="ops-table-wrap"></div><details class="ops-incomplete-fold"><summary>當日未完成餐廳</summary><div id="opsLineIncomplete" class="ops-table-wrap"></div></details>
+      <div class="ops-line-view-tools"><label>檢視日期<input id="opsLineDate" type="date"></label><label>餐廳查詢<input id="opsLineSearch" type="search" placeholder="輸入店號或餐廳名稱"></label></div>
+      <div id="opsLineStats" class="ops-line-stats"></div>
+      <div class="ops-line-analysis-grid"><section id="opsLineAcAnalysis" class="ops-report-card"></section><section id="opsLineWorstStores" class="ops-report-card"></section></div>
+      <h3 id="opsLineListTitle">餐廳狀態</h3><div id="opsLineList" class="ops-table-wrap"></div>
     <div id="opsLinksPanel" class="ops-shared-link"><h3>等餐原因回覆連結</h3><button id="opsLinkCreate" type="button" class="action-btn primary">產生共用回覆連結</button><div id="opsLinkMessage" class="ops-message" role="status"></div><div id="opsLinkResult" class="ops-link-result" hidden><input id="opsLinkUrl" type="text" readonly><button id="opsLinkCopy" type="button" class="action-btn">複製連結</button></div></div>
 
     </div>
     <div id="opsScoresPanel" class="ops-panel" hidden>
       <div class="ops-score-heading">
-        <label class="ops-date-label">統計日期<input id="opsAnalysisDate" type="date" aria-label="成績日期"></label>
+        <div class="ops-date-label"><span>統計日期</span><div class="ops-date-nav"><button id="opsAnalysisPrev" type="button" aria-label="前一個日期區間">‹</button><input id="opsAnalysisDate" type="date" aria-label="成績日期"><button id="opsAnalysisNext" type="button" aria-label="後一個日期區間">›</button></div></div>
         <div id="opsPeriodTabs" class="ops-mini-tabs"><button type="button" class="active" data-period="day">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
         <button id="opsAnalysisRefresh" type="button" class="action-btn">重新整理</button>
       </div>
@@ -1395,7 +1398,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
     </div>
     <div id="opsSummaryPanel" class="ops-panel" hidden>
       <div class="ops-score-heading">
-        <label class="ops-date-label">統計日期<input id="opsSummaryDate" type="date" aria-label="匯總日期"></label>
+        <div class="ops-date-label"><span>統計日期</span><div class="ops-date-nav"><button id="opsSummaryPrev" type="button" aria-label="前一個日期區間">‹</button><input id="opsSummaryDate" type="date" aria-label="匯總日期"><button id="opsSummaryNext" type="button" aria-label="後一個日期區間">›</button></div></div>
         <div id="opsSummaryPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
         <button id="opsSummaryRefresh" type="button" class="action-btn">重新整理</button>
       </div>
@@ -1406,6 +1409,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
         <section class="ops-report-card"><h3 id="opsDelayRankTitle">本日等餐最多餐廳</h3><div id="opsDelayRank"></div></section>
         <section class="ops-report-card"><h3 id="opsLineRankTitle">本日劃線簽名未完成最多餐廳</h3><div id="opsLineRank"></div></section>
       </div>
+      <section id="opsDelayAcSummary" class="ops-report-card"></section>
       <section class="ops-report-card"><h3>新竹／桃園天氣</h3><div id="opsSummaryWeather" aria-live="polite"></div></section>
       <div id="opsSummaryStatus" class="ops-report-status" role="status"></div>
       <div class="ops-export-bottom"><button id="opsExportDay" type="button" class="action-btn primary">每日匯出</button><button id="opsExportWeek" type="button" class="action-btn">每週匯出</button><button id="opsExportMonth" type="button" class="action-btn">每月匯出</button></div>
@@ -5033,6 +5037,8 @@ function lockAdmin(message=""){
 async function unlockAdmin(session){
   if(!session?.user?.email){ lockAdmin(); return; }
   const email = String(session.user.email).trim().toLowerCase();
+  if(adminApp.style.display==='block'&&adminSessionEmail.textContent===`已登入：${email}`)return;
+  const isEnteringAdmin=adminApp.style.display!=='block';
   const allow = await db.from("admin_allowlist").select("email").ilike("email", email).eq("active", true).maybeSingle();
   if(allow.error){
     await db.auth.signOut();
@@ -5049,7 +5055,7 @@ async function unlockAdmin(session){
   adminSessionBar.style.display = "flex";
   adminSessionEmail.textContent = `已登入：${email}`;
   showAuthMessage("", true);
-  showAdminMode("home");
+  if(isEnteringAdmin)showAdminMode("home");
 }
 
 authPasswordToggle.onclick = () => {
@@ -6125,10 +6131,10 @@ $("opsScoreImport").onclick=async()=>{
 
 
 
-<script src="operations-metrics.js?v=20261027-report1"></script>
-<script src="operations-summary.js?v=20261027-report1"></script>
-<script src="operations-report.js?v=20261027-report1"></script>
-<script src="operations-entry.js?v=20261027-report1"></script>
+<script src="operations-metrics.js?v=20261029-ops-inspection1"></script>
+<script src="operations-summary.js?v=20261029-ops-inspection1"></script>
+<script src="operations-report.js?v=20261029-ops-inspection1"></script>
+<script src="operations-entry.js?v=20261029-ops-inspection1"></script>
 </body>
 </html>
 
