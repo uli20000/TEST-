@@ -2,6 +2,7 @@
   'use strict';
   const M=window.OpsMetrics,S=window.OpsSummary,E=id=>document.getElementById(id),escape=opsEscape,labels=new Map(M.AREAS);
   const state={context:'scores',cache:null,monthCache:new Map(),monthLoads:new Map(),request:0,saveQueue:Promise.resolve(),saveError:null,stores:[],catalog:new Map(),weather:new Map(),weatherLoads:new Map(),weatherError:new Map(),records:{delay:[],line:[]}};
+  E('opsWeekTabs')?.remove();
   const fmt=(v,d=0)=>v===null||v===undefined?'—':Number(v).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
   const pct=v=>v===null||v===undefined?'—':fmt(v*100,1)+'%';
   const time=v=>v===null||v===undefined?'—':Math.floor(Math.round(v)/60)+'分'+String(Math.round(v)%60).padStart(2,'0')+'秒';
@@ -71,14 +72,10 @@
       try{const exists=await db.from('t995_operations_daily_reports').select('record_date').eq('record_date',date).maybeSingle();if(exists.error)throw exists.error;const payload={score_excluded:excluded,special_notes:notes,updated_by:(await db.auth.getUser()).data.user?.id||null,updated_at:new Date().toISOString()};const saved=exists.data?await db.from('t995_operations_daily_reports').update(payload).eq('record_date',date):await db.from('t995_operations_daily_reports').insert({record_date:date,...payload});if(saved.error)throw saved.error;status.textContent='已儲存';await refresh(true);}catch(e){status.textContent='儲存失敗：'+e.message;}
     };
   }
-  function renderWeeks(date){
-    const selected=S.range(date,'week');E('opsWeekTabs').innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(period()==='week'&&w.start===selected.start?'active':'')+'" data-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
-    E('opsWeekTabs').querySelectorAll('[data-week-date]').forEach(b=>b.onclick=()=>window.OpsDateControl.set(b.dataset.weekDate,'week'));
-  }
   function valueInput(area,date,value){return '<input class="ops-area-hour" type="number" min="0" max="9999" step="0.25" inputmode="decimal" data-area="'+area+'" data-date="'+date+'" value="'+(value===null?'':value)+'" aria-label="'+escape(labels.get(area))+'總工時">';}
   function renderScores(date,v){
     const p=period(),day=v.days.get(date),isDay=p==='day',s=v.summary,hasScores=[...v.days.values()].some(d=>d.types.has('ByOrder'));
-    E('opsPeriodLabel').textContent='區域成績　'+periodTitle(date,p);renderWeeks(date);
+    E('opsPeriodLabel').textContent='區域成績　'+periodTitle(date,p);
     E('opsFileStatus').innerHTML=['ByDate','ByOrder'].map(type=>{const b=state.cache.batches.find(x=>x.report_date===date&&x.report_type===type);return '<div class="ops-file-card '+(b?'ready':'')+'"><b>'+type+'</b><span>'+date+'</span><strong>'+(b?'已匯入 '+fmt(b.row_count)+' 筆':'尚未匯入')+'</strong></div>';}).join('');
     const areaRows=[...M.AREAS,...(v.areas.has('?')?[['?','未分類']]:[])];
     const cells=x=>'<td data-label="TC">'+(hasScores?fmt(x.tc):'—')+'</td><td data-label="FA">'+(hasScores?fmt(x.fa):'—')+'</td><td data-label="第三方佔比">'+pct(x.faShare)+'</td><td data-label="D7">'+pct(x.d7)+'</td><td data-label="D25">'+pct(x.d25)+'</td>';
