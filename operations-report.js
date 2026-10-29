@@ -90,16 +90,9 @@
   function renderRank(target,result,key,details,empty){
     E(target).innerHTML=result.top.length?'<ol class="ops-rank-list">'+result.top.map(x=>'<li><span class="ops-rank-number">'+x.rank+'</span><div><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><span>'+details(x)+'</span></div><b>'+x[key]+(key==='count'?' 筆':' 項')+'</b></li>').join('')+'</ol>':'<div class="ops-empty">'+empty+'</div>';
   }
-  function renderSummaryWeeks(date){
-    let container=E('opsSummaryWeekTabs');
-    if(!container){container=document.createElement('div');container.id='opsSummaryWeekTabs';container.className='ops-week-tabs';E('opsSummaryWarnings').after(container);}
-    const selected=S.range(date,'week');
-    container.innerHTML=S.monthWeeks(date).map(w=>'<button type="button" class="ops-week-tab '+(period()==='week'&&w.start===selected.start?'active':'')+'" data-summary-week-date="'+w.anchor+'">'+w.label+'<span>'+w.start.slice(5).replace('-','/')+'–'+w.end.slice(5).replace('-','/')+'</span></button>').join('');
-    container.querySelectorAll('[data-summary-week-date]').forEach(b=>b.onclick=()=>window.OpsDateControl.set(b.dataset.summaryWeekDate,'week'));
-  }
   function renderSummary(date,v){
     const p=period(),r=S.range(date,p);
-    renderSummaryWeeks(date);renderMetrics(v);
+    renderMetrics(v);
     const acStoreCodes=new Set(M.AC_ASSIGNMENTS.flatMap(ac=>ac.stores).filter(code=>!M.NON_DELIVERY_STORES.has(code)));
     const eligibleDelay=state.records.delay.filter(x=>acStoreCodes.has(String(x.store_code)));
     renderRank('opsDelayRank',S.delayRanking(eligibleDelay,r.start,r.end),'count',x=>'待回覆 '+x.pending+' 筆','本期沒有等餐紀錄');

@@ -1286,7 +1286,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
 .ops-section{font-size:16px;line-height:1.65}.ops-section button,.ops-section input,.ops-section select,.ops-section textarea{font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",sans-serif!important;font-size:16px!important}.ops-section button{font-weight:800!important}.ops-section .ops-table{font-size:15px}.ops-section .ops-message,.ops-section .ops-empty{color:#49443e;font-size:14px;font-weight:600}
 @media(max-width:600px){.ops-section .ops-table{font-size:14px}.ops-section .ops-table th,.ops-section .ops-table td{padding:9px 7px}}
 </style>
-<link rel="stylesheet" href="operations-report.css?v=20261030-date-centered2">
+<link rel="stylesheet" href="operations-report.css?v=20261030-toolbar-dashboard3">
 </head>
 
 <body>
@@ -1348,7 +1348,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
     <div id="opsGlobalDateToolbar" class="ops-entry-date-toolbar ops-global-date-toolbar">
       <div class="ops-date-nav"><button id="opsGlobalPrev" type="button" aria-label="前一個日期區間">‹</button><input id="opsGlobalDate" type="date" aria-label="營運統計日期"><button id="opsGlobalNext" type="button" aria-label="後一個日期區間">›</button></div>
       <div id="opsGlobalPeriodTabs" class="ops-mini-tabs"><button type="button" data-period="day" class="active">日</button><button type="button" data-period="week">週</button><button type="button" data-period="month">月</button></div>
-      <button id="opsGlobalRefresh" type="button" class="action-btn">重新整理</button>
+      <div class="ops-date-actions"><button id="opsGlobalRefresh" type="button" class="action-btn">重新整理</button><a class="action-btn" href="analysis.html" aria-label="開啟營運分析儀表板">儀表板</a></div>
     </div>
     <div id="opsGlobalPeriodChoices" class="ops-period-choices" hidden aria-live="polite"></div>
     <div class="ops-tabs">
@@ -6126,7 +6126,7 @@ $("opsScoreImport").onclick=async()=>{
 
 <script src="operations-metrics.js?v=20261029-ops-align3"></script>
 <script src="operations-summary.js?v=20261029-ops-align3"></script>
-<script src="operations-report.js?v=20261030-date-chooser1"></script>
+<script src="operations-report.js?v=20261030-toolbar-dashboard3"></script>
 <script src="operations-entry.js?v=20261030-date-chooser1"></script>
 </body>
 </html>
