@@ -107,7 +107,7 @@
     const acStats=new Map(M.AC_ASSIGNMENTS.map(ac=>[ac.name,{count:0,done:0}])),storeStats=new Map();
     for(const row of records){if(row.record_date<r.start||row.record_date>r.end||M.NON_DELIVERY_STORES.has(String(row.store_code)))continue;const code=String(row.store_code),name=acByStore.get(code);if(!name)continue;const done=Number(!!row.line_completed)+Number(!!row.signature_completed),a=acStats.get(name);a.count++;a.done+=done;const s=storeStats.get(code)||{store_code:code,restaurant_name:row.restaurant_name,count:0,done:0};s.count++;s.done+=done;storeStats.set(code,s);}
     const acRates=[...acStats].map(([name,x])=>({name,rate:x.count?x.done/(x.count*2):null}));
-    E('opsLineAcSummary').innerHTML='<ol class="ops-period-rank-list ops-ac-rate-list">'+acRates.map(x=>'<li><strong>'+escape(x.name)+'</strong><b>'+(x.rate===null?'—':(x.rate*100).toFixed(1)+'%')+'</b></li>').join('')+'</ol>';
+    E('opsLineAcSummary').innerHTML='<ul class="ops-ac-rate-grid">'+acRates.map(x=>'<li><strong>'+escape(x.name)+'</strong><b>'+(x.rate===null?'—':(x.rate*100).toFixed(1)+'%')+'</b></li>').join('')+'</ul>';
     const worstStores=[...storeStats.values()].map(x=>({...x,rate:x.done/(x.count*2)})).sort((a,b)=>a.rate-b.rate||a.store_code.localeCompare(b.store_code)).slice(0,3);
     E('opsLineRank').innerHTML=worstStores.length?'<ol class="ops-period-rank-list">'+worstStores.map((x,i)=>'<li><span>'+(i+1)+'</span><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><b>'+(x.rate*100).toFixed(1)+'%</b></li>').join('')+'</ol>':'<div class="ops-empty">本期沒有劃線簽名紀錄</div>';
   }
