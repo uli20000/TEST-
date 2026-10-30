@@ -100,7 +100,11 @@
 #opsSummaryPanel .ops-ac-focus{margin:8px 0 16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);font-size:18px;font-weight:800;text-align:center}
 #opsSummaryPanel .ops-period-rank-list{margin:0;padding:0;list-style:none}
 #opsSummaryPanel .ops-period-rank-list li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);text-align:left}
-#opsSummaryPanel .ops-period-rank-list.ops-ac-rate-list li{grid-template-columns:minmax(0,1fr) auto}
+#opsSummaryPanel .ops-ac-rate-grid{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#opsSummaryPanel .ops-ac-rate-grid li{min-height:78px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;text-align:center}
+#opsSummaryPanel .ops-ac-rate-grid li:last-child{grid-column:1/-1;width:calc(50% - 5px);justify-self:center}
+#opsSummaryPanel .ops-ac-rate-grid strong{font-size:15px;line-height:1.2}
+#opsSummaryPanel .ops-ac-rate-grid b{color:#a71930;font-size:20px}
 #opsSummaryPanel .ops-period-rank-list b{color:#a71930;white-space:nowrap}
 @media(min-width:1000px){body:has(#opsModePage[style*="block"]) .page{max-width:1180px}}
 @media(max-width:760px){
