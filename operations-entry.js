@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const E=id=>document.getElementById(id),S=window.OpsSummary,R=window.OpsReport,escape=opsEscape;
-  const dateControl=window.OpsDateControl={date:opsToday(),period:'day',set(date,period=this.period,refresh=true){this.date=date||opsToday();this.period=period;paintToolbar();if(refresh)refreshActive();}};
+  const dateControl=window.OpsDateControl={date:opsToday(),period:'day',set(date,period=this.period,refresh=true){this.date=date||opsToday();this.period=period;paintToolbar();if(state.active==='line'&&E('opsLineStore').value)R.fillLineState(E('opsLineStore').value,this.date);if(refresh)refreshActive();}};
   const state={delay:[],line:[],stores:[],delayRequest:0,lineRequest:0,active:'delay',lineFilter:'all',choicesOpen:false};
   const periodRange=()=>S.range(dateControl.date,dateControl.period);
   const periodLabel=()=>{const r=periodRange(),p=dateControl.period;return p==='day'?r.start:p==='week'?S.weekLabel(r.start)+'　'+r.start+' ～ '+r.end:r.start.slice(0,7);};
@@ -77,17 +77,17 @@
   E('opsDelayList').onclick=e=>{const b=e.target.closest('[data-delete-delay]');if(b)removeRecord('delay',b.dataset.deleteDelay,b);};
   E('opsLineList').onclick=e=>{const b=e.target.closest('[data-delete-line]');if(b)removeRecord('line',b.dataset.deleteLine,b);};
   E('opsDelaySave').onclick=async()=>{
-    const date=opsToday(),order=E('opsDelayOrder').value.trim(),msg=E('opsDelayMessage');if(!/^[0-9]{4}$/.test(order)){msg.textContent='請輸入 4 碼訂單編號';return;}
+    const date=dateControl.date,order=E('opsDelayOrder').value.trim(),msg=E('opsDelayMessage');if(!/^[0-9]{4}$/.test(order)){msg.textContent='請輸入 4 碼訂單編號';return;}
     E('opsDelaySave').disabled=true;msg.textContent='儲存中…';
     try{const restaurant=await window.opsFindRestaurant('opsDelayStore');if(!restaurant)throw new Error('請選擇正確的店號');const result=await db.from('t995_delay_orders').insert({record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,order_number:order,status:'pending'});if(result.error)throw result.error;
-      E('opsDelayOrder').value='';E('opsDelaySearch').value='';dateControl.set(date,'day');msg.textContent='已新增';E('opsDelayOrder').focus();
+      E('opsDelayOrder').value='';E('opsDelaySearch').value='';await loadDelay();msg.textContent='已新增';E('opsDelayOrder').focus();
     }catch(e){msg.textContent=e.code==='23505'?'同日、同餐廳的訂單編號已存在':'新增失敗：'+e.message;}finally{E('opsDelaySave').disabled=false;}
   };
   for(const id of ['opsLineMark','opsSignMark'])E(id).onclick=()=>opsSetToggle(id,E(id).getAttribute('aria-pressed')!=='true');
   E('opsLineSave').onclick=async()=>{
-    const date=opsToday(),msg=E('opsLineMessage'),marked=E('opsLineMark').getAttribute('aria-pressed')==='true',signed=E('opsSignMark').getAttribute('aria-pressed')==='true';
+    const date=dateControl.date,msg=E('opsLineMessage'),marked=E('opsLineMark').getAttribute('aria-pressed')==='true',signed=E('opsSignMark').getAttribute('aria-pressed')==='true';
     if(!marked&&!signed){msg.textContent='請選擇劃線或簽名';return;}E('opsLineSave').disabled=true;msg.textContent='儲存中…';
-    try{const restaurant=await window.opsFindRestaurant('opsLineStore');if(!restaurant)throw new Error('請選擇正確的店號');const result=await db.from('t995_line_signature_records').upsert({record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,status:marked&&signed?'completed':'not_completed',line_completed:marked,signature_completed:signed,updated_at:new Date().toISOString()},{onConflict:'record_date,store_code'});if(result.error)throw result.error;dateControl.set(date,'day');msg.textContent='已新增';}catch(e){msg.textContent='新增失敗：'+e.message;}finally{E('opsLineSave').disabled=false;}
+    try{const restaurant=await window.opsFindRestaurant('opsLineStore');if(!restaurant)throw new Error('請選擇正確的店號');const result=await db.from('t995_line_signature_records').upsert({record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,status:marked&&signed?'completed':'not_completed',line_completed:marked,signature_completed:signed,updated_at:new Date().toISOString()},{onConflict:'record_date,store_code'});if(result.error)throw result.error;await loadLine();msg.textContent='已新增';}catch(e){msg.textContent='新增失敗：'+e.message;}finally{E('opsLineSave').disabled=false;}
   };
   paintToolbar();
   E('opsGlobalDate').onchange=()=>dateControl.set(E('opsGlobalDate').value||opsToday());
