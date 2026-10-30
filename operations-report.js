@@ -194,8 +194,8 @@
     name.textContent=matches.length?'請選擇餐廳':'查無此店號';list.innerHTML=matches.map(s=>'<button type="button" data-store-code="'+s.store_code+'">'+s.store_code+'　'+escape(s.restaurant_name)+'</button>').join('');
     list.querySelectorAll('button').forEach(b=>b.onclick=async()=>{input.value=b.dataset.storeCode;await findRestaurant(inputId);if(inputId==='opsLineStore')await fillLineState(input.value);});return null;
   }
-  async function fillLineState(code){
-    const r=await db.from('t995_line_signature_records').select('line_completed,signature_completed').eq('record_date',opsToday()).eq('store_code',code).maybeSingle();if(E('opsLineStore').value!==code)return;if(r.error){E('opsLineMessage').textContent=r.error.message;return;}opsSetToggle('opsLineMark',!!r.data?.line_completed);opsSetToggle('opsSignMark',!!r.data?.signature_completed);
+  async function fillLineState(code,date=window.OpsDateControl?.date||opsToday()){
+    const r=await db.from('t995_line_signature_records').select('line_completed,signature_completed').eq('record_date',date).eq('store_code',code).maybeSingle();if(E('opsLineStore').value!==code)return;if(r.error){E('opsLineMessage').textContent=r.error.message;return;}opsSetToggle('opsLineMark',!!r.data?.line_completed);opsSetToggle('opsSignMark',!!r.data?.signature_completed);
   }
   window.opsFindRestaurant=findRestaurant;
   for(const id of ['opsDelayStore','opsLineStore'])E(id).oninput=async()=>{if(id==='opsLineStore'){opsSetToggle('opsLineMark',false);opsSetToggle('opsSignMark',false);}try{const store=await findRestaurant(id);if(store&&id==='opsLineStore')await fillLineState(store.store_code);}catch(e){E(id+'Name').textContent=e.message;}};
