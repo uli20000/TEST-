@@ -98,14 +98,18 @@
 .ops-line-search input{width:100%;height:100%;min-height:78px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px;font:inherit;text-align:center}
 #opsSummaryPanel .ops-ranking-grid>.ops-report-card>h4{margin:12px 0 8px;text-align:center;font-size:15px}
 #opsSummaryPanel .ops-ac-focus{margin:8px 0 16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);font-size:18px;font-weight:800;text-align:center}
-#opsSummaryPanel .ops-period-rank-list{margin:0;padding:0;list-style:none}
-#opsSummaryPanel .ops-period-rank-list li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);text-align:left}
+#opsSummaryPanel .ops-summary-priority-list{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+#opsSummaryPanel .ops-summary-priority-list li{display:grid;grid-template-columns:32px minmax(0,1fr) 72px;align-items:center;gap:10px;min-height:72px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);text-align:center}
+#opsSummaryPanel .ops-summary-priority-rank{font-size:18px;font-weight:800;color:#a71930}
+#opsSummaryPanel .ops-summary-priority-list strong{display:block;font-size:15px;overflow-wrap:anywhere}
+#opsSummaryPanel .ops-summary-priority-list span:not(.ops-summary-priority-rank){display:block;margin-top:4px;font-size:12px}
+#opsSummaryPanel .ops-summary-priority-list b{font-size:17px;color:#a71930;white-space:nowrap}
+#opsSummaryPanel .ops-summary-priority-empty{display:grid;place-items:center;min-height:246px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);text-align:center}
 #opsSummaryPanel .ops-ac-summary-grid{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #opsSummaryPanel .ops-ac-summary-grid li{min-height:78px;border:1px solid var(--line);border-radius:10px;background:var(--ops-tint);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;text-align:center}
 #opsSummaryPanel .ops-ac-summary-grid li:last-child{grid-column:1/-1;width:calc(50% - 5px);justify-self:center}
 #opsSummaryPanel .ops-ac-summary-grid strong{font-size:15px;line-height:1.2}
 #opsSummaryPanel .ops-ac-summary-grid b{color:#a71930;font-size:20px}
-#opsSummaryPanel .ops-period-rank-list b{color:#a71930;white-space:nowrap}
 @media(min-width:1000px){body:has(#opsModePage[style*="block"]) .page{max-width:1180px}}
 @media(max-width:760px){
   .ops-report-grid{grid-template-columns:1fr;gap:16px}
@@ -121,7 +125,8 @@
   #opsModePage .ops-section{padding:16px 10px}.ops-report-grid>div{min-width:0}
   .ops-score-heading{gap:6px}.ops-score-heading input{max-width:155px;padding:8px 4px}.ops-score-heading .ops-mini-tabs button{padding:8px 10px}
   .ops-entry-date-toolbar{justify-content:center;flex-wrap:wrap;padding:9px;gap:8px}.ops-entry-date-toolbar>.action-btn{min-height:40px}
-  .ops-line-toolbar-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ops-line-search{max-width:none}
+   .ops-line-toolbar-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ops-line-search{max-width:none}
+ #opsSummaryPanel .ops-summary-priority-list li{grid-template-columns:28px minmax(0,1fr) 66px;gap:6px;padding:9px 8px}
 }
 
 /* Daily operations workspace: equal cards, compact centered controls. */
