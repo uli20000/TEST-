@@ -109,8 +109,8 @@
     for(const row of records){if(row.record_date<r.start||row.record_date>r.end||M.NON_DELIVERY_STORES.has(String(row.store_code)))continue;const code=String(row.store_code),name=acByStore.get(code);if(!name)continue;const done=Number(!!row.line_completed)+Number(!!row.signature_completed),a=acStats.get(name);a.count++;a.done+=done;const s=storeStats.get(code)||{store_code:code,restaurant_name:row.restaurant_name,count:0,done:0};s.count++;s.done+=done;storeStats.set(code,s);}
     const acRates=[...acStats].map(([name,x])=>({name,rate:x.count?x.done/(x.count*2):null})).sort((a,b)=>a.rate===null?(b.rate===null?a.name.localeCompare(b.name):1):b.rate===null?-1:a.rate-b.rate||a.name.localeCompare(b.name));
     E('opsLineAcSummary').innerHTML='<ul class="ops-ac-summary-grid">'+acRates.map(x=>'<li><strong>'+escape(x.name)+'</strong><b>'+(x.rate===null?'—':(x.rate*100).toFixed(1)+'%')+'</b></li>').join('')+'</ul>';
-    const worstStores=[...storeStats.values()].map(x=>({...x,rate:x.done/(x.count*2)})).sort((a,b)=>a.rate-b.rate||a.store_code.localeCompare(b.store_code)).slice(0,3);
-    E('opsLineRank').innerHTML=renderPriorityRestaurants(worstStores,x=>(x.rate*100).toFixed(1)+'%',x=>'已登記 '+x.count+' 次','本期沒有劃線簽名紀錄');
+    const worstStores=[...storeStats.values()].map(x=>({...x,rate:x.done/(x.count*2)})).filter(x=>x.rate<1).sort((a,b)=>a.rate-b.rate||a.store_code.localeCompare(b.store_code)).slice(0,3);
+    E('opsLineRank').innerHTML=worstStores.length?renderPriorityRestaurants(worstStores,x=>(x.rate*100).toFixed(1)+'%',x=>'已登記 '+x.count+' 次',''):'';
   }
   function renderPriorityRestaurants(rows,metric,details,empty){
     return rows.length?'<ol class="ops-summary-priority-list">'+rows.map((x,i)=>'<li><span class="ops-summary-priority-rank">'+(i+1)+'</span><div><strong>'+escape(x.store_code)+' '+escape(x.restaurant_name)+'</strong><span>'+details(x)+'</span></div><b>'+metric(x)+'</b></li>').join('')+'</ol>':'<div class="ops-summary-priority-empty">'+empty+'</div>';
