@@ -6103,21 +6103,61 @@ opsScoreFileInput.addEventListener("change",async()=>{
 });
 $("opsScoreImport").onclick=async()=>{
   const pair=opsScorePair();if(!pair){$("opsScoreMessage").textContent="請選擇一份 ByDate 與一份 ByOrder 檔案，且兩份檔案的日期範圍需一致。";return;}
-  $("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="匯入資料中…";
-  const importedDate=pair.dates.at(-1);let completed=0;
+  $("opsScoreImport").disabled=true;$("opsScoreMessage").textContent="封存原始 Excel 至 Supabase…";
+  const importedDate=pair.dates.at(-1);let completed=0,archiveIds=[];
   try{
+    archiveIds=await opsArchiveScoreSourceFiles(pair);
+    $("opsScoreMessage").textContent="原始檔已存入 Supabase；開始整理成績…";
     for(const date of pair.dates){
       const results=await Promise.all(Object.values(pair.byType).map(item=>db.rpc("t995_import_score_batch",{p_report_date:date,p_report_type:item.type,p_source_file:item.file.name,p_rows:item.rows.filter(row=>row.record_date===date)})));
       const failed=results.find(r=>r.error);if(failed)throw new Error("已完成 "+completed+"／"+pair.dates.length+" 天；日期 "+date+"："+failed.error.message);
       completed++;$("opsScoreMessage").textContent="匯入中… "+completed+"／"+pair.dates.length+" 天";
     }
-    $("opsScoreMessage").textContent="完成匯入 "+pair.dates.length+" 天（兩種報表已分別按日整理）。";
+    const marked=await db.from("t995_score_source_archives").update({import_status:"imported",imported_at:new Date().toISOString(),import_note:null}).in("id",archiveIds);
+    if(marked.error)throw new Error("成績已匯入，但原檔封存狀態未能更新："+marked.error.message);
+    $("opsScoreMessage").textContent="完成匯入 "+pair.dates.length+" 天；ByDate／ByOrder 原始 Excel 已封存至 Supabase。";
     opsPreparedScoreFiles=[];opsScoreFileInput.value="";opsRenderPreparedScoreFiles();
     window.OpsDateControl?.set(importedDate||opsToday(),"day",false);
     await opsLoadDailyAnalytics();
-  }catch(e){$("opsScoreMessage").textContent="匯入中止："+(e.message||"請檢查資料庫 migration 與登入狀態");}
+  }catch(e){
+    const detail=e.message||"請檢查登入狀態與 Supabase 設定";
+    if(archiveIds.length){
+      const status=completed?"partial":"archived";
+      await db.from("t995_score_source_archives").update({import_status:status,import_note:detail}).in("id",archiveIds);
+      $("opsScoreMessage").textContent="原始 Excel 已保存在 Supabase；成績匯入中止："+detail;
+    }else $("opsScoreMessage").textContent="匯入中止："+detail;
+  }
   finally{$("opsScoreImport").disabled=!opsScorePair();}
 };
+
+async function opsArchiveScoreSourceFiles(pair){
+  const bucket="t995-score-source-archive",userResult=await db.auth.getUser(),user=userResult?.data?.user;
+  if(!user)throw new Error("請先登入管理後台。");
+  const items=Object.values(pair.byType),uploaded=[],metadata=[];
+  try{
+    for(const item of items){
+      const originalName=String(item.file.name||"source.xlsx"),extension=originalName.split(".").pop().toLowerCase();
+      const contentTypes={xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",xls:"application/vnd.ms-excel",xlsm:"application/vnd.ms-excel.sheet.macroEnabled.12"};
+      if(!contentTypes[extension])throw new Error("只接受 .xlsx、.xls 或 .xlsm Excel 檔案。");
+      if(item.file.size<=0||item.file.size>50*1024*1024)throw new Error("每個原始檔案需大於 0 且不超過 50 MB。");
+      const id=window.crypto?.randomUUID?.()||("archive-"+Date.now()+"-"+Math.random().toString(16).slice(2));
+      const safeName=originalName.normalize("NFKC").replace(/[^A-Za-z0-9._-]+/g,"_").slice(-120)||("source."+extension);
+      const storagePath="995/"+item.type+"/"+pair.dates[0]+"/"+id+"-"+safeName;
+      const bytes=await item.file.arrayBuffer();
+      const sha256=Array.from(new Uint8Array(await window.crypto.subtle.digest("SHA-256",bytes)),b=>b.toString(16).padStart(2,"0")).join("");
+      const stored=await db.storage.from(bucket).upload(storagePath,item.file,{contentType:contentTypes[extension],upsert:false});
+      if(stored.error)throw new Error("原始 Excel 上傳 Supabase Storage 失敗："+stored.error.message);
+      uploaded.push(storagePath);
+      metadata.push({id,report_type:item.type,source_file:originalName,storage_path:storagePath,file_size_bytes:item.file.size,sha256,period_start:pair.dates[0],period_end:pair.dates.at(-1),row_count:item.rows.length,uploaded_by:user.id,import_status:"archived"});
+    }
+    const saved=await db.from("t995_score_source_archives").insert(metadata);
+    if(saved.error)throw new Error("檔案已上傳，但封存索引建立失敗："+saved.error.message);
+    return metadata.map(x=>x.id);
+  }catch(error){
+    if(uploaded.length)await db.storage.from(bucket).remove(uploaded);
+    throw error;
+  }
+}
 
 </script>
 
