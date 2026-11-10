@@ -5938,6 +5938,10 @@ async function t995LoadDeviceClaims(){
 }
 // Select report IDs explicitly. Resolving a case never resolves all reports for its device.
 let t995DeviceResolutionBusy=false;
+function t995SetDeviceResolutionBusy(busy){
+  t995DeviceResolutionBusy=busy;
+  batteryReportList.querySelectorAll('[data-device-case-type], .device-case-bulk-actions button').forEach(control=>{control.disabled=busy;});
+}
 function t995DeviceIssueConfig(type){
   if(type!=="battery"&&type!=="recorder")throw new Error("未知設備類型");
   const recorder=type==="recorder";
@@ -5954,13 +5958,13 @@ function t995AttachDeviceCaseSelection(type){
     const pending=(c.reports||[]).filter(row=>key(row[c.field])===key(number)&&row.resolution_status!=="resolved");
     if(!pending.length)return;
     let box=card.querySelector('.device-pending-cases');if(!box){box=document.createElement('section');box.className='device-pending-cases';card.appendChild(box);}
-    box.innerHTML='<strong>待處理案件（逐筆勾選）</strong>'+pending.map(row=>'<label style="display:block;padding:8px 0"><input type="checkbox" data-device-case-type="'+type+'" value="'+esc(row.id)+'"> '+esc(fmt(row.reported_at))+'｜'+esc(row.issue_description||'未填說明')+'</label>').join('');
+    box.innerHTML='<strong>待處理案件（逐筆勾選）</strong>'+pending.map(row=>'<label style="display:block;padding:8px 0"><input type="checkbox" data-device-case-type="'+type+'" value="'+esc(row.id)+'"'+(t995DeviceResolutionBusy?' disabled':'')+'> '+esc(fmt(row.reported_at))+'｜'+esc(row.issue_description||'未填說明')+'</label>').join('');
   });
   const existing=batteryReportList.querySelector('.device-case-bulk-actions');if(existing)existing.remove();
   if(!(c.reports||[]).some(row=>row.resolution_status!=="resolved"))return;
   const bar=document.createElement('div');bar.className='record-actions device-case-bulk-actions';
   for(const [action,label] of [['repaired','將勾選案件標記維修完成'],['scrapped','將勾選案件標記報廢']]){
-    const button=document.createElement('button');button.type='button';button.className='action-btn';button.textContent=label;
+    const button=document.createElement('button');button.type='button';button.className='action-btn';button.textContent=label;button.disabled=t995DeviceResolutionBusy;
     button.onclick=()=>t995ResolveSelectedDeviceIssues(type,t995SelectedDeviceCases(type),action);bar.appendChild(button);
   }
   batteryReportList.prepend(bar);
@@ -5973,7 +5977,7 @@ async function t995ResolveSelectedDeviceIssues(type,ids,action){
   const scrap=action==="scrapped",label=scrap?"報廢":"維修完成";
   const numbers=[...new Set(selected.map(row=>row[c.field]))];
   if(!confirm(`將勾選的 ${selected.length} 筆${c.label}案件標記為「${label}」？設備：${numbers.join("、")}。未勾選案件不會結案。${scrap?"相關設備也會標記為報廢。":"設備仍有待處理案件時，不會改為正常。"}`))return;
-  t995DeviceResolutionBusy=true;let casesSaved=false;
+  t995SetDeviceResolutionBusy(true);let casesSaved=false;
   try{
     if(typeof window!=="undefined"&&window.CENTER_CONFIG?.features?.atomicDevices===true){
       const rpcName=type==="recorder"?"resolve_recorder_cases":"resolve_battery_cases";
@@ -6001,7 +6005,7 @@ async function t995ResolveSelectedDeviceIssues(type,ids,action){
   }catch(e){alert((casesSaved?"勾選案件已結案，但設備狀態同步未完成，請核對後台；不要重複結案。":"案件處理未確認完成，請重新載入核對後再操作。")+"\n"+(e.message||"未知錯誤"));}
   finally{
     try{if(type==="recorder")await loadRecorderData();else await loadBatteryData();}
-    finally{t995DeviceResolutionBusy=false;}
+    finally{t995SetDeviceResolutionBusy(false);}
   }
 }
 
