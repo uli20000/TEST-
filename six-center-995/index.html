@@ -2291,6 +2291,8 @@ function formatDateTime(value) {
   return date.toLocaleString(
     "zh-TW",
     {
+      timeZone: "Asia/Taipei",
+      hourCycle: "h23",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -4519,6 +4521,7 @@ async function cleanupOldClaimRecords() {
 todayDate.textContent = new Date().toLocaleDateString(
   "zh-TW",
   {
+    timeZone: "Asia/Taipei",
     year: "numeric",
     month: "long",
     day: "numeric",
