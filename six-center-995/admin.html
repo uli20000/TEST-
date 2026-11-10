@@ -4520,9 +4520,11 @@ async function loadRecorderData(){
     const [ir,rr] = await Promise.all([db.from("recorders").select("*").order("created_at",{ascending:false}),t995LoadAllDeviceIssues("recorder_issue_reports")]);
     if(ir.error) throw ir.error; if(rr.error) throw rr.error;
     recorderInventory = ir.data || []; recorderReports = rr.data || [];
-    renderRecorderSummary(); renderRecorderReports();
+    if(deviceAdminType.value==="recorder"){renderRecorderSummary();renderRecorderReports();}
   }catch(e){
-    recorderInventory=[]; recorderReports=[]; batterySummary.innerHTML=`<div class="empty" style="grid-column:1/-1">紀錄器資料讀取失敗：${esc(e.message || "請先執行 recorders 建表 SQL")}</div>`; batteryReportList.innerHTML=`<div class="empty">紀錄器資料讀取失敗：${esc(e.message || "請確認資料表與權限")}</div>`;
+    recorderInventory=[]; recorderReports=[];
+    if(deviceAdminType.value!=="recorder")return;
+    batterySummary.innerHTML=`<div class="empty" style="grid-column:1/-1">紀錄器資料讀取失敗：${esc(e.message || "請先執行 recorders 建表 SQL")}</div>`; batteryReportList.innerHTML=`<div class="empty">紀錄器資料讀取失敗：${esc(e.message || "請確認資料表與權限")}</div>`;
   }
 }
 
@@ -4667,12 +4669,12 @@ async function loadBatteryData(){
     if(reportResult.error) throw reportResult.error;
     batteryInventory = inventoryResult.data || [];
     batteryReports = reportResult.data || [];
-    renderBatterySummary();
-    renderBatteryReports();
+    if(deviceAdminType.value==="battery"){renderBatterySummary();renderBatteryReports();}
   }
   catch(e){
     batteryInventory = [];
     batteryReports = [];
+    if(deviceAdminType.value!=="battery")return;
     batterySummary.innerHTML = `
       <div class="empty" style="grid-column:1/-1">電池建檔資料讀取失敗：${esc(e.message || "請先執行 batteries 建表 SQL")}</div>
     `;
@@ -5948,7 +5950,7 @@ function t995DeviceIssueConfig(type){
   return {table:recorder?"recorder_issue_reports":"battery_issue_reports",inventoryTable:recorder?"recorders":"batteries",field:recorder?"recorder_number":"battery_number",reports:recorder?recorderReports:batteryReports,inventory:recorder?recorderInventory:batteryInventory,label:recorder?"紀錄器":"電池"};
 }
 function t995SelectedDeviceCases(type){return [...batteryReportList.querySelectorAll('input[data-device-case-type="'+type+'"]:checked')].map(input=>input.value);}
-function t995AttachDeviceCaseSelection(type){
+function t995AttachDeviceCaseSelection(type,checkedIds){
   const c=t995DeviceIssueConfig(type),key=batteryKey,icon=type==="recorder"?"📹":"🔋";
   batteryReportList.querySelectorAll(".survey-card").forEach(card=>{
     const number=card.querySelector(".survey-name")?.textContent.replace(icon,"").trim();
@@ -5958,7 +5960,7 @@ function t995AttachDeviceCaseSelection(type){
     const pending=(c.reports||[]).filter(row=>key(row[c.field])===key(number)&&row.resolution_status!=="resolved");
     if(!pending.length)return;
     let box=card.querySelector('.device-pending-cases');if(!box){box=document.createElement('section');box.className='device-pending-cases';card.appendChild(box);}
-    box.innerHTML='<strong>待處理案件（逐筆勾選）</strong>'+pending.map(row=>'<label style="display:block;padding:8px 0"><input type="checkbox" data-device-case-type="'+type+'" value="'+esc(row.id)+'"'+(t995DeviceResolutionBusy?' disabled':'')+'> '+esc(fmt(row.reported_at))+'｜'+esc(row.issue_description||'未填說明')+'</label>').join('');
+    box.innerHTML='<strong>待處理案件（逐筆勾選）</strong>'+pending.map(row=>'<label style="display:block;padding:8px 0"><input type="checkbox" data-device-case-type="'+type+'" value="'+esc(row.id)+'"'+(checkedIds.has(String(row.id))?' checked':'')+(t995DeviceResolutionBusy?' disabled':'')+'> '+esc(fmt(row.reported_at))+'｜'+esc(row.issue_description||'未填說明')+'</label>').join('');
   });
   const existing=batteryReportList.querySelector('.device-case-bulk-actions');if(existing)existing.remove();
   if(!(c.reports||[]).some(row=>row.resolution_status!=="resolved"))return;
@@ -6031,13 +6033,19 @@ function t995AttachDeviceDeleteButtons(type){
   });
 }
 const t995OriginalRenderBatteryReportsV3=renderBatteryReports;
-renderBatteryReports=function(){t995OriginalRenderBatteryReportsV3();t995AttachDeviceDeleteButtons("battery");t995AttachDeviceCaseSelection("battery");};
+renderBatteryReports=function(){
+  const checkedIds=new Set(t995SelectedDeviceCases("battery"));
+  t995OriginalRenderBatteryReportsV3();t995AttachDeviceDeleteButtons("battery");t995AttachDeviceCaseSelection("battery",checkedIds);
+};
 const t995OriginalRenderRecorderReportsV3=renderRecorderReports;
-renderRecorderReports=function(){t995OriginalRenderRecorderReportsV3();t995AttachDeviceDeleteButtons("recorder");t995AttachDeviceCaseSelection("recorder");};
+renderRecorderReports=function(){
+  const checkedIds=new Set(t995SelectedDeviceCases("recorder"));
+  t995OriginalRenderRecorderReportsV3();t995AttachDeviceDeleteButtons("recorder");t995AttachDeviceCaseSelection("recorder",checkedIds);
+};
 const t995OriginalLoadBatteryDataV3=loadBatteryData;
-loadBatteryData=async function(){await t995OriginalLoadBatteryDataV3();await t995LoadDeviceClaims();renderBatteryReports();};
+loadBatteryData=async function(){await t995OriginalLoadBatteryDataV3();await t995LoadDeviceClaims();if(deviceAdminType.value==="battery")renderBatteryReports();};
 const t995OriginalLoadRecorderDataV3=loadRecorderData;
-loadRecorderData=async function(){await t995OriginalLoadRecorderDataV3();await t995LoadDeviceClaims();renderRecorderReports();};
+loadRecorderData=async function(){await t995OriginalLoadRecorderDataV3();await t995LoadDeviceClaims();if(deviceAdminType.value==="recorder")renderRecorderReports();};
 async function t995DeleteDeviceCard(type,id,number){
   const label=type==="recorder"?"行車紀錄器":"電池";
   if(!confirm(`刪除${label}「${number}」及異常／維修紀錄？不可復原。車輛領用紀錄保留。`))return;
