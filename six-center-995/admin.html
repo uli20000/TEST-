@@ -1637,7 +1637,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
 </section>
 
 <section id="rosterModePage" class="admin-mode-page">
-  <div class="mode-back-row protected-mode-actions"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="rosterPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
+  <div class="mode-back-row protected-mode-actions"><button id="rosterBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
     <div class="section-title">在職員工</div>
     <div class="employee-add-panel">
@@ -1677,7 +1677,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
   <div id="surveyFailedList" style="display:none"></div>
 </section>
 <section id="shiftModePage" class="admin-mode-page">
-  <div class="mode-back-row protected-mode-actions"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button><button id="shiftPasswordChangeBtn" class="action-btn" type="button">變更共用密碼</button></div>
+  <div class="mode-back-row protected-mode-actions"><button id="shiftBackBtn" class="action-btn" type="button">← 返回後台入口</button></div>
   <section class="section">
     <div class="section-title">指休管理</div>
     <div class="shift-heading-tools">
@@ -5301,7 +5301,7 @@ async function t995SetShiftWeekOpen(input){
     await t995LoadShiftAdmin();
   }catch(e){
     input.checked=previous;t995SyncShiftToggleVisual(input);
-    alert(`週次開放狀態更新失敗：${e.message||"請確認已部署995 V4逐週開放SQL，且管理區密碼已解鎖。"}`);
+    alert(`週次開放狀態更新失敗：${e.message||"請確認已部署995 V4逐週開放SQL，且以管理員登入。"}`);
   }finally{if(input.isConnected)input.disabled=false;}
 }
 function t995RenderShiftAdmin(){
@@ -5859,7 +5859,11 @@ function t995OpenPasswordDialog(mode,targetMode){
 function t995ClosePasswordDialog(){
   t995ProtectedModal.style.display="none";t995ClearPasswordDialog();t995ProtectedTargetMode=null;
 }
+// 2026-11-10 使用者決定：在職名單與指休不再使用共用密碼，管理員登入即可進入（資料庫權限仍限管理員）。
 async function t995EnterProtectedModule(mode){
+  showAdminMode(mode);
+}
+async function t995EnterProtectedModuleWithPassword(mode){
   try{
     const status=await db.rpc("employee_shift_gate_status");if(status.error)throw status.error;
     const state=status.data||{};
@@ -5899,8 +5903,6 @@ rosterModeBtn.onclick=()=>t995EnterProtectedModule("roster");
 t995ShiftModeBtn.onclick=()=>t995EnterProtectedModule("shift");
 rosterBackBtn.onclick=()=>showAdminMode("home");
 t995ShiftBackBtn.onclick=()=>showAdminMode("home");
-document.getElementById("rosterPasswordChangeBtn").onclick=()=>t995OpenPasswordDialog("change","roster");
-document.getElementById("shiftPasswordChangeBtn").onclick=()=>t995OpenPasswordDialog("change","shift");
 
 if(t995ShiftTestModeToggle){
   t995ShiftTestModeToggle.addEventListener("change",async()=>{

@@ -2576,7 +2576,9 @@ async function saveInspection() {
       );
 
       alert(
-        "巡檢紀錄儲存失敗，請確認資料庫欄位是否完整。"
+        result.error.code === "22023" && result.error.message
+          ? result.error.message
+          : "巡檢紀錄儲存失敗，請確認資料庫欄位是否完整。"
       );
 
       return;
@@ -3359,7 +3361,9 @@ async function saveClaim() {
       );
 
       alert(
-        "領車紀錄儲存失敗，請稍後再試。"
+        result.error.code === "22023" && result.error.message
+          ? result.error.message
+          : "領車紀錄儲存失敗，請稍後再試。"
       );
 
       return;
