@@ -10,8 +10,8 @@ window.CENTER_CONFIG = Object.freeze({
     "atomicRider": false,
     "atomicDevices": false,
     "atomicScores": false,
-    "adminReturnReplies": false,
-    "monthReplyGatewayReady": false,
+    "adminReturnReplies": true,
+    "monthReplyGatewayReady": true,
     "archiveDedup": false
   },
   "schema": "shared_test_995"
