@@ -123,7 +123,7 @@
     const suffix=period()==='day'?'餐廳':'店日';
     E('opsLineCounts').innerHTML=tiles([['已登記'+suffix,registered],['待檢查'+suffix,unregistered],['劃線缺項',missingLine],['簽名缺項',missingSignature]]);
   }
-  function renderAcWaitSummary(records,r,v){
+  function acWaitData(records,r,v){
     const acByStore=new Map();for(const ac of M.acAssignmentsForDate(r.start))for(const code of ac.stores)if(!M.NON_DELIVERY_STORES.has(code))acByStore.set(code,ac.name);
     const counts=new Map(M.acAssignmentsForDate(r.start).map(ac=>[ac.name,0]));
     for(const row of records){if(row.record_date<r.start||row.record_date>r.end||M.NON_DELIVERY_STORES.has(String(row.store_code)))continue;const name=acByStore.get(String(row.store_code));if(name)counts.set(name,(counts.get(name)||0)+1);}
@@ -131,20 +131,28 @@
     const pending=new Map(),orders=new Map();
     for(const row of records){if(row.record_date<r.start||row.record_date>r.end||row.status==='completed')continue;const name=acByStore.get(String(row.store_code));if(name)pending.set(name,(pending.get(name)||0)+1);}
     if(v)for(const day of v.days.values())for(const order of day.orders){const name=acByStore.get(String(order.store_code));if(name)orders.set(name,(orders.get(name)||0)+1);}
-    E('opsDelayAcSummary').innerHTML='<table class="ops-summary-ac-table"><thead><tr><th>AC</th><th>登記</th><th>待回覆</th><th>等餐／TC</th></tr></thead><tbody>'+ranked.map(([name,count])=>'<tr><td>'+escape(name)+'</td><td>'+count+' 筆</td><td>'+(pending.get(name)||0)+'</td><td>'+pct(orders.get(name)?count/orders.get(name):null)+'</td></tr>').join('')+'</tbody></table>';
+    return ranked.map(([name,count])=>({name,count,pending:pending.get(name)||0,rate:orders.get(name)?count/orders.get(name):null}));
   }
-  function renderAcLineSummary(records,r){
+  function renderAcWaitSummary(records,r,v){
+    E('opsDelayAcSummary').innerHTML='<table class="ops-summary-ac-table"><thead><tr><th>AC</th><th>登記</th><th>待回覆</th><th>等餐／TC</th></tr></thead><tbody>'+acWaitData(records,r,v).map(x=>'<tr><td>'+escape(x.name)+'</td><td>'+x.count+' 筆</td><td>'+x.pending+'</td><td>'+pct(x.rate)+'</td></tr>').join('')+'</tbody></table>';
+  }
+  function acLineData(records,r){
     const acByStore=new Map();for(const ac of M.acAssignmentsForDate(r.start))for(const code of ac.stores)if(!M.NON_DELIVERY_STORES.has(code))acByStore.set(code,ac.name);
     const acStats=new Map(M.acAssignmentsForDate(r.start).map(ac=>[ac.name,{count:0,done:0}])),storeStats=new Map();
-    for(const row of records){if(row.record_date<r.start||row.record_date>r.end||M.NON_DELIVERY_STORES.has(String(row.store_code)))continue;const code=String(row.store_code),name=acByStore.get(code);if(!name)continue;const done=Number(!!row.line_completed)+Number(!!row.signature_completed),a=acStats.get(name);a.count++;a.done+=done;const s=storeStats.get(code)||{store_code:code,restaurant_name:row.restaurant_name,count:0,done:0};s.count++;s.done+=done;storeStats.set(code,s);}
+    for(const row of records){if(row.record_date<r.start||row.record_date>r.end||M.NON_DELIVERY_STORES.has(String(row.store_code)))continue;const code=String(row.store_code),name=acByStore.get(code);if(!name)continue;const done=Number(!!row.line_completed)+Number(!!row.signature_completed),a=acStats.get(name);a.count++;a.done+=done;const s=storeStats.get(code)||{store_code:code,restaurant_name:row.restaurant_name,ac:name,count:0,done:0};s.count++;s.done+=done;storeStats.set(code,s);}
     const acRates=[...acStats].map(([name,x])=>({name,count:x.count,rate:x.count?x.done/(x.count*2):null})).sort((a,b)=>a.rate===null?(b.rate===null?a.name.localeCompare(b.name):1):b.rate===null?-1:a.rate-b.rate||a.name.localeCompare(b.name));
     const expected=new Map();
     const end=typeof opsToday==='function'&&opsToday()<r.end?opsToday():r.end;
     for(const date of S.dates(r.start,end))for(const ac of M.acAssignmentsForDate(date)){
       expected.set(ac.name,(expected.get(ac.name)||0)+ac.stores.filter(code=>!M.NON_DELIVERY_STORES.has(code)).length);
     }
-    E('opsLineAcSummary').innerHTML='<table class="ops-summary-ac-table"><thead><tr><th>AC</th><th>達成率</th><th>已登記</th><th>待檢查</th></tr></thead><tbody>'+acRates.map(x=>'<tr><td>'+escape(x.name)+'</td><td>'+(x.rate===null?'—':(x.rate*100).toFixed(1)+'%')+'</td><td>'+x.count+'</td><td>'+Math.max(0,(expected.get(x.name)||0)-x.count)+'</td></tr>').join('')+'</tbody></table>';
+    for(const x of acRates)x.missing=Math.max(0,(expected.get(x.name)||0)-x.count);
     const worstStores=[...storeStats.values()].map(x=>({...x,rate:x.done/(x.count*2)})).filter(x=>x.rate<1).sort((a,b)=>a.rate-b.rate||a.store_code.localeCompare(b.store_code)).slice(0,3);
+    return {acRates,worstStores};
+  }
+  function renderAcLineSummary(records,r){
+    const {acRates,worstStores}=acLineData(records,r);
+    E('opsLineAcSummary').innerHTML='<table class="ops-summary-ac-table"><thead><tr><th>AC</th><th>達成率</th><th>已登記</th><th>待檢查</th></tr></thead><tbody>'+acRates.map(x=>'<tr><td>'+escape(x.name)+'</td><td>'+(x.rate===null?'—':(x.rate*100).toFixed(1)+'%')+'</td><td>'+x.count+'</td><td>'+x.missing+'</td></tr>').join('')+'</tbody></table>';
     E('opsLineRank').innerHTML=renderPriorityRestaurants(worstStores,x=>(x.rate*100).toFixed(1)+'%',x=>'已登記 '+x.count+' 次','本期沒有待改善紀錄');
   }
   function renderPriorityRestaurants(rows,metric,details,empty){
@@ -242,6 +250,24 @@
   for(const id of ['opsDelayStore','opsLineStore'])E(id).oninput=async()=>{if(id==='opsLineStore'){opsSetToggle('opsLineMark',false);opsSetToggle('opsSignMark',false);}try{const store=await findRestaurant(id);if(store&&id==='opsLineStore')await fillLineState(store.store_code);}catch(e){E(id+'Name').textContent=e.message;}};
   E('opsExportSelected').onclick=()=>exportCombined(period());
   window.opsLoadDailyAnalytics=()=>{state.context='scores';return refresh(true);};
-  window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,open:(context,force=true)=>{state.context=context;return refresh(force);}};
+  // 總覽頁用：與匯總資料同一套計算，只回傳資料不渲染（UI 改版第 2 步）
+  async function overview(date,p='day'){
+    if(!state.catalog.size)await loadDirectory();
+    const r=S.range(date,p),[data,records]=await Promise.all([loadRange(r),loadRecords(r)]);
+    await loadWeatherRange(r).catch(()=>{});
+    const v=M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});
+    const acStoreCodes=new Set(M.acAssignmentsForDate(r.start).flatMap(ac=>ac.stores).filter(code=>!M.NON_DELIVERY_STORES.has(code)));
+    const acOf=new Map();for(const ac of M.acAssignmentsForDate(r.start))for(const code of ac.stores)acOf.set(code,ac.name);
+    const delayRank=S.delayRanking(records.delay.filter(x=>acStoreCodes.has(String(x.store_code))),r.start,r.end);
+    const types=new Set([...v.days.values()].flatMap(day=>[...day.types]));
+    const line=acLineData(records.line,r);
+    return {range:r,summary:v.summary,hasScores:[...v.days.values()].some(day=>day.types.has('ByOrder')&&!day.scoreExcluded),
+      types:{ByOrder:types.has('ByOrder'),ByDate:types.has('ByDate')},
+      acWait:acWaitData(records.delay,r,v),delayTop:delayRank.top.map(x=>({...x,ac:acOf.get(String(x.store_code))||''})),delayTiedOthers:delayRank.tiedOthers,
+      acLine:line.acRates,lineWorst:line.worstStores,
+      lineRegistered:records.line.filter(x=>acStoreCodes.has(String(x.store_code))).length,lineExpected:acStoreCodes.size,
+      weather:M.BUSINESS.weatherCities.map(city=>{const row=weatherRow(date,city);return {city,text:weatherText(row),value:weatherValue(row)};})};
+  }
+  window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,overview,open:(context,force=true)=>{state.context=context;return refresh(force);}};
 })();
 
