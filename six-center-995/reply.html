@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant"><head><script src="center-config.js"></script><script src="center-runtime.js"></script><link rel="stylesheet" href="shared-shell.css"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f4f0e8"><meta name="referrer" content="no-referrer"><title>KFC｜等餐原因回覆</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--red:#c8102e;--ink:#242424;--muted:#77736d;--paper:#fff;--bg:#f4f0e8;--line:#ddd8ce;--green:#356b4b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",Arial,sans-serif}.page{max-width:760px;margin:auto;padding:20px 14px 50px}.header,.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:14px}.brand{font-size:12px;letter-spacing:3px;color:var(--muted)}h1{font-size:25px;margin:8px 0}.sub{color:var(--muted);line-height:1.6}.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}.toolbar label{font-weight:700;white-space:nowrap}.toolbar select{flex:1;min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.order{padding:16px 0;border-bottom:1px solid var(--line)}.order:last-child{border:0}.order-head{display:flex;gap:10px;justify-content:space-between;font-weight:800}.order-date{color:var(--muted);font-size:14px}.order-no{font-size:17px}.order label{display:block;margin-top:10px;font-weight:700}.order textarea{width:100%;min-height:84px;margin-top:6px;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;resize:vertical}.order-submit{width:100%;min-height:46px;margin-top:10px;border:0;border-radius:10px;background:var(--red);color:#fff;font:inherit;font-weight:800;cursor:pointer}.order-submit:disabled{opacity:.55}.msg{padding:14px;text-align:center;color:var(--muted);line-height:1.6}.success{color:var(--green);font-weight:800}@media(max-width:520px){.header,.card{padding:17px}.order-head{align-items:flex-start}.order-no{font-size:15px;text-align:right}}
+</style></head><body><main class="page">
+<header class="header"><div class="brand">KFC DELIVERY CENTER</div><h1>等餐原因回覆</h1><div id="restaurant" class="sub">載入餐廳資料中…</div></header>
+<section class="card"><div id="message" class="msg">載入待回覆訂單中…</div><div id="replyForm" hidden>
+<div class="toolbar"><label for="restaurantFilter">篩選餐廳</label><select id="restaurantFilter"><option value="">全部餐廳</option></select></div>
+<div id="orders"></div>
+</div></section>
+</main><script src="reply-drafts.js"></script><script src="reply-gateway.js"></script><script>
+const SUPABASE_URL=window.CENTER_CONFIG.supabaseUrl;
+const SUPABASE_KEY=window.CENTER_CONFIG.publishableKey;
+const db=window.CenterRuntime.createClient(SUPABASE_URL,SUPABASE_KEY);
+const token=new URLSearchParams(location.search).get("token")||"";
+const monthLink=new URLSearchParams(location.search).get("kind")==="month";
+const gateway=ReplyGateway.create(db,{enabled:monthLink&&window.CENTER_CONFIG.features?.monthReplyGatewayReady===true,boundSchema:window.CENTER_CONFIG.schema,token});
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const drafts=ReplyDrafts.createDrafts();
+window.addEventListener("beforeunload", event=>{if(drafts.dirty){event.preventDefault();event.returnValue="";}});
+let current=[];
+const submitting=new Set();
+let currentMonth="";
+function renderOrders(){
+ const selected=$("restaurantFilter").value;
+ const restaurants=[...new Set(current.map(o=>String(o.restaurant_name||"未命名餐廳")))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+ $("restaurantFilter").innerHTML='<option value="">全部餐廳</option>'+restaurants.map(name=>'<option value="'+esc(name)+'">'+esc(name)+'</option>').join("");
+ if(restaurants.includes(selected))$("restaurantFilter").value=selected;
+ const filtered=current.filter(o=>!$("restaurantFilter").value||String(o.restaurant_name||"未命名餐廳")===$("restaurantFilter").value);
+ $("orders").innerHTML=filtered.map(o=>'<article class="order" data-id="'+esc(o.id)+'"><div class="order-head"><span class="order-date">'+esc(o.record_date)+'</span><span class="order-no">'+esc(o.restaurant_name)+'｜訂單 '+esc(o.order_number)+'</span></div>'+(o.return_reason?'<p>退回原因：'+esc(o.return_reason)+'</p><p>前次回覆：'+esc(o.prior_reason)+'</p>':'')+'<label>等餐原因<textarea class="reason" '+(submitting.has(String(o.id))?'disabled':'')+' maxlength="500" placeholder="請說明這筆訂單等餐原因">'+esc(drafts.get(o.id))+'</textarea></label><button class="order-submit" '+(submitting.has(String(o.id))?'disabled':'')+' type="button">送出這筆原因</button></article>').join("");
+ if(!filtered.length)$("orders").innerHTML='<div class="msg">此餐廳目前沒有待回覆訂單。</div>';
+}
+async function load(){
+ $("replyForm").hidden=true;$("orders").replaceChildren();
+ if(!token){$("message").textContent="連結缺少識別碼，請向值班人員索取共用回覆連結。";return;}
+ try{const d=await gateway.list();current=d.orders||[];currentMonth=d.month||"";$("restaurant").textContent=(monthLink?"固定回覆月份：":"待回覆月份（舊制當月）：")+(currentMonth||"—")+"｜共 "+current.length+" 筆訂單";
+ if(!current.length){$("message").innerHTML='<span class="success">目前沒有待回覆訂單。</span>';return;}
+ $("message").textContent="請逐筆填寫原因，並按該筆訂單下方的送出按鈕；完成的訂單會從清單移除。";
+ renderOrders();$("replyForm").hidden=false;return true;
+ }catch(e){$("message").textContent="無法載入回覆資料："+(e.message||"連結可能已失效，請聯絡值班人員");}
+}
+$("restaurantFilter").onchange=renderOrders;
+$("orders").addEventListener("input", event=>{const row=event.target.closest(".order");if(row&&event.target.matches(".reason"))drafts.set(row.dataset.id,event.target.value);});
+$("orders").onclick=async event=>{
+ const button=event.target.closest(".order-submit");if(!button)return;
+ const row=button.closest(".order"),reason=row.querySelector(".reason").value.trim();
+ if(!reason){$("message").textContent="請先填寫這筆訂單的等餐原因。";row.querySelector(".reason").focus();return;}
+ const id=row.dataset.id,order=current.find(o=>String(o.id)===id),orderNumber=row.querySelector(".order-no").textContent;submitting.add(id);button.disabled=true;row.querySelector(".reason").disabled=true;button.textContent="送出中…";
+ try{await gateway.submit(order,reason);drafts.remove(id);const refreshed=await load();if(refreshed&&current.length)$("message").innerHTML='<span class="success">訂單 '+esc(orderNumber)+' 已送出；其他待回覆訂單仍保留。</span>';}
+ catch(e){$("message").textContent="未確認送出成功："+(e.message||"請重新整理後再試");if(button.isConnected){button.disabled=false;row.querySelector(".reason").disabled=false;button.textContent="送出這筆原因";}}
+ finally{submitting.delete(id);renderOrders();}
+};
+load();
+</script></body></html>
+

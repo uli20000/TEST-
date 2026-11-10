@@ -1,0 +1,4829 @@
+<!DOCTYPE html>
+<!-- T995 V8: multi-week opening + Taipei-week rollover refresh; confirmed UI unchanged. -->
+<html lang="zh-Hant">
+<head><script src="center-config.js"></script><script src="center-runtime.js"></script><link rel="stylesheet" href="shared-shell.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f0e8">
+
+  <title>KFC｜桃園-T995 車輛管理</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --red: #c8102e;
+      --black: #242424;
+      --gray: #77736d;
+      --linen: #f4f0e8;
+      --paper: #ffffff;
+      --line: #ddd8ce;
+      --green: #356b4b;
+      --green-bg: #eef5f0;
+      --danger: #b42318;
+      --danger-bg: #fff0ee;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--linen);
+      color: var(--black);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Noto Sans TC",
+        "PingFang TC",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+      text-align: center;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding-bottom: 50px;
+    }
+
+    .header {
+      background: var(--paper);
+      padding: 40px 20px 34px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: 4px;
+      color: var(--gray);
+      margin-bottom: 10px;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .kfc {
+      color: var(--red);
+      font-size: 32px;
+      font-weight: 900;
+    }
+
+    .date {
+      margin-top: 10px;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .intro {
+      padding: 32px 20px 16px;
+    }
+
+    .intro h2 {
+      margin: 0 0 10px;
+      font-size: 27px;
+    }
+
+    .intro p {
+      display: none;
+      margin: 0;
+      color: var(--gray);
+      font-size: 16px;
+    }
+
+    .intro p.show {
+      display: block;
+    }
+
+    .mode-menu {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 10px 16px 0;
+    }
+
+    .mode-btn {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 22px;
+      width: 100%;
+      min-height: 92px;
+      padding: 18px 26px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 3px 12px rgba(0,0,0,.035);
+    }
+
+    .mode-btn .icon {
+      display: block;
+      flex: 0 0 48px;
+      font-size: 38px;
+      line-height: 1;
+      margin: 0;
+      text-align: center;
+    }
+
+    .mode-btn .main {
+      display: block;
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .mode-btn .sub {
+      display: block;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .mode-page {
+      display: none;
+    }
+
+    .card {
+      margin: 14px 16px;
+      padding: 26px 20px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .035);
+    }
+
+    .section-number {
+      color: var(--red);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .label {
+      display: block;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 13px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 2px solid #d8d3ca;
+      border-radius: 15px;
+      background: #fff;
+      color: var(--black);
+      outline: none;
+      transition: .2s;
+    }
+
+    input,
+    select {
+      height: 62px;
+      padding: 0 15px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    textarea {
+      min-height: 90px;
+      padding: 14px;
+      font-size: 17px;
+      text-align: left;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(200,16,46,.08);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #aaa;
+    }
+
+    .vehicle-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .vehicle-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .read-btn {
+      min-width: 112px;
+      border: 2px solid var(--black);
+      border-radius: 15px;
+      background: #fff;
+      color: #1683df;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .read-btn:disabled {
+      opacity: .5;
+    }
+
+    .vehicle-success {
+      display: none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .vehicle-success.show {
+      display: block;
+    }
+
+    .previous {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: #f8f6f1;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+    }
+
+    .previous.show {
+      display: block;
+    }
+
+    .previous-title {
+      color: var(--gray);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .previous-main {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .previous-detail {
+      margin-top: 6px;
+      color: var(--gray);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .claim-vehicle-info {
+      margin-top: 12px;
+      color: var(--green);
+      font-weight: 700;
+      line-height: 1.7;
+    }
+
+    .last-claim {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #f8f6f1;
+      border: 1px solid var(--line);
+      line-height: 1.7;
+    }
+
+    .last-claim.show {
+      display: block;
+    }
+
+    .claim-options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .claim-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .recorder-options {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .recorder-number-wrap {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .recorder-number-wrap.show {
+      display: block;
+    }
+
+
+    .claim-option input {
+      display: none;
+    }
+
+    .claim-option label {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #ddd8ce;
+      border-radius: 15px;
+      background: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .claim-option input:checked + label {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--danger-bg);
+    }
+
+    .checks {
+      text-align: center;
+    }
+
+    .check-item {
+      padding: 20px 0;
+      border-bottom: 1px solid #ebe7df;
+    }
+
+    .check-item:last-child {
+      border-bottom: 0;
+    }
+
+    .check-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 13px;
+    }
+
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .option {
+      width: 110px;
+      height: 48px;
+      border: 2px solid #ddd8ce;
+      border-radius: 25px;
+      background: #fff;
+      color: var(--gray);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .option.normal.selected {
+      border-color: #a7c4b0;
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .option.abnormal.selected {
+      border-color: #e4aaa4;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .abnormal-box {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .abnormal-box.show {
+      display: block;
+    }
+
+    .required {
+      margin-top: 6px;
+      color: var(--danger);
+      font-size: 13px;
+    }
+
+    .status-card {
+      display: none;
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 800;
+      line-height: 1.6;
+    }
+
+    .status-card.show {
+      display: block;
+    }
+
+    .status-abnormal {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .save-btn {
+      width: calc(100% - 32px);
+      margin: 20px 16px 0;
+      height: 64px;
+      border: 0;
+      border-radius: 18px;
+      background: var(--red);
+      color: white;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 7px 18px rgba(200,16,46,.18);
+    }
+
+    .save-btn:disabled {
+      opacity: .5;
+    }
+
+    .back-home-btn {
+      width: calc(100% - 32px);
+      margin: 12px 16px 0;
+      height: 56px;
+      border: 2px solid #d8d3ca;
+      border-radius: 18px;
+      background: #fff;
+      color: var(--black);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .back-home-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .hint {
+      padding: 18px 28px 0;
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .success-panel {
+      display: none;
+      margin: 20px 16px;
+      padding: 30px 20px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.035);
+    }
+
+    .success-panel.show {
+      display: block;
+    }
+
+    .success-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: var(--green-bg);
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 800;
+    }
+
+    .success-title {
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    .success-data {
+      padding: 18px;
+      background: #f8f6f1;
+      border-radius: 15px;
+      line-height: 2;
+      text-align: left;
+    }
+
+    .success-greeting {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.7;
+    }
+
+    .success-greeting .small {
+      display: block;
+      margin-top: 6px;
+      color: var(--gray);
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    @media (max-width: 500px) {
+      .title {
+        font-size: 36px;
+      }
+
+      .kfc {
+        font-size: 29px;
+      }
+
+      .mode-menu {
+        grid-template-columns: 1fr;
+      }
+
+      .vehicle-row {
+        flex-direction: column;
+      }
+
+      .read-btn {
+        height: 56px;
+      }
+    }
+
+
+    .mode-menu {
+      grid-template-columns: 1fr;
+    }
+
+    .mode-btn {
+      min-height: 92px;
+      padding: 18px 26px;
+    }
+
+    .battery-page .card,
+    .survey-page .card {
+      text-align: center;
+    }
+
+    .survey-intro,
+    .survey-rule {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f8f6f1;
+      color: var(--gray);
+      line-height: 1.8;
+      text-align: left;
+    }
+
+    .survey-rule strong {
+      color: var(--black);
+    }
+
+    .survey-question {
+      padding: 18px 0;
+      border-bottom: 1px solid #ebe7df;
+      text-align: left;
+    }
+
+    .survey-question:last-child {
+      border-bottom: 0;
+    }
+
+    .survey-question-title {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .scale-options {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+    }
+
+    .scale-option {
+      height: 44px;
+      border: 2px solid #ddd8ce;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--gray);
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .scale-option.selected {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--danger-bg);
+    }
+
+    .survey-score {
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      line-height: 1.7;
+    }
+
+    .survey-score.show {
+      display: block;
+    }
+
+    .survey-score.pass {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .survey-score.fail {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .survey-radio-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .survey-radio-group input {
+      display: none;
+    }
+
+    .survey-radio-group label {
+      display: block;
+      padding: 15px;
+      border: 2px solid #ddd8ce;
+      border-radius: 15px;
+      background: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .survey-radio-group input:checked + label {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--danger-bg);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 500px) {
+      .mode-menu {
+        grid-template-columns: 1fr;
+      }
+    }
+
+  
+
+    /* 入口改為可持續新增的長條型按鈕 */
+    .mode-menu {
+      grid-template-columns: 1fr;
+    }
+
+    .mode-btn {
+      min-height: 92px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .mode-btn .icon {
+      display: inline;
+      margin: 0;
+      font-size: 34px;
+    }
+
+    .mode-btn .main {
+      margin: 0;
+      font-size: 23px;
+      text-align: center;
+    }
+
+  
+
+/* 三行標題：城市-Rider Center／KFC／日期 */
+.header-row,
+.title-row{
+  flex-direction:column;
+  gap:4px;
+}
+.title{font-size:30px;line-height:1.2}
+.kfc{font-size:26px}
+.date{margin-top:4px;font-size:14px}
+@media(max-width:700px){.title{font-size:26px}}
+
+
+/* 防禦駕駛月考 */
+.defensive-page .video-panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;text-align:left}
+.defensive-page .video-link{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;border-radius:13px;background:var(--red);color:#fff;font-weight:800;text-decoration:none;text-align:center}
+.defensive-page .optional-link{display:block;margin-top:10px;color:var(--gray);text-align:center;font-size:14px}
+.defensive-page .question-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;text-align:left;margin-top:14px}
+.defensive-page .question-title{font-weight:800;line-height:1.6;margin-bottom:12px}
+.defensive-page .answer-option{display:block;padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:8px;cursor:pointer}
+.defensive-page .answer-option input{margin-right:8px}
+.defensive-page .training-message{margin-top:12px;padding:12px;border-radius:12px;background:var(--linen);color:var(--gray);line-height:1.6}
+.defensive-page .training-message.success{background:var(--green-bg);color:var(--green)}
+
+/* 防禦駕駛新版視覺與姓名搜尋 */
+.defensive-page{padding-bottom:28px}
+.training-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.training-step-chip{padding:10px 6px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--gray);line-height:1.35}
+.training-step-chip strong{display:block;color:var(--red);font-size:16px;margin-bottom:3px}
+.training-step-chip.active{border-color:#e5aab2;background:#fff7f8;color:var(--black)}
+.training-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;text-align:left;box-shadow:0 8px 24px rgba(55,45,35,.06);margin-bottom:14px}
+.training-card .section-number{margin-bottom:8px}
+.training-card-title{font-size:21px;font-weight:900;line-height:1.45;margin-bottom:8px}
+.training-card-subtitle{color:var(--gray);font-size:14px;line-height:1.6;margin-bottom:14px}
+.name-search-wrap{position:relative}
+.name-suggestions{display:none;position:absolute;z-index:20;left:0;right:0;top:100%;margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px rgba(40,30,20,.14);overflow:hidden;text-align:left}
+.name-suggestions.show{display:block}
+.name-suggestion{display:block;width:100%;padding:13px 15px;background:#fff;border:0;border-bottom:1px solid #eee8df;text-align:left;font-size:16px;cursor:pointer}
+.name-suggestion:last-child{border-bottom:0}
+.name-suggestion:hover{background:var(--linen)}
+.training-video-box{padding:16px;border-radius:16px;background:linear-gradient(135deg,#fff5f6,#f7f2eb);border:1px solid #f0d4d7}
+.training-video-box .video-link{background:var(--red);box-shadow:0 6px 14px rgba(200,16,46,.18)}
+.training-pdf-box{margin-top:12px;padding:13px;border-radius:14px;background:#faf9f6;border:1px solid var(--line)}
+.training-pdf-box .optional-link{display:flex;align-items:center;justify-content:center;margin-top:0;min-height:42px;padding:8px;border-radius:10px;background:#fff;color:var(--black);font-weight:800;text-decoration:none}
+.training-pdf-box.mandatory-pdf{background:#fff7e6;border:2px solid #d99a16;box-shadow:0 5px 14px rgba(170,110,0,.12)}
+.training-pdf-box.mandatory-pdf .training-card-subtitle{color:#9a5c00;font-weight:900}
+.training-pdf-box .mandatory-pdf-link{min-height:52px;background:#f59e0b;color:#fff;border:2px solid #c87800;font-size:16px;box-shadow:0 4px 10px rgba(190,115,0,.2)}
+.training-pdf-box .mandatory-pdf-link.opened{background:var(--green);border-color:#28563c}
+.training-question-header{font-size:20px;font-weight:900;margin:0 0 12px}
+.training-question-note{color:var(--gray);font-size:14px;line-height:1.6;margin-bottom:12px}
+@media(max-width:700px){.training-steps{grid-template-columns:repeat(2,1fr)}}
+
+/* 所有姓名與防禦駕駛文字統一置中 */
+#claimantName,#reporterName,#surveyRespondentName,#defensiveName{
+  text-align:center;
+}
+.name-search-wrap input{
+  text-align:center;
+}
+.name-search-wrap .name-suggestions{
+  text-align:left;
+}
+.defensive-page .training-card,
+.defensive-page .question-card,
+.defensive-page .training-card-title,
+.defensive-page .training-card-subtitle,
+.defensive-page .training-message,
+.defensive-page .training-question-header,
+.defensive-page .training-question-note,
+.defensive-page .training-video-box,
+.defensive-page .training-pdf-box,
+.defensive-page .question-title,
+.defensive-page .answer-option{
+  text-align:center;
+}
+
+/* 前台返回按鈕統一置頂、與後台一致 */
+.front-top-back{padding:14px 16px 0;text-align:center}
+.front-top-back .back-home-btn{width:100%;margin:0}
+.intro-back{padding:0 16px 14px}
+.intro-back .back-home-btn{display:block}
+/* 返回首頁上方縮小留白 */
+.intro{padding:10px 20px 16px}
+/* 防禦駕駛文字置中 */
+.defensive-page,.defensive-page .training-card,.defensive-page .training-card-title,.defensive-page .training-card-subtitle,.defensive-page .training-message,.defensive-page .training-question-header,.defensive-page .training-question-note,.defensive-page .question-card,.defensive-page .question-title,.defensive-page .answer-option{ text-align:center; }
+.defensive-page .label{display:block;text-align:center}
+.answer-option{
+  width:100%;
+  font:inherit;
+  color:var(--black);
+  background:#fff;
+  text-align:center;
+  cursor:pointer;
+}
+.answer-option.selected{
+  border-color:var(--red);
+  background:#fff1f3;
+  color:var(--red);
+  font-weight:800;
+}
+
+
+/* 設備管理：先顯示小卡，再進入異常原因 */
+.device-card-panel{border-color:#d5e5d9;background:#fbfffc;text-align:left}
+.device-mini-card{display:grid;gap:10px}
+.device-mini-top{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900}
+.device-mini-icon{font-size:30px}
+.device-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.device-mini-item{padding:10px;border-radius:12px;background:#f6f4ef;color:var(--gray);font-size:13px;line-height:1.5}
+.device-mini-item strong{display:block;color:var(--black);font-size:16px}
+.device-register-note{padding:12px;border-radius:12px;background:#fff8df;color:#765800;line-height:1.6;font-size:14px;margin-bottom:14px}
+@media(max-width:500px){.device-mini-grid{grid-template-columns:1fr}}
+
+.device-action-btn{width:100%;min-height:54px;margin-top:12px;border:2px solid var(--black);border-radius:15px;background:#fff;color:#1683df;font-size:18px;font-weight:800;cursor:pointer}
+.device-action-btn:disabled{opacity:.5}
+
+.device-type-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.device-type-btn{min-height:58px;border:2px solid #d8d3ca;border-radius:15px;background:#fff;color:var(--black);font-size:18px;font-weight:800;cursor:pointer}
+.device-type-btn.active{border-color:var(--red);background:var(--danger-bg);color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.08)}
+.device-type-btn:focus-visible{outline:3px solid rgba(22,131,223,.35);outline-offset:2px}
+.shift-note{border:1px solid #f0c36d;background:#fff8e8;color:#754f00;border-radius:14px;padding:13px 15px;line-height:1.6;font-size:14px;margin:12px 0}
+.shift-week-label{font-weight:900;font-size:17px;margin:8px 0;color:var(--black)}
+.shift-days{display:grid;grid-template-columns:1fr;gap:10px}
+.shift-day{display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:10px;background:#fbfaf7;border:1px solid var(--line);border-radius:13px;padding:10px 11px}
+.shift-day label{display:block;font-weight:800;margin:0}
+.shift-day input{width:100%;height:46px;border:1px solid #d8d3ca;border-radius:10px;padding:0 11px;font:inherit;background:#fff}
+.shift-day input:focus{outline:3px solid rgba(200,16,46,.16);border-color:var(--red)}
+.shift-state{margin-top:8px;font-size:14px;line-height:1.55;font-weight:700}
+.shift-state.ok{color:#176b3a}.shift-state.bad{color:#a52a2a}
+.shift-window-closed{opacity:.65}
+.shift-helper{font-size:14px;line-height:1.6;color:var(--gray);margin-top:10px}
+.shift-day-structured{grid-template-columns:48px minmax(0,1fr);align-items:start}
+.shift-day-name{padding-top:12px;font-weight:800;white-space:nowrap}
+.shift-day-content{display:grid;gap:8px;min-width:0}
+.shift-time-slots{display:grid;gap:6px;min-width:0}
+.shift-time-slots[hidden]{display:none}
+.shift-time-slot{display:grid;grid-template-columns:minmax(0,160px) 12px minmax(0,160px);align-items:center;gap:5px;min-width:0}
+.shift-time-slot-extra{grid-template-columns:minmax(0,160px) 12px minmax(0,160px)}
+.shift-time-input{height:44px!important;min-width:0;max-width:160px;padding:0 6px!important;border:1px solid #d8d3ca!important;border-radius:9px!important;font:inherit!important;font-size:15px!important;text-align:center}
+.shift-time-separator{font-weight:800;color:var(--gray)}
+.shift-slot-remove{min-height:36px;padding:6px 9px;border:1px solid #e2aaa4;border-radius:9px;background:var(--danger-bg);color:var(--danger);font:inherit;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.shift-slot-remove[hidden]{display:none}
+.shift-day-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.shift-add-slot{min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--black);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.shift-add-slot:disabled{display:none}
+.shift-unavailable{display:inline-flex!important;align-items:center;gap:6px;min-height:36px;padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:13px;font-weight:800;cursor:pointer}
+.shift-unavailable input[type="checkbox"]{width:18px!important;height:18px!important;min-height:18px;margin:0;padding:0;accent-color:var(--red)}
+.shift-day-structured.is-unavailable .shift-day-name{color:var(--danger)}
+.shift-day-error{grid-column:2;color:var(--danger);font-size:12px;line-height:1.4}
+@media(max-width:500px){.shift-day-structured{grid-template-columns:42px minmax(0,1fr);gap:7px;padding:9px}.shift-time-slot,.shift-time-slot-extra{grid-template-columns:minmax(0,1fr) 10px minmax(0,1fr);gap:4px}.shift-time-input{font-size:14px!important}.shift-unavailable,.shift-add-slot{font-size:12px;padding:5px 8px}}
+
+/* 指休開放狀態與電池領用欄位 */
+.shift-window-open{background:#edf5ef;border:1px solid #c9ddcf;border-radius:12px;padding:10px 12px;color:#2f6c47}
+#claimBatteryNumber{width:100%;height:48px;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--black);font:inherit}
+
+.shift-window-test{background:#fff7e8;border:1px solid #e1c66e;border-radius:12px;padding:10px 12px;color:#765800}
+
+/* T995 V4：已開放週次選擇與日期／星期標示。 */
+.shift-open-week-picker{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:8px 0 12px}
+.shift-open-week-picker:empty{display:none}
+.shift-open-week-btn{min-height:38px;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--black);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.shift-open-week-btn.active{border-color:var(--red);background:var(--red);color:#fff;box-shadow:0 3px 9px rgba(200,16,46,.14)}
+.shift-day-structured{grid-template-columns:68px minmax(0,1fr)}
+.shift-day-name{display:grid;gap:2px;align-content:start;justify-items:center;padding-top:9px;white-space:normal;text-align:center;font-size:12px;line-height:1.3}
+.shift-day-name .shift-day-date{font-weight:900;color:var(--black)}
+.shift-day-name .shift-day-weekday{font-size:11px;color:var(--gray);font-weight:700}
+.shift-day-structured.is-unavailable .shift-day-name .shift-day-date,.shift-day-structured.is-unavailable .shift-day-name .shift-day-weekday{color:var(--danger)}
+@media(max-width:500px){.shift-open-week-picker{gap:5px}.shift-open-week-btn{min-height:36px;padding:6px 8px;font-size:12px}.shift-day-structured{grid-template-columns:60px minmax(0,1fr);gap:6px}.shift-day-name{padding-top:10px;font-size:11px}.shift-day-name .shift-day-weekday{font-size:10px}}
+
+/* T995 V5：指休日格文字置中、欄位等寬，操作按鈕尺寸一致。 */
+.shift-day-structured{grid-template-columns:78px minmax(0,1fr);align-items:center;gap:10px;padding:12px 14px}
+.shift-day-name{align-content:center;justify-items:center;padding-top:0;text-align:center;font-size:13px;line-height:1.3}
+.shift-day-name .shift-day-date{font-size:14px}
+.shift-day-name .shift-day-weekday{font-size:12px}
+.shift-day-content{width:100%;justify-items:stretch;gap:8px}
+.shift-time-slots{width:100%;justify-items:center}
+.shift-time-slot,.shift-time-slot-extra{width:100%;grid-template-columns:minmax(0,160px) 16px minmax(0,160px);justify-content:center;gap:8px}
+.shift-time-input{width:100%;max-width:160px;height:46px!important;font-size:16px!important;text-align:center}
+.shift-time-separator{text-align:center;font-size:16px}
+.shift-day-actions{justify-content:center;gap:12px}
+.shift-add-slot,.shift-slot-remove,.shift-unavailable{width:132px;min-width:132px;height:40px;min-height:40px;padding:5px 8px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-size:13px;text-align:center}
+.shift-unavailable input[type="checkbox"]{width:18px!important;height:18px!important;flex:none}
+@media(max-width:500px){
+ .shift-day-structured{grid-template-columns:58px minmax(0,1fr);align-items:center;gap:7px;padding:10px}
+ .shift-day-name{font-size:12px}
+ .shift-day-name .shift-day-date{font-size:13px}
+ .shift-day-name .shift-day-weekday{font-size:11px}
+ .shift-time-slot,.shift-time-slot-extra{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr);gap:5px}
+ .shift-time-input{height:44px!important;font-size:15px!important}
+ .shift-day-actions{display:grid;grid-template-columns:repeat(2,minmax(0,132px));justify-content:center;gap:7px}
+ .shift-add-slot,.shift-slot-remove,.shift-unavailable{width:100%;min-width:0;height:40px;min-height:40px;padding:4px 5px;font-size:12px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+  <header class="header">
+    <div class="eyebrow">DELIVERY CENTER</div>
+
+    <div class="header-row">
+      <h1 id="pageTitle" class="title">桃園-Rider Center</h1>
+      <div class="kfc">KFC</div>
+    </div>
+
+    <div id="todayDate" class="date"></div>
+  </header>
+
+  <section class="intro">
+    <div id="claimBackTop" class="front-top-back intro-back" style="display:none"><button id="claimBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="inspectionBackTop" class="front-top-back intro-back" style="display:none"><button id="inspectionBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="batteryBackTop" class="front-top-back intro-back" style="display:none"><button id="batteryBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="batteryRegisterBackTop" class="front-top-back intro-back" style="display:none"><button id="batteryRegisterBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="surveyBackTop" class="front-top-back intro-back" style="display:none"><button id="surveyBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="shiftBackTop" class="front-top-back intro-back" style="display:none"><button id="shiftBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <div id="defensiveBackTop" class="front-top-back intro-back" style="display:none"><button id="defensiveBackBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+    <h2 id="introTitle">上班領車・下班還車</h2>
+    <p id="introText">完成領車、還車安全檢查與回饋。</p>
+  </section>
+
+  <!-- =========================
+       首頁
+  ========================= -->
+
+  <div id="modeMenu" class="mode-menu">
+
+    <button id="claimModeBtn" class="mode-btn" type="button">
+      <span class="icon">🛵</span>
+      <span class="main">領車</span>
+    </button>
+
+    <button id="returnModeBtn" class="mode-btn" type="button">
+      <span class="icon">🏍️</span>
+      <span class="main">還車</span>
+    </button>
+
+    <button id="batteryModeBtn" class="mode-btn" type="button">
+      <span class="icon">🔋</span>
+      <span class="main">設備管理</span>
+    </button>
+
+    <button id="defensiveModeBtn" class="mode-btn" type="button">
+      <span class="icon">🛡️</span>
+      <span class="main">防禦駕駛</span>
+    </button>
+
+    <button id="surveyModeBtn" class="mode-btn" type="button">
+      <span class="icon">📋</span>
+      <span class="main">意向調查</span>
+    </button>
+
+    <button id="shiftModeBtn" class="mode-btn" type="button">
+      <span class="icon">🗓️</span>
+      <span class="main">指休表單</span>
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       領車
+  ========================= -->
+
+  <section id="claimPage" class="mode-page">
+<div id="claimForm">
+      <div id="atomicRiderStatus" class="hint" role="status">原子領還車預設關閉，須完成測試資料庫及權限驗證後才啟用。</div>
+
+      <section class="card">
+        <div class="section-number">01・領車人</div>
+
+        <label class="label">領車人</label>
+
+        <div class="name-search-wrap">
+          <input
+            id="claimantName"
+            type="text"
+            placeholder=""
+            autocomplete="off"
+          >
+          <div id="claimantNameSuggestions" class="name-suggestions"></div>
+        </div>
+
+      </section>
+
+
+      <section class="card">
+        <div class="section-number">02・領車點</div>
+
+        <label class="label">領車點</label>
+
+        <div>
+          <select id="claimPoint">
+            <option value="">請選擇領車點</option>
+            <option>新竹中正</option>
+            <option>新竹民生</option>
+            <option>新竹光復</option>
+            <option>新竹竹北</option>
+            <option>新竹新豐</option>
+            <option>龍潭北龍</option>
+            <option>楊梅中山</option>
+            <option>桃園大溪</option>
+            <option>桃園大竹</option>
+            <option>桃園大園</option>
+            <option>桃園大興西</option>
+            <option>桃園萬壽</option>
+            <option>桃園中山二</option>
+            <option>林口文化</option>
+            <option>南崁中正</option>
+            <option>中壢中正</option>
+            <option>中壢環中東</option>
+          </select>
+        </div>
+      </section>
+
+
+      <section class="card">
+        <div class="section-number">03・車輛</div>
+
+        <label class="label">車牌</label>
+
+        <div class="vehicle-row">
+
+          <div class="vehicle-input">
+            <input
+              id="claimPlate"
+              type="text"
+              inputmode="numeric"
+              maxlength="8"
+              placeholder="輸入車牌四碼"
+              autocomplete="off"
+            >
+          </div>
+
+          <button
+            id="claimReadBtn"
+            class="read-btn"
+            type="button"
+          >
+            讀取
+          </button>
+
+        </div>
+
+        <div id="claimVehicleInfo" class="claim-vehicle-info"></div>
+
+        <div id="lastClaim" class="last-claim"></div>
+
+      </section>
+
+
+      <section class="card">
+        <div class="section-number">04・行車紀錄器</div>
+
+        <label class="label">
+          行車紀錄器
+        </label>
+
+        <div class="claim-options recorder-options">
+          <div class="claim-option">
+            <input
+              id="recorderNumberType"
+              type="radio"
+              name="recorderType"
+              value="number"
+            >
+            <label for="recorderNumberType">輸入編號</label>
+          </div>
+
+          <div class="claim-option">
+            <input
+              id="recorderSelfType"
+              type="radio"
+              name="recorderType"
+              value="self"
+            >
+            <label for="recorderSelfType">自備</label>
+          </div>
+        </div>
+
+        <div id="recorderNumberWrap" class="recorder-number-wrap">
+          <input
+            id="recorderNumber"
+            type="text"
+            maxlength="100"
+            placeholder="請輸入紀錄器編號"
+            autocomplete="off"
+          >
+          <div id="recorderHealthInfo" class="hint" style="display:none;margin-top:10px;text-align:center"></div>
+        </div>
+      </section>
+
+
+      <section class="card">
+        <div class="section-number">05・電池</div>
+        <label class="label" for="claimBatteryNumber">使用電池編號（選填）</label>
+        <input id="claimBatteryNumber" class="search-input" type="text" maxlength="100" placeholder="若有領用電池，請輸入編號" autocomplete="off">
+        <div id="claimBatteryStatus" class="hint" style="display:none;margin-top:8px"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-number">06・油卡</div>
+
+        <label class="label">
+          油卡確認
+        </label>
+
+        <div class="claim-options">
+
+          <div class="claim-option">
+            <input
+              id="oilCardReceived"
+              type="radio"
+              name="oilCardStatus"
+              value="已領油卡"
+            >
+            <label for="oilCardReceived">
+              已領油卡
+            </label>
+          </div>
+
+          <div class="claim-option">
+            <input
+              id="oilCardLost"
+              type="radio"
+              name="oilCardStatus"
+              value="油卡遺失"
+            >
+            <label for="oilCardLost">
+              油卡遺失
+            </label>
+          </div>
+
+          <div class="claim-option">
+            <input
+              id="oilCardElectric"
+              type="radio"
+              name="oilCardStatus"
+              value="電車無油卡"
+            >
+            <label for="oilCardElectric">
+              電車無油卡
+            </label>
+          </div>
+
+        </div>
+      </section>
+
+
+      <button
+        id="claimSaveBtn"
+        class="save-btn claim-submit"
+        type="button"
+      >
+        送出領車紀錄
+      </button>
+</div>
+
+
+    <div id="claimSuccess" class="success-panel">
+  <div class="front-top-back"><button id="claimSuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+
+
+      <div class="success-icon">✓</div>
+
+      <div class="success-title">
+        領車成功
+      </div>
+
+      <div
+        id="claimSuccessData"
+        class="success-data"
+      ></div>
+
+      <div class="success-greeting">
+        準備出發！今天也請安全騎車，順利完成每一趟配送 💪
+        <span class="small">
+          確認車況後再出發，祝你一路平安。
+        </span>
+      </div>
+</div>
+
+  </section>
+
+
+  <!-- =========================
+       還車
+  ========================= -->
+
+  <section id="inspectionPage" class="mode-page">
+<div id="inspectionForm">
+
+      <!-- =========================
+           01 領車人
+      ========================= -->
+
+      <section class="card">
+        <div class="section-number">01・領車人</div>
+        <label class="label">領車人</label>
+        <div class="name-search-wrap">
+          <input id="reporterName" type="text" placeholder="請輸入領車人姓名" autocomplete="off">
+          <div id="reporterNameSuggestions" class="name-suggestions"></div>
+        </div>
+      </section>
+
+      <!-- =========================
+           02 車輛
+      ========================= -->
+
+      <section class="card">
+
+        <div class="section-number">
+          02・車輛
+        </div>
+
+        <label class="label">
+          車牌
+        </label>
+
+        <div class="vehicle-row">
+
+          <div class="vehicle-input">
+
+            <input
+              id="plate"
+              type="text"
+              inputmode="numeric"
+              maxlength="8"
+              placeholder="輸入車牌四碼"
+              autocomplete="off"
+            >
+
+          </div>
+
+          <button
+            id="readBtn"
+            class="read-btn"
+            type="button"
+          >
+            讀取
+          </button>
+
+        </div>
+
+
+        <div
+          id="vehicleSuccess"
+          class="vehicle-success"
+        ></div>
+
+
+        <div
+          id="previousRecord"
+          class="previous"
+        >
+
+          <div class="previous-title">
+            最近一次巡檢
+          </div>
+
+          <div
+            id="previousMain"
+            class="previous-main"
+          ></div>
+
+          <div
+            id="previousDetail"
+            class="previous-detail"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           02 里程
+      ========================= -->
+
+      <section class="card">
+
+        <div class="section-number">
+          03・里程
+        </div>
+
+        <label class="label">
+          目前里程
+        </label>
+
+        <input
+          id="mileage"
+          type="number"
+          inputmode="numeric"
+          min="0"
+          placeholder="請輸入目前里程"
+        >
+
+      </section>
+
+
+      <!-- =========================
+           03 CHECK
+      ========================= -->
+
+      <section class="card">
+
+        <div class="section-number">
+          04・安全檢查
+        </div>
+
+        <div
+          id="checks"
+          class="checks"
+        ></div>
+
+        <div
+          id="statusCard"
+          class="status-card"
+        ></div>
+
+      </section>
+
+
+      <!-- =========================
+           SAVE
+      ========================= -->
+
+      <button
+        id="saveBtn"
+        class="save-btn"
+        type="button"
+      >
+        儲存巡檢紀錄
+      </button>
+
+
+    </div>
+
+
+    <div
+      id="inspectionSuccess"
+      class="success-panel"
+    >
+  <div class="front-top-back"><button id="inspectionSuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+
+
+      <div class="success-icon">
+        ✓
+      </div>
+
+      <div class="success-title">
+        還車完成
+      </div>
+
+      <div
+        id="inspectionSuccessData"
+        class="success-data"
+      ></div>
+
+      <div class="success-greeting">
+        今天辛苦了，安全回家 ❤️
+
+      </div>
+</div>
+
+  </section>
+
+
+  <!-- =========================
+       電池異常回饋
+  ========================= -->
+
+  <section id="batteryPage" class="mode-page battery-page">
+    <div id="batteryForm">
+      <section class="card">
+        <div class="section-number">01・設備類型</div>
+        <div class="label">請選擇設備</div>
+        <input id="deviceIssueType" type="hidden" value="battery">
+        <div class="device-type-buttons" role="group" aria-label="設備類型">
+          <button class="device-type-btn" type="button" data-device-type="recorder">📹 紀錄器</button>
+          <button class="device-type-btn active" type="button" data-device-type="battery">🔋 電池</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-number">02・設備編號</div>
+        <label class="label" for="deviceNumber">輸入設備編號</label>
+        <input id="deviceNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
+        <div id="deviceLookupMessage" class="hint" style="margin-top:10px"></div>
+      </section>
+
+      <section id="deviceCardPanel" class="card device-card-panel" style="display:none"></section>
+
+      <div id="deviceRegisterPanel" style="display:none">
+        <section class="card">
+          <div class="section-number">03・新增設備小卡</div>
+          <div class="device-register-note">查無此設備，請先補充資料建立小卡，建立後再填寫異常原因。</div>
+          <div id="batteryRegisterFields">
+            <label class="label" for="batteryRestaurant">電池所在餐廳</label>
+            <select id="batteryRestaurant">
+              <option value="">請選擇餐廳名稱</option>
+              <option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option>
+              <option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option>
+              <option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option>
+              <option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option>
+              <option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option>
+              <option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option>
+              <option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option>
+              <option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option>
+              <option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option>
+              <option value="142">桃園桃鶯（142）</option>
+              <option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option>
+              <option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option>
+              <option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option>
+            </select>
+          </div>
+          <div id="recorderRegisterFields" style="display:none">
+            <label class="label" for="recorderRegisterSize">紀錄器型號</label>
+            <select id="recorderRegisterSize">
+              <option value="large">A10／大台</option>
+              <option value="small">C100／小台</option>
+            </select>
+          </div>
+          <button id="deviceRegisterInlineBtn" class="device-action-btn" type="button">新增小卡並繼續</button>
+          <div id="deviceRegisterMessage" class="hint" style="margin-top:10px"></div>
+        </section>
+      </div>
+
+      <div id="deviceIssuePanel" style="display:none">
+        <section class="card">
+          <div class="section-number">03・異常原因</div>
+          <label class="label" for="deviceIssueDetail">請說明異常原因</label>
+          <textarea id="deviceIssueDetail" placeholder="請詳細說明設備異常情況"></textarea>
+        </section>
+        <button id="deviceIssueSubmitBtn" class="save-btn" type="button">送出設備異常回報</button>
+      </div>
+    </div>
+
+    <div id="batterySuccess" class="success-panel">
+      <div class="front-top-back"><button id="batterySuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+      <div class="success-icon">✓</div>
+      <div class="success-title">設備異常已送出</div>
+      <div id="batterySuccessData" class="success-data"></div>
+    </div>
+  </section>
+
+  <!-- =========================
+       電池建檔
+  ========================= -->
+
+  <section id="batteryRegisterPage" class="mode-page battery-page">
+    <div id="batteryRegisterForm">
+      <section class="card">
+        <div class="section-number">01・電池</div>
+        <label class="label" for="batteryRegisterNumber">電池編號</label>
+        <input id="batteryRegisterNumber" type="text" maxlength="100" placeholder="請輸入電池編號" autocomplete="off">
+      </section>
+
+      <section class="card">
+        <div class="section-number">02・餐廳</div>
+        <label class="label" for="batteryRegisterRestaurant">電池所在餐廳</label>
+        <select id="batteryRegisterRestaurant">
+          <option value="">請選擇店號</option>
+          <option>013</option><option>018</option><option>041</option><option>062</option><option>066</option>
+          <option>084</option><option>093</option><option>095</option><option>098</option><option>099</option><option>133</option>
+          <option>137</option><option>142</option><option>144</option><option>154</option><option>161</option><option>165</option>
+          <option>167</option><option>179</option><option>182</option><option>183</option><option>190</option>
+          <option>201</option><option>203</option><option>209</option><option>214</option><option>227</option><option>235</option>
+          <option>242</option><option>248</option><option>516</option><option>544</option><option>562</option>
+          <option>587</option><option>594</option>
+        </select>
+      </section>
+
+      <button id="batteryRegisterSaveBtn" class="save-btn" type="button">新增電池建檔</button>
+      <div id="batteryRegisterMessage" class="training-message" style="display:block;margin-top:12px;"></div>
+    </div>
+  </section>
+
+
+  <!-- =========================
+       駕駛意向調查
+  ========================= -->
+
+  <section id="surveyPage" class="mode-page survey-page">
+<div id="surveyForm">
+
+      <section class="card">
+        <div class="section-number">STEP 1・違規記點</div>
+        <div class="survey-intro">
+          請先至監理服務網查詢本人違規記點。系統不會收集身分證字號、出生年月日或驗證碼，只記錄你查詢後填入的點數。
+        </div>
+        <a class="save-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:18px;" href="https://www.mvdis.gov.tw/" target="_blank" rel="noopener">查詢本人違規記點</a>
+        <label class="label" for="surveyRespondentName" style="margin-top:24px;">填寫人姓名</label>
+        <div class="name-search-wrap">
+          <input id="surveyRespondentName" type="text" maxlength="50" placeholder="" autocomplete="off">
+          <div id="surveyRespondentNameSuggestions" class="name-suggestions"></div>
+        </div>
+        <label class="label" for="violationPoints" style="margin-top:24px;">目前違規記點</label>
+        <input id="violationPoints" type="number" min="0" step="1" inputmode="numeric" placeholder="請輸入點數">
+        <div class="hint">只填寫查詢結果的點數，不要填寫身分證字號或生日。</div>
+      </section>
+
+      <section class="card">
+        <div class="section-number">STEP 2・第一部分：駕駛行為</div>
+        <div class="survey-rule"><strong>請依實際發生頻率評分：</strong>0 分＝從未發生，5 分＝很常發生。越常發生，分數越高。27 分以下為合格，28 分以上為不合格。</div>
+        <div id="behaviorQuestions"></div>
+        <div id="behaviorScore" class="survey-score"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-number">STEP 3・第二部分：駕駛態度／風險行為</div>
+        <div class="survey-rule"><strong>請依實際發生頻率評分：</strong>0 分＝從未發生，5 分＝很常發生。越常發生，分數越高。57 分以下為合格，58 分以上為不合格。</div>
+        <div id="attitudeQuestions"></div>
+        <div id="attitudeScore" class="survey-score"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-number">STEP 4・肇事紀錄</div>
+        <label class="label">一年內是否有肇事紀錄？</label>
+        <div class="survey-radio-group">
+          <div><input id="accidentNo" type="radio" name="accidentWithinYear" value="沒有"><label for="accidentNo">沒有</label></div>
+          <div><input id="accidentYes" type="radio" name="accidentWithinYear" value="有"><label for="accidentYes">有</label></div>
+        </div>
+        <div id="accidentDetailBox" class="hidden" style="margin-top:16px;">
+          <label class="label" for="accidentDetail">詳細說明發生經過</label>
+          <textarea id="accidentDetail" placeholder="請說明發生時間、地點與經過"></textarea>
+        </div>
+      </section>
+
+      <button id="surveySaveBtn" class="save-btn" type="button">送出駕駛意向調查</button>
+<div class="hint">兩部分分開計算，不合併總分。</div>
+
+    </div>
+
+    <div id="surveySuccess" class="success-panel">
+  <div class="front-top-back"><button id="surveySuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+
+      <div class="success-icon">✓</div>
+      <div class="success-title">調查已完成</div>
+      <div id="surveySuccessData" class="success-data"></div>
+</div>
+
+  </section>
+
+  <!-- 員工指休表單 -->
+  <section id="shiftPage" class="mode-page">
+    <div id="shiftForm">
+      <section class="card">
+        <div class="section-number">員工指休／可上班時間</div>
+        <div class="shift-note"><strong>每天都要填可上班時段，或選「無法上班」。</strong><br>可新增第二時段；七天皆無法上班時，備註必填原因。</div>
+        <div id="shiftWeekLabel" class="shift-week-label">查詢開放週次中…</div>
+        <div id="shiftOpenWeekPicker" class="shift-open-week-picker" role="group" aria-label="選擇已開放週次"></div>
+        <div id="shiftWindowMessage" class="hint"></div>
+        <label class="label" for="shiftEmployeeName" style="margin-top:20px">姓名</label>
+        <div class="name-search-wrap">
+          <input id="shiftEmployeeName" type="text" maxlength="60" autocomplete="off" placeholder="輸入任一字搜尋在職名單">
+          <div id="shiftEmployeeNameSuggestions" class="name-suggestions"></div>
+        </div>
+        <div id="shiftEmployeeStatus" class="shift-state" role="status" aria-live="polite"></div>
+      </section>
+      <section class="card">
+        <div class="section-number">週一至週日</div>
+        <div class="shift-helper">時間限 10:00–22:30，分鐘僅限 00／30；每天填一組時段或選「無法上班」，第二時段選填。</div>
+        <div id="shiftDays" class="shift-days" style="margin-top:14px">
+          <div class="shift-day shift-day-structured" data-shift-day="monday"><div class="shift-day-name" data-shift-day-label>週一</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週一開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週一結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="tuesday"><div class="shift-day-name" data-shift-day-label>週二</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週二開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週二結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="wednesday"><div class="shift-day-name" data-shift-day-label>週三</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週三開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週三結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="thursday"><div class="shift-day-name" data-shift-day-label>週四</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週四開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週四結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="friday"><div class="shift-day-name" data-shift-day-label>週五</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週五開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週五結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="saturday"><div class="shift-day-name" data-shift-day-label>週六</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週六開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週六結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+          <div class="shift-day shift-day-structured" data-shift-day="sunday"><div class="shift-day-name" data-shift-day-label>週日</div><div class="shift-day-content"><div class="shift-time-slots"><div class="shift-time-slot" data-shift-slot><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="週日開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="週日結束時間"></div></div><div class="shift-day-actions"><button type="button" class="shift-add-slot" data-shift-add-slot>＋新增時段</button><button type="button" class="shift-slot-remove" data-shift-remove-slot hidden>－移除新增時段</button><label class="shift-unavailable"><input type="checkbox" data-shift-unavailable>無法上班</label></div></div></div>
+        </div>
+        <label class="label" for="shiftNotes" style="margin-top:20px">備註／排班需求</label>
+        <textarea id="shiftNotes" maxlength="500" placeholder="選填；若七天皆無法上班，必須說明原因"></textarea>
+      </section>
+      <button id="shiftSubmitBtn" class="save-btn" type="button">送出本週指休表</button>
+      <div id="shiftSubmitMessage" class="hint" style="margin-top:10px" role="status" aria-live="polite"></div>
+    </div>
+    <div id="shiftSuccess" class="success-panel">
+      <div class="front-top-back"><button id="shiftSuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+      <div class="success-icon">✓</div>
+      <div class="success-title">指休表已送出</div>
+      <div id="shiftSuccessData" class="success-data"></div>
+      <div class="hint">開放期間可重新送出修改；後台以最後一次提交為準。</div>
+      <button id="shiftEditAgainBtn" class="action-btn" type="button" style="margin-top:12px">重新修改本週資料</button>
+    </div>
+  </section>
+
+  <!-- =========================
+       防禦駕駛月考
+  ========================= -->
+
+  <section id="defensivePage" class="mode-page defensive-page">
+<div id="defensiveForm">
+      <section class="training-card">
+        <label class="label" for="defensiveName">填寫人姓名</label>
+        <div class="name-search-wrap">
+          <input id="defensiveName" type="text" maxlength="50" placeholder="" autocomplete="off">
+          <div id="defensiveNameSuggestions" class="name-suggestions"></div>
+        </div>
+        <label class="label" for="defensiveMonth" style="margin-top:18px;">選擇月份</label>
+        <select id="defensiveMonth">
+          <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option><option value="4">4 月</option>
+          <option value="5">5 月</option><option value="6">6 月</option><option value="7">7 月</option><option value="8">8 月</option>
+          <option value="9">9 月</option><option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
+        </select>
+        <button id="defensiveLoadBtn" class="save-btn" type="button" style="margin-top:16px;">開始</button>
+        <div id="defensiveStatus" class="training-message" style="display:none;">請先輸入姓名並開始當月課程。</div>
+      </section>
+
+      <section id="defensiveLessonPanel" class="training-card" style="display:none;">
+        <div class="section-number">02・觀看影片</div>
+        <div id="defensiveLessonTitle" class="training-card-title"></div>
+        <div class="training-card-subtitle">請先開啟並觀看當月影片，再進入選擇題。</div>
+        <div class="training-video-box">
+          <a id="defensiveVideoLink" class="video-link" href="#" target="_blank" rel="noopener">▶ 開啟當月防禦駕駛影片</a>
+          <div id="defensiveVideoStatus" class="training-message">影片開啟後，選擇題會出現。</div>
+        </div>
+        <div class="training-pdf-box mandatory-pdf">
+          <div class="training-card-subtitle" style="margin-bottom:8px;">03・安全月曆 PDF（必看）</div>
+          <a id="defensivePdfLink" class="optional-link mandatory-pdf-link" href="#" target="_blank" rel="noopener" style="display:none;">📖 開啟安全月曆 PDF（必須點選）</a>
+        </div>
+      </section>
+
+      <section id="defensiveQuestions" class="training-card" style="display:none;">
+        <div class="section-number">04・選擇題</div>
+        <div class="training-question-header">完成兩題才算完成本月課程</div>
+        <div class="training-question-note">兩題都答對才會通過；答錯後必須重新觀看影片，再重新作答。</div>
+        <div id="defensiveQuestion1" class="question-card"></div>
+        <div id="defensiveQuestion2" class="question-card"></div>
+        <button id="defensiveSubmitBtn" class="save-btn" type="button">送出答案</button>
+      </section>
+</div>
+
+    <div id="defensiveSuccess" class="success-panel">
+  <div class="front-top-back"><button id="defensiveSuccessHomeBtn" class="back-home-btn" type="button">← 返回首頁</button></div>
+
+      <div class="success-icon">✓</div>
+      <div class="success-title">本月防禦駕駛已完成</div>
+      <div id="defensiveSuccessData" class="success-data"></div>
+</div>
+  </section>
+
+</div>
+
+
+<script src="config/995-business.js"></script><script src="center-ui.js?v=20261110-pickup"></script>
+<script src="rider-rules.js"></script>
+<script src="rider-rpc-adapter.js"></script>
+<script>
+
+/* =====================================================
+   SUPABASE
+   ===================================================== */
+
+const SUPABASE_URL =
+  window.CENTER_CONFIG.supabaseUrl;
+
+const SUPABASE_KEY =
+  window.CENTER_CONFIG.publishableKey;
+
+const db =
+  window.CenterRuntime.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+// Atomic RPCs remain opt-in until isolated database, RLS and concurrency validation.
+const atomicRiderEnabled = window.CENTER_CONFIG.features?.atomicRider === true;
+if(atomicRiderEnabled && window.CENTER_CONFIG.schema !== "shared_test_995"){
+  throw new Error("原子領還車僅限已驗證的 shared_test_995 測試結構。");
+}
+document.getElementById("atomicRiderStatus").textContent = atomicRiderEnabled
+  ? "原子領還車測試模式；資料庫、權限與併發驗證須另行確認。"
+  : "原子領還車尚未啟用；目前沿用既有流程，須完成測試資料庫及權限驗證後才切換。";
+const atomicRiderWorkflow = RiderRpcAdapter.createWorkflow(db, {
+  enabled: atomicRiderEnabled,
+  ...(atomicRiderEnabled ? {boundSchema: window.CENTER_CONFIG.schema} : {})
+});
+
+function trainingTaipeiParts(date = new Date()){
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "numeric", day: "numeric"
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return {year:Number(values.year), month:Number(values.month), day:Number(values.day)};
+}
+function currentSurveyRound(date = new Date()){
+  return trainingTaipeiParts(date).month >= 7 ? "M7" : "M1";
+}
+
+// 桃園 T995 安全月曆：與 index.html 同層的 pdf 資料夾
+const SAFETY_CALENDAR_PDFS = {
+  1: "pdf/safety-calendar-01.pdf",
+  2: "pdf/safety-calendar-02.pdf",
+  3: "pdf/safety-calendar-03.pdf",
+  4: "pdf/safety-calendar-04.pdf",
+  5: "pdf/safety-calendar-05.pdf",
+  6: "pdf/safety-calendar-06.pdf",
+  7: "pdf/safety-calendar-07.pdf",
+  8: "pdf/safety-calendar-08.pdf",
+  9: "pdf/safety-calendar-09.pdf",
+  10: "pdf/safety-calendar-10.pdf",
+  11: "pdf/safety-calendar-11.pdf",
+  12: "pdf/safety-calendar-12.pdf"
+};
+
+
+/* =====================================================
+   CHECK ITEMS
+   ===================================================== */
+
+const checkItems = [
+  { key: "engine_start", name: "引擎發動" },
+  { key: "front_tread", name: "前輪胎紋（0.8 mm 以上）" },
+  { key: "front_tire_pressure", name: "前輪胎壓（33 以上）" },
+  { key: "rear_tread", name: "後輪胎紋（0.8 mm 以上）" },
+  { key: "rear_tire_pressure", name: "後輪胎壓（33 以上）" },
+  { key: "front_brake", name: "前剎車" },
+  { key: "rear_brake", name: "後剎車" },
+  { key: "headlight", name: "大燈" },
+  { key: "brake_light", name: "剎車燈" },
+  { key: "other", name: "其他" }
+];
+
+
+/* =====================================================
+   STATE
+   ===================================================== */
+
+const checkState = {};
+
+checkItems.forEach(item => {
+
+  checkState[item.key] = {
+
+    status: null,
+
+    note: ""
+
+  };
+
+});
+
+
+let currentVehicle = null;
+
+
+/* =====================================================
+   DOM
+   ===================================================== */
+
+const plateInput =
+  document.getElementById("plate");
+
+const readBtn =
+  document.getElementById("readBtn");
+
+const mileageInput =
+  document.getElementById("mileage");
+
+const reporterNameInput =
+  document.getElementById("reporterName");
+
+const vehicleSuccess =
+  document.getElementById("vehicleSuccess");
+
+const previousRecord =
+  document.getElementById("previousRecord");
+
+const previousMain =
+  document.getElementById("previousMain");
+
+const previousDetail =
+  document.getElementById("previousDetail");
+
+const checksContainer =
+  document.getElementById("checks");
+
+const statusCard =
+  document.getElementById("statusCard");
+
+const saveBtn =
+  document.getElementById("saveBtn");
+
+
+/* =====================================================
+   RENDER CHECKS
+   ===================================================== */
+
+function renderChecks() {
+
+  checksContainer.innerHTML = "";
+
+
+  checkItems.forEach(item => {
+
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.className =
+      "check-item";
+
+
+    wrapper.innerHTML = `
+
+      <div class="check-name">
+        ${item.name}
+      </div>
+
+      <div class="options">
+
+        <button
+          type="button"
+          class="option normal"
+          data-key="${item.key}"
+          data-status="normal"
+        >
+          正常
+        </button>
+
+        <button
+          type="button"
+          class="option abnormal"
+          data-key="${item.key}"
+          data-status="abnormal"
+        >
+          異常
+        </button>
+
+      </div>
+
+
+      <div
+        class="abnormal-box"
+        id="note-${item.key}"
+      >
+
+        <textarea
+          placeholder="請輸入${item.name}異常狀況"
+        ></textarea>
+
+        <div class="required">
+          異常時請填寫說明
+        </div>
+
+      </div>
+
+    `;
+
+
+    checksContainer.appendChild(wrapper);
+
+  });
+
+
+  document
+    .querySelectorAll(".option")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        function() {
+
+          const key =
+            this.dataset.key;
+
+          const status =
+            this.dataset.status;
+
+
+          checkState[key].status =
+            status;
+
+
+          const parent =
+            this.closest(".check-item");
+
+
+          parent
+            .querySelectorAll(".option")
+            .forEach(btn => {
+
+              btn.classList.remove(
+                "selected"
+              );
+
+            });
+
+
+          this.classList.add(
+            "selected"
+          );
+
+
+          const noteBox =
+            document.getElementById(
+              `note-${key}`
+            );
+
+
+          if (status === "abnormal") {
+
+            noteBox.classList.add(
+              "show"
+            );
+
+          } else {
+
+            noteBox.classList.remove(
+              "show"
+            );
+
+
+            const textarea =
+              noteBox.querySelector(
+                "textarea"
+              );
+
+            textarea.value = "";
+
+            checkState[key].note =
+              "";
+
+          }
+
+
+          updateStatus();
+
+        }
+      );
+
+    });
+
+
+  document
+    .querySelectorAll(
+      ".abnormal-box textarea"
+    )
+    .forEach(textarea => {
+
+      textarea.addEventListener(
+        "input",
+        function() {
+
+          const key =
+            this.closest(
+              ".abnormal-box"
+            )
+            .id
+            .replace(
+              "note-",
+              ""
+            );
+
+
+          checkState[key].note =
+            this.value;
+
+        }
+      );
+
+    });
+
+}
+
+
+renderChecks();
+
+
+/* =====================================================
+   GET PLATE
+   ===================================================== */
+
+function getPlate4() {
+
+  const value =
+    plateInput.value
+      .trim()
+      .toUpperCase();
+
+
+  const numbers =
+    value.replace(
+      /\D/g,
+      ""
+    );
+
+
+  if (
+    numbers.length >= 4
+  ) {
+
+    return numbers.slice(-4);
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =====================================================
+   READ VEHICLE
+   ===================================================== */
+
+async function loadVehicle() {
+
+  const plate4 =
+    getPlate4();
+
+
+  if (
+    plate4.length !== 4
+  ) {
+
+    alert(
+      "請輸入正確的車牌四碼。"
+    );
+
+    plateInput.focus();
+
+    return;
+
+  }
+
+
+  readBtn.disabled = true;
+
+  readBtn.textContent =
+    "讀取中…";
+
+
+  vehicleSuccess
+    .classList
+    .remove("show");
+
+
+  previousRecord
+    .classList
+    .remove("show");
+
+
+  currentVehicle = null;
+
+
+  try {
+
+    const result =
+      await db
+        .from("vehicles")
+        .select("*")
+        .eq(
+          "plate4",
+          plate4
+        )
+        .eq(
+          "active",
+          true
+        )
+        .maybeSingle();
+
+
+    const vehicle =
+      result.data;
+
+    const error =
+      result.error;
+
+
+    if (error) {
+
+      console.error(error);
+
+      alert(
+        "讀取車輛資料失敗，請稍後再試。"
+      );
+
+      return;
+
+    }
+
+
+    if (!vehicle) {
+
+      alert(
+        "查無此車牌，請確認輸入是否正確。"
+      );
+
+      return;
+
+    }
+
+
+    currentVehicle =
+      vehicle;
+
+
+    plateInput.value =
+      vehicle.full_plate ||
+      plate4;
+
+
+    vehicleSuccess.innerHTML =
+      `車牌確認成功：${vehicle.full_plate || plate4}`;
+
+    vehicleSuccess
+      .classList
+      .add("show");
+
+
+    const previous =
+      await db
+        .from("inspection_reports")
+        .select("*")
+        .eq(
+          "vehicle_id",
+          vehicle.id
+        )
+        .order(
+          "reported_at",
+          {
+            ascending: false
+          }
+        )
+        .limit(1)
+        .maybeSingle();
+
+
+    if (
+      previous.error
+    ) {
+
+      console.error(
+        previous.error
+      );
+
+    }
+
+
+    const latestClaim = await db
+      .from("claim_records")
+      .select("claimant_name,claimed_at")
+      .eq("vehicle_id", vehicle.id)
+      .order("claimed_at", {ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if(!reporterNameInput.value.trim() && latestClaim.data?.claimant_name){
+      reporterNameInput.value = latestClaim.data.claimant_name;
+    }
+
+    if (
+      previous.data
+    ) {
+
+      const record =
+        previous.data;
+
+
+      previousMain.textContent =
+        `${record.mileage || 0} km・${record.overall_status === "normal" ? "正常" : "異常"}`;
+
+
+      previousDetail.textContent =
+        `巡檢時間：${formatDateTime(record.reported_at)}`;
+
+
+      previousRecord
+        .classList
+        .add("show");
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message || "系統發生錯誤，請稍後再試。"
+    );
+
+  } finally {
+
+    readBtn.disabled = false;
+
+    readBtn.textContent =
+      "讀取";
+
+  }
+
+}
+
+
+readBtn.addEventListener(
+  "click",
+  loadVehicle
+);
+
+
+/* =====================================================
+   STATUS
+   ===================================================== */
+
+function updateStatus() {
+
+  const abnormalItems =
+    checkItems.filter(
+      item =>
+        checkState[item.key].status ===
+        "abnormal"
+    );
+
+
+  if (
+    abnormalItems.length === 0
+  ) {
+
+    statusCard
+      .classList
+      .remove("show");
+
+    statusCard.textContent = "";
+
+    return;
+
+  }
+
+
+  statusCard.innerHTML =
+    `目前有 ${abnormalItems.length} 項異常，請確認異常說明。`;
+
+  statusCard.className =
+    "status-card show status-abnormal";
+
+}
+
+
+/* =====================================================
+   DATE
+   ===================================================== */
+
+function formatDateTime(value) {
+
+  if (!value) {
+    return "";
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  return date.toLocaleString(
+    "zh-TW",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
+
+}
+
+
+/* =====================================================
+   RESET INSPECTION
+   ===================================================== */
+
+function resetInspectionForm() {
+
+  currentVehicle = null;
+
+  plateInput.value = "";
+
+  mileageInput.value = "";
+
+  reporterNameInput.value = "";
+
+  vehicleSuccess
+    .classList
+    .remove("show");
+
+  previousRecord
+    .classList
+    .remove("show");
+
+  previousMain.textContent = "";
+
+  previousDetail.textContent = "";
+
+  statusCard
+    .classList
+    .remove("show");
+
+  statusCard.textContent = "";
+
+
+  checkItems.forEach(item => {
+
+    checkState[item.key] = {
+
+      status: null,
+
+      note: ""
+
+    };
+
+  });
+
+
+  renderChecks();
+
+}
+
+
+/* =====================================================
+   VALIDATE INSPECTION
+   ===================================================== */
+
+function validateInspection() {
+
+  if (!currentVehicle) {
+
+    alert(
+      "請先輸入車牌並按「讀取」。"
+    );
+
+    return false;
+
+  }
+
+
+  const mileage =
+    Number(
+      mileageInput.value
+    );
+
+
+  if (
+    !mileageInput.value ||
+    Number.isNaN(mileage) ||
+    mileage < 0
+  ) {
+
+    alert(
+      "請輸入目前里程。"
+    );
+
+    mileageInput.focus();
+
+    return false;
+
+  }
+
+
+  const reporter =
+    reporterNameInput.value.trim();
+
+
+  if (
+    !reporter
+  ) {
+
+    alert(
+      "請從在職名單選擇領車人姓名。"
+    );
+
+    reporterNameInput.focus();
+
+    return false;
+
+  }
+
+
+  for (
+    const item of checkItems
+  ) {
+
+    const state =
+      checkState[item.key];
+
+
+    if (!state.status) {
+
+      alert(
+        `請完成「${item.name}」檢查。`
+      );
+
+      return false;
+
+    }
+
+
+    if (
+      state.status ===
+      "abnormal" &&
+      !state.note.trim()
+    ) {
+
+      alert(
+        `「${item.name}」異常時，請填寫異常說明。`
+      );
+
+      const note =
+        document.getElementById(
+          `note-${item.key}`
+        );
+
+
+      const textarea =
+        note.querySelector(
+          "textarea"
+        );
+
+
+      textarea.focus();
+
+      return false;
+
+    }
+
+  }
+
+
+  return true;
+
+}
+
+
+/* =====================================================
+   SAVE INSPECTION
+   ===================================================== */
+
+async function saveInspection() {
+  if(saveBtn.disabled) return;
+
+  if (
+    !validateInspection()
+  ) {
+
+    return;
+
+  }
+
+
+  saveBtn.disabled = true;
+
+  saveBtn.textContent =
+    "儲存中…";
+
+
+  try {
+
+    const riderEmployee = await requireActiveRider(reporterNameInput.value.trim());
+    if(!atomicRiderEnabled) await requireOriginalRiderReturn(currentVehicle.id, reporterNameInput.value.trim());
+    const mileage =
+      Number(
+        mileageInput.value
+      );
+
+
+    const abnormalItems =
+      checkItems
+        .filter(
+          item =>
+            checkState[item.key].status ===
+            "abnormal"
+        )
+        .map(
+          item => {
+
+            const note =
+              checkState[item.key].note
+                .trim();
+
+
+            return note
+              ? `${item.name}：${note}`
+              : item.name;
+
+          }
+        );
+
+
+    const overallStatus =
+      abnormalItems.length > 0
+        ? "abnormal"
+        : "normal";
+
+
+    const record = {
+      vehicle_id: currentVehicle.id,
+      mileage,
+      engine_start: checkState.engine_start.status,
+      // 舊欄位為 NOT NULL：以新版結果做相容性保存
+      // oil_light 對應新版「引擎發動」；brake 為前後剎車整合結果
+      oil_light: checkState.engine_start.status,
+      brake: (
+        checkState.front_brake.status === "normal" &&
+        checkState.rear_brake.status === "normal"
+      ) ? "normal" : "abnormal",
+
+      // 沿用既有欄位：front_tire／rear_tire 代表新版胎紋判定
+      front_tire: checkState.front_tread.status,
+      front_tire_pressure: checkState.front_tire_pressure.status,
+      rear_tire: checkState.rear_tread.status,
+      rear_tire_pressure: checkState.rear_tire_pressure.status,
+      front_brake: checkState.front_brake.status,
+      rear_brake: checkState.rear_brake.status,
+      headlight: checkState.headlight.status,
+      brake_light: checkState.brake_light.status,
+      other: checkState.other.status,
+      overall_status: overallStatus,
+      abnormal_items: abnormalItems,
+      reporter_name: reporterNameInput.value.trim(),
+      resolution_status: overallStatus === "abnormal" ? "pending" : null
+    };
+
+
+    const result = atomicRiderEnabled
+      ? {data: await atomicRiderWorkflow.submitReturn({
+          employeeId: riderEmployee.id,
+          employeeName: riderEmployee.full_name,
+          vehicleId: currentVehicle.id,
+          mileage,
+          checks: Object.fromEntries(checkItems.map(item=>[item.key,checkState[item.key].status])),
+          notes: Object.fromEntries(checkItems.filter(item=>checkState[item.key].status==="abnormal")
+            .map(item=>[item.key,checkState[item.key].note.trim()]))
+        }), error:null}
+      : await db.from("inspection_reports").insert(record).select().single();
+
+
+    if (result.error) {
+
+      console.error(
+        result.error
+      );
+
+      alert(
+        "巡檢紀錄儲存失敗，請確認資料庫欄位是否完整。"
+      );
+
+      return;
+
+    }
+
+
+    const saved =
+      result.data;
+
+
+    const successData =
+      document.getElementById(
+        "inspectionSuccessData"
+      );
+
+
+    successData.innerHTML = `
+
+      <div>
+        <strong>車牌：</strong>
+        ${currentVehicle.full_plate || ""}
+      </div>
+
+      <div>
+        <strong>CENTER：</strong>
+        ${currentVehicle.center || ""}
+      </div>
+
+      <div>
+        <strong>里程：</strong>
+        ${mileage} km
+      </div>
+
+      <div>
+        <strong>領車人：</strong>
+        ${escapeHtml(reporterNameInput.value.trim())}
+      </div>
+
+      <div>
+        <strong>結果：</strong>
+        ${
+          overallStatus === "normal"
+            ? "正常"
+            : "異常"
+        }
+      </div>
+
+      ${
+        abnormalItems.length
+          ? `
+            <div>
+              <strong>異常項目：</strong>
+              ${abnormalItems.join("<br>")}
+            </div>
+          `
+          : ""
+      }
+
+    `;
+
+
+    document
+      .getElementById(
+        "inspectionForm"
+      )
+      .style.display = "none";
+
+
+    document
+      .getElementById(
+        "inspectionSuccess"
+      )
+      .classList
+      .add("show");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message || "系統發生錯誤，請稍後再試。"
+    );
+
+  } finally {
+
+    saveBtn.disabled = false;
+
+    saveBtn.textContent =
+      "儲存巡檢紀錄";
+
+  }
+
+}
+
+
+saveBtn.addEventListener(
+  "click",
+  saveInspection
+);
+
+
+/* =====================================================
+   CLAIM
+   ===================================================== */
+
+const modeMenu =
+  document.getElementById(
+    "modeMenu"
+  );
+
+const claimPage =
+  document.getElementById(
+    "claimPage"
+  );
+
+const inspectionPage =
+  document.getElementById(
+    "inspectionPage"
+  );
+
+const claimForm =
+  document.getElementById(
+    "claimForm"
+  );
+
+const claimSuccess =
+  document.getElementById(
+    "claimSuccess"
+  );
+
+const inspectionForm =
+  document.getElementById(
+    "inspectionForm"
+  );
+
+const inspectionSuccess =
+  document.getElementById(
+    "inspectionSuccess"
+  );
+
+const batteryPage = document.getElementById("batteryPage");
+const batteryRegisterPage = document.getElementById("batteryRegisterPage");
+const surveyPage = document.getElementById("surveyPage");
+const batteryForm = document.getElementById("batteryForm");
+const batterySuccess = document.getElementById("batterySuccess");
+const batteryRegisterNumberInput = document.getElementById("batteryRegisterNumber");
+const batteryRegisterRestaurantInput = document.getElementById("batteryRegisterRestaurant");
+const batteryRegisterSaveBtn = document.getElementById("batteryRegisterSaveBtn");
+const batteryRegisterMessage = document.getElementById("batteryRegisterMessage");
+const surveyForm = document.getElementById("surveyForm");
+const surveySuccess = document.getElementById("surveySuccess");
+const defensivePage = document.getElementById("defensivePage");
+const defensiveForm = document.getElementById("defensiveForm");
+const defensiveSuccess = document.getElementById("defensiveSuccess");
+const defensiveNameInput = document.getElementById("defensiveName");
+const defensiveNameSuggestions = document.getElementById("defensiveNameSuggestions");
+const claimantNameSuggestions = document.getElementById("claimantNameSuggestions");
+const reporterNameSuggestions = document.getElementById("reporterNameSuggestions");
+const surveyRespondentNameSuggestions = document.getElementById("surveyRespondentNameSuggestions");
+const defensiveMonthSelect = document.getElementById("defensiveMonth");
+const defensiveLoadBtn = document.getElementById("defensiveLoadBtn");
+const defensiveStatus = document.getElementById("defensiveStatus");
+const defensiveLessonPanel = document.getElementById("defensiveLessonPanel");
+const defensiveLessonTitle = document.getElementById("defensiveLessonTitle");
+const defensiveVideoLink = document.getElementById("defensiveVideoLink");
+const defensivePdfLink = document.getElementById("defensivePdfLink");
+const defensiveVideoStatus = document.getElementById("defensiveVideoStatus");
+const defensiveQuestions = document.getElementById("defensiveQuestions");
+const defensiveQuestion1 = document.getElementById("defensiveQuestion1");
+const defensiveQuestion2 = document.getElementById("defensiveQuestion2");
+const defensiveSubmitBtn = document.getElementById("defensiveSubmitBtn");
+const defensiveSuccessData = document.getElementById("defensiveSuccessData");
+let defensiveLesson = null;
+let defensiveVideoOpenedAt = null;
+let defensivePdfOpenedAt = null;
+let defensiveExistingResponse = null;
+let defensiveTargetNames = [];
+let defensiveTargetNamesLoaded = false;
+let activeEmployeeDirectory = [];
+let nameListLoadPromise = null;
+
+
+const pageTitle =
+  document.getElementById(
+    "pageTitle"
+  );
+
+const todayDate =
+  document.getElementById(
+    "todayDate"
+  );
+
+const introTitle =
+  document.getElementById(
+    "introTitle"
+  );
+
+const introSection =
+  introTitle.closest(".intro");
+
+const introText =
+  document.getElementById(
+    "introText"
+  );
+
+
+const claimantName =
+  document.getElementById(
+    "claimantName"
+  );
+
+const claimPoint =
+  document.getElementById(
+    "claimPoint"
+  );
+
+const claimPlate =
+  document.getElementById(
+    "claimPlate"
+  );
+
+const claimReadBtn =
+  document.getElementById(
+    "claimReadBtn"
+  );
+
+const claimVehicleInfo =
+  document.getElementById(
+    "claimVehicleInfo"
+  );
+
+const lastClaim =
+  document.getElementById(
+    "lastClaim"
+  );
+
+const recorderNumber =
+  document.getElementById(
+    "recorderNumber"
+  );
+const claimBatteryNumber = document.getElementById("claimBatteryNumber");
+const claimBatteryStatus = document.getElementById("claimBatteryStatus");
+
+const recorderNumberWrap =
+  document.getElementById(
+    "recorderNumberWrap"
+  );
+
+const recorderHealthInfo = document.getElementById("recorderHealthInfo");
+
+const claimSaveBtn =
+  document.getElementById(
+    "claimSaveBtn"
+  );
+
+
+let claimVehicle =
+  null;
+
+
+/* =====================================================
+   CLAIM PLATE
+   ===================================================== */
+
+function getClaimPlate4() {
+
+  const value =
+    claimPlate.value
+      .trim()
+      .toUpperCase();
+
+
+  const numbers =
+    value.replace(
+      /\D/g,
+      ""
+    );
+
+
+  if (
+    numbers.length >= 4
+  ) {
+
+    return numbers.slice(-4);
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =====================================================
+   READ CLAIM VEHICLE
+   ===================================================== */
+
+function isTodayLocal(value){
+  if(!value) return false;
+  const d = new Date(value);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
+async function loadClaimVehicle() {
+
+  const plate4 =
+    getClaimPlate4();
+
+
+  if (
+    plate4.length !== 4
+  ) {
+
+    alert(
+      "請輸入正確的車牌四碼。"
+    );
+
+    claimPlate.focus();
+
+    return;
+
+  }
+
+
+  claimReadBtn.disabled = true;
+
+  claimReadBtn.textContent =
+    "讀取中…";
+
+
+  claimVehicle = null;
+
+  claimVehicleInfo.textContent =
+    "";
+
+  lastClaim
+    .classList
+    .remove("show");
+
+
+  try {
+
+    const result =
+      await db
+        .from("vehicles")
+        .select("*")
+        .eq(
+          "plate4",
+          plate4
+        )
+        .eq(
+          "active",
+          true
+        )
+        .maybeSingle();
+
+
+    if (result.error) {
+
+      console.error(
+        result.error
+      );
+
+      alert(
+        "讀取車輛資料失敗，請稍後再試。"
+      );
+
+      return;
+
+    }
+
+
+    if (!result.data) {
+
+      alert(
+        "查無此車牌，請確認輸入是否正確。"
+      );
+
+      return;
+
+    }
+
+
+    claimVehicle =
+      result.data;
+
+
+    claimPlate.value =
+      claimVehicle.full_plate ||
+      plate4;
+
+
+    const latest = await db
+      .from("claim_records")
+      .select("*")
+      .eq("vehicle_id", claimVehicle.id)
+      .order("claimed_at", {ascending:false})
+      .limit(1)
+      .maybeSingle();
+
+    const latestInspection = await db
+      .from("inspection_reports")
+      .select("*")
+      .eq("vehicle_id", claimVehicle.id)
+      .order("reported_at", {ascending:false})
+      .limit(1)
+      .maybeSingle();
+
+    const claim = latest.data;
+    const inspection = latestInspection.data;
+    const returnedToday = Boolean(claim && isTodayLocal(claim.claimed_at) && inspection && new Date(inspection.reported_at).getTime() >= new Date(claim.claimed_at).getTime());
+    const statusText = claim && isTodayLocal(claim.claimed_at)
+      ? (returnedToday ? "今日已還車" : "今日已領車｜尚未還車")
+      : "今日未領車";
+    const inspectionText = inspection
+      ? (inspection.overall_status === "abnormal" ? "最新巡檢：異常" : "最新巡檢：正常")
+      : "最新巡檢：尚無紀錄";
+
+    claimVehicleInfo.innerHTML = `
+      <div style="font-weight:800;font-size:18px;">${escapeHtml(claimVehicle.full_plate || plate4)}</div>
+      <div style="margin-top:6px;">所在餐廳／CENTER：${escapeHtml(claimVehicle.center || "未設定")}</div>
+      <div style="margin-top:6px;font-weight:800;">目前狀態：${escapeHtml(statusText)}</div>
+      <div style="margin-top:6px;color:#77736d;">${escapeHtml(inspectionText)}</div>
+      ${claim ? `<div style="margin-top:6px;color:#77736d;">最新領車人：${escapeHtml(claim.claimant_name || "未填寫")}<br>領車時間：${escapeHtml(formatDateTime(claim.claimed_at))}</div>` : ""}
+    `;
+    claimVehicleInfo.classList.add("show");
+    lastClaim.classList.remove("show");
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message || "系統發生錯誤，請稍後再試。"
+    );
+
+  } finally {
+
+    claimReadBtn.disabled = false;
+
+    claimReadBtn.textContent =
+      "讀取";
+
+  }
+
+}
+
+
+claimReadBtn.addEventListener(
+  "click",
+  loadClaimVehicle
+);
+
+
+function updateRecorderInput() {
+  const type = document.querySelector('input[name="recorderType"]:checked');
+  const showNumber = type?.value === "number";
+  recorderNumberWrap.classList.toggle("show", showNumber);
+  if (!showNumber){
+    recorderNumber.value = "";
+    recorderHealthInfo.style.display = "none";
+    recorderHealthInfo.textContent = "";
+  }
+}
+
+document.querySelectorAll('input[name="recorderType"]').forEach(radio => {
+  radio.addEventListener("change", updateRecorderInput);
+});
+
+
+async function registerRecorderFromClaim(){
+  const number = recorderNumber.value.trim();
+  const sizeInput = document.getElementById("claimRecorderSize");
+  const registerButton = document.getElementById("claimRecorderRegisterBtn");
+  const message = document.getElementById("claimRecorderRegisterMessage");
+  const size = sizeInput?.value === "small" ? "small" : "large";
+  if(!number || !registerButton) return;
+  registerButton.disabled = true;
+  registerButton.textContent = "新增中…";
+  if(message) message.textContent = "正在建立紀錄器資料…";
+  try{
+    const result = await db.from("recorders").insert({
+      recorder_number: number,
+      recorder_size: size,
+      status: "active",
+      health_status: "normal",
+      health_note: null
+    }).select("*").single();
+    if(result.error){
+      if(result.error.code === "23505"){
+        await loadRecorderHealth();
+        return;
+      }
+      throw result.error;
+    }
+    recorderHealthInfo.className = "hint success";
+    recorderHealthInfo.innerHTML = `紀錄器「${escapeHtml(number)}」已新增為正常使用中（${size === "large" ? "A10／大台" : "C100／小台"}）。`;
+  }catch(e){
+    if(message) message.textContent = `新增失敗：${e.message || "請稍後再試"}`;
+    registerButton.disabled = false;
+    registerButton.textContent = "＋ 新增為正常使用中";
+  }
+}
+
+async function loadRecorderHealth(){
+  const number = recorderNumber.value.trim();
+  if(!number){
+    recorderHealthInfo.style.display = "none";
+    recorderHealthInfo.textContent = "";
+    return;
+  }
+  recorderHealthInfo.style.display = "block";
+  recorderHealthInfo.textContent = "讀取紀錄器健康履歷中…";
+  try{
+    const result = await db.from("recorders").select("*").eq("recorder_number", number).maybeSingle();
+    if(result.error) throw result.error;
+    if(!result.data){
+      const safeNumber = escapeHtml(number);
+      recorderHealthInfo.className = "hint";
+      recorderHealthInfo.innerHTML = `
+        查無紀錄器「${safeNumber}」建檔資料。<br>
+        <span style="display:block;margin-top:8px;font-weight:800;">確認編號正確後，可直接新增</span>
+        <select id="claimRecorderSize" class="search-input" style="margin-top:8px;max-width:240px;">
+          <option value="large">A10／大台</option>
+          <option value="small">C100／小台</option>
+        </select>
+        <button id="claimRecorderRegisterBtn" type="button" class="action-btn" style="margin-top:8px;">＋ 新增為正常使用中</button>
+        <div id="claimRecorderRegisterMessage" style="margin-top:6px;"></div>
+      `;
+      document.getElementById("claimRecorderRegisterBtn").addEventListener("click", registerRecorderFromClaim);
+      return;
+    }
+    const recorder = result.data;
+    const last = await db.from("claim_records")
+      .select("claimant_name,claimed_at,claim_point")
+      .eq("recorder_number", number)
+      .order("claimed_at",{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    const status = recorder.status === "scrapped" ? "已報廢" : (recorder.health_status === "abnormal" ? "異常" : "正常");
+    const cls = status === "正常" ? "success" : "";
+    recorderHealthInfo.className = `hint ${cls}`;
+    recorderHealthInfo.innerHTML = `紀錄器：${escapeHtml(recorder.recorder_size === "large" ? "大台" : "小台")}｜目前狀態：${escapeHtml(status)}${recorder.health_note ? `<br>異常說明：${escapeHtml(recorder.health_note)}` : ""}${last.data ? `<br>最近登記領取者：${escapeHtml(last.data.claimant_name || "未填")}｜${escapeHtml(formatDateTime(last.data.claimed_at))}` : "<br>尚無領取紀錄"}`;
+  }catch(e){
+    recorderHealthInfo.className = "hint";
+    recorderHealthInfo.textContent = `紀錄器資料讀取失敗：${e.message || "請稍後再試"}`;
+  }
+}
+
+recorderNumber.addEventListener("blur", loadRecorderHealth);
+recorderNumber.addEventListener("input", () => {
+  clearTimeout(window.__recorderHealthTimer);
+  window.__recorderHealthTimer = setTimeout(loadRecorderHealth, 400);
+});
+
+/* =====================================================
+   RESET CLAIM
+   ===================================================== */
+
+function resetClaimForm() {
+
+  claimVehicle = null;
+
+  claimantName.value = "";
+
+  claimPoint.value = "";
+
+  claimPlate.value = "";
+
+  recorderNumber.value = "";
+  claimBatteryNumber.value = "";
+  claimBatteryStatus.style.display = "none";
+  claimBatteryStatus.textContent = "";
+  recorderNumberWrap.classList.remove("show");
+  recorderHealthInfo.style.display = "none";
+  recorderHealthInfo.textContent = "";
+
+  document.querySelectorAll('input[name="recorderType"]').forEach(radio => {
+    radio.checked = false;
+  });
+
+  claimVehicleInfo.textContent =
+    "";
+
+  lastClaim
+    .classList
+    .remove("show");
+
+
+  document
+    .querySelectorAll(
+      'input[name="oilCardStatus"]'
+    )
+    .forEach(
+      radio =>
+        radio.checked = false
+    );
+
+}
+
+
+/* =====================================================
+   SAVE CLAIM
+   ===================================================== */
+
+
+// These checks fail closed on lookup errors. Database RPC enforcement is also
+// required to prevent simultaneous submissions or direct API bypass.
+async function requireActiveRider(name){
+  const r=await db.from("employee_directory").select("id,full_name").eq("full_name",name).eq("is_active",true).maybeSingle();
+  if(r.error)throw r.error;
+  if(!r.data)throw new Error("姓名不在在職名單，請找店長確認。");
+  return r.data;
+}
+async function requireNoPendingClaimToday(name){
+  const bounds=RiderRules.dayBounds();
+  const claims=await db.from("claim_records").select("vehicle_id,claimant_name,claimed_at").eq("claimant_name",name).gte("claimed_at",bounds.start).lt("claimed_at",bounds.end).order("claimed_at",{ascending:false}).limit(101);
+  if(claims.error)throw claims.error;
+  if((claims.data||[]).length>100)throw new Error("今日領車紀錄過多，請管理員核對。");
+  for(const claim of claims.data||[]){
+    const returned=await db.from("inspection_reports").select("id").eq("vehicle_id",claim.vehicle_id).eq("reporter_name",name).gte("reported_at",claim.claimed_at).limit(1);
+    if(returned.error)throw returned.error;
+    if(!returned.data?.length)throw new Error("你今天還有未還車紀錄，請先還車再領車。");
+  }
+}
+async function requireOriginalRiderReturn(vehicleId,name){
+  const claim=await db.from("claim_records").select("claimant_name,claimed_at").eq("vehicle_id",vehicleId).order("claimed_at",{ascending:false}).limit(1).maybeSingle();
+  if(claim.error)throw claim.error;
+  if(!claim.data)throw new Error("查無本車領車紀錄，請管理員核對。");
+  if(claim.data.claimant_name!==name)throw new Error("只允許原領車人還車，請確認在職名單姓名。");
+  const previous=await db.from("inspection_reports").select("id").eq("vehicle_id",vehicleId).eq("reporter_name",name).gte("reported_at",claim.data.claimed_at).limit(1);
+  if(previous.error)throw previous.error;
+  if(previous.data?.length)throw new Error("這次領車已完成還車，請勿重複送出。");
+}
+
+async function saveClaim() {
+  if(claimSaveBtn.disabled) return;
+
+  const name =
+    claimantName.value.trim();
+
+
+  if (
+    !name
+  ) {
+
+    alert(
+      "請從在職名單選擇領車人姓名。"
+    );
+
+    claimantName.focus();
+
+    return;
+
+  }
+
+
+  if (
+    !claimPoint.value
+  ) {
+
+    alert(
+      "請選擇領車點。"
+    );
+
+    claimPoint.focus();
+
+    return;
+
+  }
+
+
+  if (!claimVehicle) {
+
+    alert(
+      "請先輸入車牌並按「讀取」。"
+    );
+
+    claimPlate.focus();
+
+    return;
+
+  }
+
+
+  const recorderType =
+    document.querySelector('input[name="recorderType"]:checked');
+
+  if (!recorderType) {
+    alert("請選擇行車紀錄器：輸入編號或自備。");
+    return;
+  }
+
+  const recorder =
+    recorderType.value === "self"
+      ? "自備"
+      : recorderNumber.value.trim();
+
+  if (recorderType.value === "number" && !recorder) {
+    alert("請輸入紀錄器編號。");
+    recorderNumber.focus();
+    return;
+  }
+
+
+  if(recorderType.value === "number") {
+    const recorderResult = await db.from("recorders").select("status").eq("recorder_number", recorder).maybeSingle();
+    if(recorderResult.error) throw recorderResult.error;
+    if(!recorderResult.data){
+      alert("此紀錄器尚未建檔，請通知後台先完成紀錄器建檔。");
+      return;
+    }
+    if(recorderResult.data.status === "scrapped"){
+      alert("此紀錄器已報廢，請更換其他紀錄器。");
+      return;
+    }
+  }
+
+  const batteryNumber = claimBatteryNumber.value.trim();
+  if(batteryNumber){
+    try{
+      const batteryResult=await db.from("batteries").select("status,health_status").eq("battery_number",batteryNumber).maybeSingle();
+      if(batteryResult.error)throw batteryResult.error;
+      if(!batteryResult.data){alert("查無此電池編號，請確認設備已建檔或清空此欄位。");claimBatteryNumber.focus();return;}
+      if(batteryResult.data.status==="scrapped"){alert("此電池已報廢，請勿領用。");claimBatteryNumber.focus();return;}
+    }catch(e){alert(`電池查詢失敗：${e.message||"請確認資料庫更新後重試"}`);return;}
+  }
+
+  const oilCard =
+    document.querySelector(
+      'input[name="oilCardStatus"]:checked'
+    );
+
+
+  if (!oilCard) {
+
+    alert(
+      "請選擇油卡狀態。"
+    );
+
+    return;
+
+  }
+
+
+  claimSaveBtn.disabled = true;
+
+  claimSaveBtn.textContent =
+    "儲存中…";
+
+
+  try {
+
+    const riderEmployee = await requireActiveRider(name);
+    let result;
+    if(atomicRiderEnabled){
+      result = {data:await atomicRiderWorkflow.submitClaim({
+        employeeId:riderEmployee.id, employeeName:riderEmployee.full_name,
+        vehicleId:claimVehicle.id, claimPoint:claimPoint.value,
+        recorderNumber:recorder, batteryNumber:batteryNumber || null,
+        oilCardStatus:oilCard.value
+      }),error:null};
+    }else{
+      await requireNoPendingClaimToday(name);
+      result = await db.from("claim_records").insert({
+        vehicle_id:claimVehicle.id, claimant_name:name, claim_point:claimPoint.value,
+        recorder_number:recorder, battery_number:batteryNumber || null,
+        oil_card_status:oilCard.value
+      }).select().single();
+    }
+
+
+    if (result.error) {
+
+      console.error(
+        result.error
+      );
+
+      alert(
+        "領車紀錄儲存失敗，請稍後再試。"
+      );
+
+      return;
+
+    }
+
+
+    const saved =
+      result.data;
+
+
+    document
+      .getElementById(
+        "claimSuccessData"
+      )
+      .innerHTML = `
+
+        <div>
+          <strong>領車人：</strong>
+          ${name}
+        </div>
+
+        <div>
+          <strong>領車點：</strong>
+          ${claimPoint.value}
+        </div>
+
+        <div>
+          <strong>車牌：</strong>
+          ${claimVehicle.full_plate || ""}
+        </div>
+
+        ${
+          claimVehicle.center
+            ? `
+              <div>
+                <strong>CENTER：</strong>
+                ${claimVehicle.center}
+              </div>
+            `
+            : ""
+        }
+
+        <div>
+          <strong>行車紀錄器：</strong>
+          ${recorder}
+        </div>
+
+        <div>
+          <strong>油卡狀態：</strong>
+          ${oilCard.value}
+        </div>
+
+        <div>
+          <strong>領車時間：</strong>
+          ${formatDateTime(
+            saved.claimed_at
+          )}
+        </div>
+
+      `;
+
+
+    claimForm.style.display =
+      "none";
+
+
+    claimSuccess
+      .classList
+      .add("show");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message || "系統發生錯誤，請稍後再試。"
+    );
+
+  } finally {
+
+    claimSaveBtn.disabled = false;
+
+    claimSaveBtn.textContent =
+      "送出領車紀錄";
+
+  }
+
+}
+
+
+let claimSubmissionPending = false;
+claimSaveBtn.addEventListener("click", async () => {
+  if(claimSubmissionPending)return;
+  claimSubmissionPending = true;
+  try{await saveClaim();}catch(error){alert(error.message || "領車失敗，請稍後重試。");}
+  finally{claimSubmissionPending = false;}
+});
+
+
+
+
+/* =====================================================
+   BATTERY ISSUE REPORT
+   ===================================================== */
+
+const deviceIssueTypeInput = document.getElementById("deviceIssueType");
+const deviceNumberInput = document.getElementById("deviceNumber");
+const deviceLookupMessage = document.getElementById("deviceLookupMessage");
+const deviceCardPanel = document.getElementById("deviceCardPanel");
+const deviceRegisterPanel = document.getElementById("deviceRegisterPanel");
+const deviceRegisterMessage = document.getElementById("deviceRegisterMessage");
+const deviceRegisterInlineBtn = document.getElementById("deviceRegisterInlineBtn");
+const deviceIssuePanel = document.getElementById("deviceIssuePanel");
+const deviceIssueDetailInput = document.getElementById("deviceIssueDetail");
+const deviceIssueSubmitBtn = document.getElementById("deviceIssueSubmitBtn");
+const deviceBatteryRestaurantInput = document.getElementById("batteryRestaurant");
+const deviceRecorderSizeInput = document.getElementById("recorderRegisterSize");
+const deviceBatteryRegisterFields = document.getElementById("batteryRegisterFields");
+const deviceRecorderRegisterFields = document.getElementById("recorderRegisterFields");
+let currentManagedDevice = null;
+let managedDeviceLookupToken = 0;
+let managedDeviceLookupTimer = null;
+
+function managedDeviceIsBattery(){
+  return deviceIssueTypeInput.value === "battery";
+}
+
+function managedDeviceTable(){
+  return managedDeviceIsBattery() ? "batteries" : "recorders";
+}
+
+function managedDeviceLabel(){
+  return managedDeviceIsBattery() ? "電池" : "行車紀錄器";
+}
+
+function managedDeviceNumber(row){
+  return managedDeviceIsBattery() ? row?.battery_number : row?.recorder_number;
+}
+
+function managedDeviceStatus(row){
+  if(row?.status === "scrapped") return "已報廢";
+  if(row?.health_status === "abnormal") return "異常";
+  return "正常";
+}
+
+function renderManagedDeviceCard(row){
+  const battery = managedDeviceIsBattery();
+  const status = managedDeviceStatus(row);
+  const statusClass = status === "正常" ? "success" : "";
+  deviceCardPanel.innerHTML = `
+    <div class="device-mini-card">
+      <div class="device-mini-top"><span class="device-mini-icon">${battery ? "🔋" : "📹"}</span><span>${battery ? "電池" : "行車紀錄器"}小卡</span></div>
+      <div class="device-mini-grid">
+        <div class="device-mini-item">設備編號<strong>${escapeHtml(managedDeviceNumber(row) || "未填寫")}</strong></div>
+        <div class="device-mini-item">${battery ? "所在餐廳" : "型號"}<strong>${escapeHtml(battery ? (row.restaurant_no || "未填寫") : (row.recorder_size === "large" ? "A10／大台" : "C100／小台"))}</strong></div>
+      </div>
+      <div class="hint ${statusClass}">目前狀態：${escapeHtml(status)}${row.health_note ? `<br>異常說明：${escapeHtml(row.health_note)}` : ""}</div>
+    </div>`;
+  deviceCardPanel.style.display = "block";
+}
+
+function updateDeviceTypeButtons(){
+  document.querySelectorAll(".device-type-btn").forEach(button => {
+    const active = button.dataset.deviceType === deviceIssueTypeInput.value;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
+function updateDeviceManagementFields(){
+  const battery = managedDeviceIsBattery();
+  updateDeviceTypeButtons();
+  deviceNumberInput.placeholder = battery ? "請輸入電池編號" : "請輸入紀錄器編號";
+  deviceBatteryRegisterFields.style.display = battery ? "block" : "none";
+  deviceRecorderRegisterFields.style.display = battery ? "none" : "block";
+}
+
+function resetDeviceManagementForm(){
+  currentManagedDevice = null;
+  deviceNumberInput.value = "";
+  deviceLookupMessage.textContent = "";
+  deviceRegisterMessage.textContent = "";
+  deviceCardPanel.innerHTML = "";
+  deviceCardPanel.style.display = "none";
+  deviceRegisterPanel.style.display = "none";
+  deviceIssuePanel.style.display = "none";
+  deviceIssueDetailInput.value = "";
+  deviceIssueTypeInput.value = "battery";
+  if(deviceBatteryRestaurantInput) deviceBatteryRestaurantInput.value = "";
+  if(deviceRecorderSizeInput) deviceRecorderSizeInput.value = "large";
+  updateDeviceManagementFields();
+}
+
+async function lookupManagedDevice(){
+  const number = deviceNumberInput.value.trim();
+  if(!number){
+    currentManagedDevice = null;
+    deviceCardPanel.innerHTML = "";
+    deviceCardPanel.style.display = "none";
+    deviceRegisterPanel.style.display = "none";
+    deviceIssuePanel.style.display = "none";
+    deviceLookupMessage.textContent = "";
+    return;
+  }
+  const lookupToken = ++managedDeviceLookupToken;
+  deviceLookupMessage.textContent = "查詢設備中…";
+  deviceRegisterPanel.style.display = "none";
+  deviceIssuePanel.style.display = "none";
+  try{
+    const columns = managedDeviceIsBattery()
+      ? "id,battery_number,restaurant_no,status,health_status,health_note,created_at"
+      : "id,recorder_number,recorder_size,status,health_status,health_note,created_at";
+    const result = await db.from(managedDeviceTable()).select(columns).eq(managedDeviceIsBattery() ? "battery_number" : "recorder_number", number).maybeSingle();
+    if(lookupToken !== managedDeviceLookupToken || number !== deviceNumberInput.value.trim()) return;
+    if(result.error) throw result.error;
+    if(result.data){
+      currentManagedDevice = result.data;
+      renderManagedDeviceCard(result.data);
+      if(result.data.status === "scrapped"){
+        deviceLookupMessage.textContent = "此設備已報廢，無法送出異常回報。";
+        return;
+      }
+      deviceLookupMessage.textContent = "已找到設備小卡，請繼續填寫異常原因。";
+      deviceIssuePanel.style.display = "block";
+      return;
+    }
+    currentManagedDevice = null;
+    deviceCardPanel.innerHTML = "";
+    deviceCardPanel.style.display = "none";
+    deviceRegisterPanel.style.display = "block";
+    deviceLookupMessage.textContent = `查無此${managedDeviceLabel()}，請先新增小卡。`;
+  }catch(error){
+    if(lookupToken !== managedDeviceLookupToken) return;
+    console.error(error);
+    deviceLookupMessage.textContent = `設備查詢失敗：${error.message || "請稍後再試"}`;
+  }
+}
+
+function scheduleManagedDeviceLookup(){
+  clearTimeout(managedDeviceLookupTimer);
+  const number = deviceNumberInput.value.trim();
+  if(!number){
+    lookupManagedDevice();
+    return;
+  }
+  deviceLookupMessage.textContent = "輸入完成後自動查詢…";
+  managedDeviceLookupTimer = setTimeout(() => lookupManagedDevice(), 450);
+}
+
+async function addManagedDevice(){
+  const number = deviceNumberInput.value.trim();
+  const battery = managedDeviceIsBattery();
+  if(!number){
+    deviceRegisterMessage.textContent = `請先輸入${managedDeviceLabel()}編號。`;
+    deviceNumberInput.focus();
+    return;
+  }
+  if(battery && !deviceBatteryRestaurantInput.value){
+    deviceRegisterMessage.textContent = "請選擇電池所在餐廳。";
+    deviceBatteryRestaurantInput.focus();
+    return;
+  }
+  deviceRegisterInlineBtn.disabled = true;
+  deviceRegisterInlineBtn.textContent = "新增中…";
+  deviceRegisterMessage.textContent = "正在建立設備小卡…";
+  try{
+    const payload = battery
+      ? {battery_number:number, restaurant_no:deviceBatteryRestaurantInput.value, status:"active", health_status:"normal", health_note:null}
+      : {recorder_number:number, recorder_size:deviceRecorderSizeInput.value, status:"active", health_status:"normal", health_note:null};
+    const result = await db.from(managedDeviceTable()).insert(payload).select().single();
+    if(result.error){
+      if(result.error.code === "23505"){
+        deviceRegisterMessage.textContent = "此編號已存在，正在載入設備小卡…";
+        await lookupManagedDevice();
+        return;
+      }
+      throw result.error;
+    }
+    currentManagedDevice = result.data;
+    renderManagedDeviceCard(result.data);
+    deviceRegisterPanel.style.display = "none";
+    deviceIssuePanel.style.display = "block";
+    deviceRegisterMessage.textContent = "";
+    deviceLookupMessage.textContent = "設備小卡已新增，請繼續填寫異常原因。";
+  }catch(error){
+    console.error(error);
+    deviceRegisterMessage.textContent = `新增失敗：${error.message || "請稍後再試"}`;
+  }finally{
+    deviceRegisterInlineBtn.disabled = false;
+    deviceRegisterInlineBtn.textContent = "新增小卡並繼續";
+  }
+}
+
+async function submitManagedDeviceIssue(){
+  const detail = deviceIssueDetailInput.value.trim();
+  if(!currentManagedDevice){
+    alert("請先查詢或新增設備小卡。");
+    return;
+  }
+  if(currentManagedDevice.status === "scrapped"){
+    alert("此設備已報廢，無法回報異常。");
+    return;
+  }
+  if(!detail){
+    alert("請填寫異常原因。");
+    deviceIssueDetailInput.focus();
+    return;
+  }
+  const battery = managedDeviceIsBattery();
+  deviceIssueSubmitBtn.disabled = true;
+  deviceIssueSubmitBtn.textContent = "送出中…";
+  try{
+    const issuePayload = battery
+      ? {battery_number:currentManagedDevice.battery_number, restaurant_no:currentManagedDevice.restaurant_no, issue_description:detail, resolution_status:"pending"}
+      : {recorder_id:currentManagedDevice.id, recorder_number:currentManagedDevice.recorder_number, issue_description:detail, resolution_status:"pending"};
+    const result = await db.from(battery ? "battery_issue_reports" : "recorder_issue_reports").insert(issuePayload);
+    if(result.error) throw result.error;
+    const update = await db.from(managedDeviceTable()).update({health_status:"abnormal", health_note:detail}).eq("id", currentManagedDevice.id);
+    if(update.error) throw update.error;
+    document.getElementById("batterySuccessData").innerHTML = `
+      <div><strong>設備：</strong>${escapeHtml(battery ? "電池" : "行車紀錄器")}</div>
+      <div><strong>設備編號：</strong>${escapeHtml(managedDeviceNumber(currentManagedDevice))}</div>
+      <div><strong>異常原因：</strong>${escapeHtml(detail)}</div>
+      <div><strong>回報時間：</strong>${formatDateTime(new Date().toISOString())}</div>`;
+    batteryForm.style.display = "none";
+    batterySuccess.classList.add("show");
+  }catch(error){
+    console.error(error);
+    alert(`設備異常回報失敗：${error.message || "請稍後再試"}`);
+  }finally{
+    deviceIssueSubmitBtn.disabled = false;
+    deviceIssueSubmitBtn.textContent = "送出設備異常回報";
+  }
+}
+
+document.querySelectorAll(".device-type-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    deviceIssueTypeInput.value = button.dataset.deviceType;
+    currentManagedDevice = null;
+    deviceNumberInput.value = "";
+    deviceCardPanel.innerHTML = "";
+    deviceCardPanel.style.display = "none";
+    deviceRegisterPanel.style.display = "none";
+    deviceIssuePanel.style.display = "none";
+    deviceLookupMessage.textContent = "";
+    deviceRegisterMessage.textContent = "";
+    deviceIssueDetailInput.value = "";
+    updateDeviceManagementFields();
+  });
+});
+deviceNumberInput.addEventListener("input", scheduleManagedDeviceLookup);
+deviceNumberInput.addEventListener("blur", () => {
+  clearTimeout(managedDeviceLookupTimer);
+  lookupManagedDevice();
+});
+deviceRegisterInlineBtn.addEventListener("click", addManagedDevice);
+deviceIssueSubmitBtn.addEventListener("click", submitManagedDeviceIssue);
+
+function resetBatteryForm(){
+  resetDeviceManagementForm();
+}
+
+function resetBatteryRegisterForm(){
+  if(typeof batteryRegisterNumberInput !== "undefined") batteryRegisterNumberInput.value = "";
+  if(typeof batteryRegisterRestaurantInput !== "undefined") batteryRegisterRestaurantInput.value = "";
+  if(typeof batteryRegisterMessage !== "undefined"){
+    batteryRegisterMessage.textContent = "";
+    batteryRegisterMessage.className = "training-message";
+  }
+}
+
+
+/* =====================================================
+   DRIVER SURVEY
+   ===================================================== */
+
+// 桃園正式駕駛意向調查題目：第一部分 31 題、第二部分 16 題。
+// 目前資料表未列獨立違規點數欄位，故與第一部分答案一併放在 part1_answers。
+const behaviorQuestions = [
+  "未依規定任意變換車道",
+  "在接近迴轉處或路口時走錯車道",
+  "緊鄰前車，以此作為一種訊號，示意前車開快點或讓路",
+  "塞車時，騎上人行道",
+  "路口轉彎時未注意到行人在過馬路",
+  "按喇叭來表示你對另一位司機的不滿",
+  "隨意路邊停車",
+  "轉彎時視線集中於右方車，差點撞上前方車輛",
+  "闖紅燈",
+  "右轉彎時差點撞上已行駛至你右方的車子／機車",
+  "深夜或凌晨時超速",
+  "出發時油門加到底",
+  "出發前或轉換行車路線時忘記查看後照鏡",
+  "對使用特殊車道的駕駛人（例如：腳踏車）懷有敵意，並用各種方式表現出來（例如：鳴喇叭等）",
+  "對慢速行駛的前車感到不耐煩，並從內側超車",
+  "超車時，未保持足夠的安全距離",
+  "車輛行進間，當你想要開啟某個功能，卻啟動了另一項功能（例：打右轉燈打成左轉燈）",
+  "超過路口停止線很多，以致橫向車道行駛的車輛不得不停下來讓你走",
+  "酒後駕駛",
+  "與其他駕駛進行「尬車」",
+  "另一個司機的行為惹你生氣，你開／騎車追他，想向他表達你的不滿",
+  "看錯了標誌，走錯了路",
+  "倒車時撞上你事先沒看到的東西（包括人或物件）",
+  "欲超越前車時，沒注意到他正打著左轉方向燈",
+  "在濕滑路面上緊急煞車",
+  "沒有看到「讓」標誌，差點與主線上或正常行駛的車輛相撞",
+  "原本預定開向目的地 A，突然發現自己正通向 B，因為 B 是你更常去的地方",
+  "忘了把車停在停車場的什麼地方",
+  "發現你對剛剛行駛過的路線沒有清晰的印象",
+  "塞車時選擇另一條路走，結果那一條路更加塞車",
+  "燈號轉換時像賽車一樣衝出，為的是要贏過旁邊的駕駛"
+];
+
+const attitudeQuestions = [
+  "在市中心超速",
+  "在郊區超速",
+  "闖黃燈",
+  "在僻靜的道路上闖紅燈",
+  "在超越前面的車輛時，超過最高速限",
+  "與前車太靠近",
+  "在單行道上逆向行駛",
+  "因想取悅同型的異性朋友而超速",
+  "為了要領先別人忽略交通規則",
+  "違反交通規則",
+  "駕駛時不遵守交通規則",
+  "因為同伴的慫恿而違反交通規則",
+  "魯莽的駕駛只因同行的其他人期待我這樣做",
+  "開快車是因為要顯示我膽子很大",
+  "開快車是因為要顯示我有高超的駕駛技術",
+  "就算知道車輛的功能有問題（如大燈、剎車），依舊可以駕駛，因為相信自己有能力補救"
+];
+const surveyAnswers = { behavior: {}, attitude: {} };
+
+const surveyRespondentNameInput = document.getElementById("surveyRespondentName");
+const violationPointsInput = document.getElementById("violationPoints");
+const behaviorQuestionsContainer = document.getElementById("behaviorQuestions");
+const attitudeQuestionsContainer = document.getElementById("attitudeQuestions");
+const behaviorScoreBox = document.getElementById("behaviorScore");
+const attitudeScoreBox = document.getElementById("attitudeScore");
+const accidentDetailBox = document.getElementById("accidentDetailBox");
+const accidentDetailInput = document.getElementById("accidentDetail");
+const surveySaveBtn = document.getElementById("surveySaveBtn");
+
+function renderSurveyGroup(container, group, questions) {
+  container.innerHTML = questions.map((question, index) => `
+    <div class="survey-question">
+      <div class="survey-question-title">${index + 1}. ${escapeHtml(question)}</div>
+      <div class="scale-options">
+        ${[0, 1, 2, 3, 4, 5].map(score => `
+          <button type="button" class="scale-option" data-group="${group}" data-index="${index}" data-score="${score}">${score}</button>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  container.querySelectorAll(".scale-option").forEach(button => {
+    button.addEventListener("click", () => {
+      const groupName = button.dataset.group;
+      const index = button.dataset.index;
+      const score = Number(button.dataset.score);
+      surveyAnswers[groupName][index] = score;
+      button.closest(".scale-options").querySelectorAll(".scale-option").forEach(item => item.classList.remove("selected"));
+      button.classList.add("selected");
+      updateSurveyScore(groupName);
+    });
+  });
+}
+
+function updateSurveyScore(group) {
+  const questions = group === "behavior" ? behaviorQuestions : attitudeQuestions;
+  const answers = surveyAnswers[group];
+  const scoreBox = group === "behavior" ? behaviorScoreBox : attitudeScoreBox;
+  const threshold = group === "behavior" ? 27 : 57;
+  const answered = Object.keys(answers).length;
+
+  if (answered !== questions.length) {
+    scoreBox.className = "survey-score";
+    scoreBox.textContent = `已完成 ${answered}／${questions.length} 題`;
+    scoreBox.classList.add("show");
+    return;
+  }
+
+  const score = Object.values(answers).reduce((sum, value) => sum + value, 0);
+  const passed = score <= threshold;
+  scoreBox.className = `survey-score show ${passed ? "pass" : "fail"}`;
+  scoreBox.textContent = `本部分得分：${score} 分｜${passed ? "合格" : "不合格"}`;
+}
+
+function renderSurvey() {
+  renderSurveyGroup(behaviorQuestionsContainer, "behavior", behaviorQuestions);
+  renderSurveyGroup(attitudeQuestionsContainer, "attitude", attitudeQuestions);
+}
+
+function validateSurvey() {
+  const respondentName = surveyRespondentNameInput.value.trim();
+  if (!respondentName) {
+    alert("請輸入填寫人姓名。");
+    surveyRespondentNameInput.focus();
+    return false;
+  }
+
+  const violationPoints = Number(violationPointsInput.value);
+  if (!violationPointsInput.value || Number.isNaN(violationPoints) || violationPoints < 0) {
+    alert("請輸入目前違規記點，且不得小於 0。");
+    violationPointsInput.focus();
+    return false;
+  }
+
+  for (const [group, questions] of [["behavior", behaviorQuestions], ["attitude", attitudeQuestions]]) {
+    if (Object.keys(surveyAnswers[group]).length !== questions.length) {
+      alert(`請完成${group === "behavior" ? "第一部分：駕駛行為" : "第二部分：駕駛態度／風險行為"}的所有題目。`);
+      return false;
+    }
+  }
+
+  const accident = document.querySelector('input[name="accidentWithinYear"]:checked');
+  if (!accident) {
+    alert("請選擇一年內是否有肇事紀錄。");
+    return false;
+  }
+  if (accident.value === "有" && !accidentDetailInput.value.trim()) {
+    alert("有肇事紀錄時，請填寫詳細說明發生經過。");
+    accidentDetailInput.focus();
+    return false;
+  }
+  return true;
+}
+
+async function saveSurvey() {
+  if (!validateSurvey()) return;
+  surveySaveBtn.disabled = true;
+  surveySaveBtn.textContent = "送出中…";
+
+  try {
+    const respondentName = surveyRespondentNameInput.value.trim();
+    const employeeCheck = await db.from("employee_directory").select("id").eq("full_name", respondentName).eq("is_active", true).maybeSingle();
+    if(employeeCheck.error) throw employeeCheck.error;
+    if(!employeeCheck.data){alert("目前查無在職名單或員工已停用，無法填寫意向調查，請找店長確認。");return;}
+    const behaviorScore = Object.values(surveyAnswers.behavior).reduce((sum, value) => sum + value, 0);
+    const attitudeScore = Object.values(surveyAnswers.attitude).reduce((sum, value) => sum + value, 0);
+    const accident = document.querySelector('input[name="accidentWithinYear"]:checked');
+    const result = await db.rpc("submit_driver_survey_response", {
+      p_respondent_name: respondentName,
+      p_part1_answers: {
+        violation_points: Number(violationPointsInput.value),
+        answers: surveyAnswers.behavior
+      },
+      p_part1_total: behaviorScore,
+      p_part1_result: behaviorScore <= 27 ? "合格" : "不合格",
+      p_part2_answers: surveyAnswers.attitude,
+      p_part2_total: attitudeScore,
+      p_part2_result: attitudeScore <= 57 ? "合格" : "不合格",
+      p_accident_within_one_year: accident.value === "有",
+      p_accident_description: accident.value === "有" ? accidentDetailInput.value.trim() : null
+    });
+
+    if (result.error) {
+      console.error(result.error);
+      alert("駕駛意向調查儲存失敗，請確認資料庫欄位是否完整。");
+      return;
+    }
+
+    const savedAt = result.data?.submitted_at ? new Date(result.data.submitted_at) : new Date();
+    const savedRound = result.data?.survey_round || currentSurveyRound(savedAt);
+    const savedYear = trainingTaipeiParts(savedAt).year;
+    const savedPeriod = savedRound === "M7" ? `${savedYear}/07–12` : `${savedYear}/01–06`;
+    document.getElementById("surveySuccessData").innerHTML = `
+      <div><strong>填寫期別：</strong>${escapeHtml(savedPeriod)}（${escapeHtml(savedRound)}）</div>
+      <div><strong>填寫人：</strong>${escapeHtml(surveyRespondentNameInput.value.trim())}</div>
+      <div><strong>違規記點：</strong>${Number(violationPointsInput.value)} 點</div>
+      <div><strong>駕駛行為：</strong>${behaviorScore} 分，${behaviorScore <= 27 ? "合格" : "不合格"}</div>
+      <div><strong>駕駛態度／風險行為：</strong>${attitudeScore} 分，${attitudeScore <= 57 ? "合格" : "不合格"}</div>
+      <div><strong>一年內肇事紀錄：</strong>${escapeHtml(accident.value)}</div>
+    `;
+    surveyForm.style.display = "none";
+    surveySuccess.classList.add("show");
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "系統發生錯誤，請稍後再試。");
+  } finally {
+    surveySaveBtn.disabled = false;
+    surveySaveBtn.textContent = "送出駕駛意向調查";
+  }
+}
+
+function resetSurveyForm() {
+  surveyRespondentNameInput.value = "";
+  violationPointsInput.value = "";
+  surveyAnswers.behavior = {};
+  surveyAnswers.attitude = {};
+  document.querySelectorAll('input[name="accidentWithinYear"]').forEach(item => item.checked = false);
+  accidentDetailInput.value = "";
+  accidentDetailBox.classList.add("hidden");
+  behaviorScoreBox.className = "survey-score";
+  attitudeScoreBox.className = "survey-score";
+  renderSurvey();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>'"]/g, character => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+  }[character]));
+}
+
+document.querySelectorAll('input[name="accidentWithinYear"]').forEach(item => {
+  item.addEventListener("change", () => {
+    const hasAccident = item.value === "有" && item.checked;
+    accidentDetailBox.classList.toggle("hidden", !hasAccident);
+    if (!hasAccident) accidentDetailInput.value = "";
+  });
+});
+
+surveySaveBtn.addEventListener("click", saveSurvey);
+renderSurvey();
+
+
+/* =====================================================
+   DEFENSIVE DRIVING MONTHLY TRAINING
+   ===================================================== */
+
+async function loadTargetNames(){
+  if(defensiveTargetNamesLoaded) return;
+  if(nameListLoadPromise) return nameListLoadPromise;
+  nameListLoadPromise = (async()=>{
+    const employeeResult = await db.from("employee_directory")
+      .select("id,full_name,area_code,is_active")
+      .eq("is_active", true);
+    if(employeeResult.error) throw employeeResult.error;
+    activeEmployeeDirectory = (employeeResult.data || []).filter(row => row.is_active !== false && row.full_name);
+    defensiveTargetNames = [...new Set(activeEmployeeDirectory.map(row => String(row.full_name || "").trim()).filter(Boolean))]
+      .sort((a,b) => a.localeCompare(b, "zh-Hant"));
+    defensiveTargetNamesLoaded = true;
+  })();
+  try{ await nameListLoadPromise; }
+  catch(e){
+    nameListLoadPromise = null;
+    console.error("姓名名單讀取失敗", e);
+  }
+}
+
+function renderNameSuggestions(input, container){
+  const keyword = input.value.trim();
+  if(!keyword || !defensiveTargetNames.length){
+    container.classList.remove("show");
+    container.innerHTML = "";
+    return;
+  }
+  const normalizedKeyword = keyword.toLocaleLowerCase();
+  const matches = defensiveTargetNames.filter(name => name.toLocaleLowerCase().includes(normalizedKeyword)).slice(0, 8);
+  container.innerHTML = matches.map(name => `<button type="button" class="name-suggestion" data-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("");
+  container.classList.toggle("show", matches.length > 0);
+}
+
+function setupNameAutocomplete(input, container){
+  input.addEventListener("focus", async () => {
+    await loadTargetNames();
+    renderNameSuggestions(input, container);
+  });
+  input.addEventListener("input", async () => {
+    await loadTargetNames();
+    renderNameSuggestions(input, container);
+  });
+  container.addEventListener("click", event => {
+    const button = event.target.closest(".name-suggestion");
+    if(!button) return;
+    input.value = button.dataset.name;
+    container.classList.remove("show");
+  });
+}
+
+function closeAllNameSuggestions(){
+  document.querySelectorAll(".name-suggestions.show").forEach(item => item.classList.remove("show"));
+}
+
+
+function currentTrainingYear(){
+  return trainingTaipeiParts().year;
+}
+
+function currentTrainingMonth(){
+  return trainingTaipeiParts().month;
+}
+
+function selectedTrainingMonth(){
+  return Number(defensiveMonthSelect.value);
+}
+
+function renderDefensiveQuestion(container, number, question, optionA, optionB){
+  container.innerHTML = `
+    <div class="question-title">第 ${number} 題｜${escapeHtml(question || "")}</div>
+    <button type="button" class="answer-option" data-question="${number}" data-value="A">A. ${escapeHtml(optionA || "")}</button>
+    <button type="button" class="answer-option" data-question="${number}" data-value="B">B. ${escapeHtml(optionB || "")}</button>
+  `;
+  container.querySelectorAll(".answer-option").forEach(button => {
+    button.addEventListener("click", () => {
+      container.querySelectorAll(".answer-option").forEach(option => option.classList.remove("selected"));
+      button.classList.add("selected");
+    });
+  });
+}
+
+function resetDefensiveForm(){
+  defensiveLesson = null;
+  defensiveVideoOpenedAt = null;
+  defensivePdfOpenedAt = null;
+  defensivePdfLink.classList.remove("opened");
+  defensivePdfLink.textContent = "📖 開啟安全月曆 PDF（必須點選）";
+  defensiveExistingResponse = null;
+  defensiveNameInput.value = "";
+  defensiveNameSuggestions.classList.remove("show");
+  defensiveNameSuggestions.innerHTML = "";
+  defensiveMonthSelect.value = String(currentTrainingMonth());
+  Array.from(defensiveMonthSelect.options).forEach(option=>option.disabled=Number(option.value)>currentTrainingMonth());
+  defensiveLessonPanel.style.display = "none";
+  defensiveQuestions.style.display = "none";
+  defensiveStatus.className = "training-message";
+  defensiveStatus.textContent = "請先輸入姓名並載入當月課程。";
+  defensiveStatus.style.display = "none";
+  defensiveSuccess.classList.remove("show");
+  defensiveForm.style.display = "block";
+}
+
+let defensiveLoadedContext = null;
+async function loadDefensiveLesson(){
+  defensiveLoadedContext = null;
+  defensiveLesson = null;
+  const name = defensiveNameInput.value.trim();
+  const monthNo = selectedTrainingMonth();
+  if(!RiderRules.canTrain(currentTrainingYear(),monthNo)){alert("只能補做今年已到月份的課程，不可提前做。");return;}
+  if(!name){ alert("請輸入姓名。"); defensiveNameInput.focus(); return; }
+  defensiveLoadBtn.disabled = true;
+  defensiveLoadBtn.textContent = "載入中…";
+  defensiveStatus.style.display = "block";
+  try{
+    const employeeCheck = await db.from("employee_directory").select("id").eq("full_name", name).eq("is_active", true).maybeSingle();
+    if(employeeCheck.error) throw employeeCheck.error;
+    if(!employeeCheck.data){
+      defensiveStatus.className = "training-message";
+      defensiveStatus.textContent = "此員工目前已停用或不在職，無法填寫防禦駕駛，請找店長確認。";
+      defensiveLessonPanel.style.display = "none";
+      defensiveQuestions.style.display = "none";
+      return;
+    }
+    const lessonResult = await db.from("defensive_driving_lessons").select("*").eq("month_no", monthNo).maybeSingle();
+    if(lessonResult.error) throw lessonResult.error;
+    if(!lessonResult.data){
+      defensiveStatus.textContent = "查無本月份題庫資料。";
+      return;
+    }
+    defensiveLesson = lessonResult.data;
+    defensiveLoadedContext = {name, year:currentTrainingYear(), month:monthNo};
+    const existing = await db.from("defensive_driving_responses")
+      .select("*")
+      .eq("respondent_name", name)
+      .eq("training_year", currentTrainingYear())
+      .eq("month_no", monthNo)
+      .maybeSingle();
+    if(existing.error) throw existing.error;
+    defensiveExistingResponse = existing.data || null;
+    if(defensiveExistingResponse?.status === "completed"){
+      defensiveStatus.className = "training-message success";
+      defensiveStatus.textContent = "本月份已完成，不需要重複作答。";
+      defensiveLessonPanel.style.display = "none";
+      defensiveQuestions.style.display = "none";
+      return;
+    }
+    defensiveLessonTitle.textContent = `${monthNo} 月防禦駕駛影片與考題`;
+    defensiveVideoLink.href = defensiveLesson.video_url;
+    const safetyCalendarPdf = SAFETY_CALENDAR_PDFS[monthNo] || defensiveLesson.safety_calendar_pdf_url;
+    if(safetyCalendarPdf){
+      defensivePdfLink.href = safetyCalendarPdf;
+      defensivePdfLink.style.display = "flex";
+    }else{
+      defensivePdfLink.style.display = "none";
+    }
+    defensiveVideoOpenedAt = null;
+    defensivePdfOpenedAt = null;
+    defensivePdfLink.classList.remove("opened");
+    defensivePdfLink.textContent = "📖 開啟安全月曆 PDF（必須點選）";
+    defensiveVideoStatus.className = "training-message";
+    defensiveVideoStatus.textContent = "請先開啟影片，完成後再開始答題。";
+    defensiveQuestions.style.display = "none";
+    renderDefensiveQuestion(defensiveQuestion1, 1, defensiveLesson.question_1, defensiveLesson.question_1_option_a, defensiveLesson.question_1_option_b);
+    renderDefensiveQuestion(defensiveQuestion2, 2, defensiveLesson.question_2, defensiveLesson.question_2_option_a, defensiveLesson.question_2_option_b);
+    defensiveLessonPanel.style.display = "block";
+    defensiveStatus.className = "training-message success";
+    defensiveStatus.textContent = "已載入，請開啟影片後作答。";
+  }catch(e){
+    console.error(e);
+    defensiveStatus.className = "training-message";
+    defensiveStatus.textContent = `資料讀取失敗：${e.message || "請稍後再試"}`;
+  }finally{
+    defensiveLoadBtn.disabled = false;
+    defensiveLoadBtn.textContent = "開始";
+  }
+}
+
+defensiveVideoLink.addEventListener("click", () => {
+  defensiveVideoOpenedAt = new Date().toISOString();
+  defensiveQuestions.style.display = "block";
+  defensiveVideoStatus.className = "training-message success";
+  defensiveVideoStatus.textContent = "影片已開啟，請先點選安全月曆 PDF，再完成兩題後送出。";
+});
+
+defensivePdfLink.addEventListener("click", () => {
+  defensivePdfOpenedAt = new Date().toISOString();
+  defensivePdfLink.classList.add("opened");
+  defensivePdfLink.textContent = "✅ 已開啟安全月曆 PDF";
+});
+
+defensiveSubmitBtn.addEventListener("click", async () => {
+  const name = defensiveNameInput.value.trim();
+  const a1 = document.querySelector('.answer-option[data-question="1"].selected')?.dataset.value;
+  const a2 = document.querySelector('.answer-option[data-question="2"].selected')?.dataset.value;
+  if(!defensiveLoadedContext || defensiveLoadedContext.name!==name || defensiveLoadedContext.month!==selectedTrainingMonth() || !RiderRules.canTrain(defensiveLoadedContext.year,defensiveLoadedContext.month)){alert("姓名或月份已變更，請重新載入課程。");return;}
+  if(!defensiveLesson || !name){ alert("請先載入當月課程。"); return; }
+  if(!defensiveVideoOpenedAt){ alert("請先開啟並觀看當月影片。"); return; }
+  if(!defensivePdfOpenedAt){ alert("請先開啟安全月曆 PDF。"); return; }
+  if(!a1 || !a2){ alert("兩題都必須作答。"); return; }
+  defensiveSubmitBtn.disabled = true;
+  defensiveSubmitBtn.textContent = "判定中…";
+  const isCorrect = a1 === defensiveLesson.question_1_answer && a2 === defensiveLesson.question_2_answer;
+  const now = new Date().toISOString();
+  const attempt = Number(defensiveExistingResponse?.attempt_count || 0) + 1;
+  try{
+    await requireActiveRider(name);
+    const payload = {
+      respondent_name: name,
+      training_year: currentTrainingYear(),
+      month_no: selectedTrainingMonth(),
+      question_1_answer: a1,
+      question_2_answer: a2,
+      attempt_count: attempt,
+      video_opened_at: defensiveVideoOpenedAt,
+      last_attempt_at: now,
+      completed_at: isCorrect ? now : null,
+      status: isCorrect ? "completed" : "incomplete"
+    };
+    const result = await db.from("defensive_driving_responses").upsert(payload, {onConflict:"respondent_name,training_year,month_no"});
+    if(result.error) throw result.error;
+    if(!isCorrect){
+      alert("本次答題未通過，請重新觀看影片後再回答兩題。\n目前仍未完成本月課程。");
+      defensiveExistingResponse = {...payload};
+      defensiveVideoOpenedAt = null;
+      defensivePdfOpenedAt = null;
+      defensivePdfLink.classList.remove("opened");
+      defensivePdfLink.textContent = "📖 開啟安全月曆 PDF（必須點選）";
+      defensiveQuestions.style.display = "none";
+      defensiveVideoStatus.className = "training-message";
+      defensiveVideoStatus.textContent = "答題未通過，請重新開啟影片後再作答。";
+      return;
+    }
+    defensiveSuccessData.textContent = `${currentTrainingYear()} 年 ${selectedTrainingMonth()} 月｜${name}｜兩題皆答對`;
+    defensiveForm.style.display = "none";
+    defensiveSuccess.classList.add("show");
+  }catch(e){
+    console.error(e);
+    alert(`送出失敗：${e.message || "請稍後再試"}`);
+  }finally{
+    defensiveSubmitBtn.disabled = false;
+    defensiveSubmitBtn.textContent = "送出答案";
+  }
+});
+
+setupNameAutocomplete(claimantName, claimantNameSuggestions);
+setupNameAutocomplete(reporterNameInput, reporterNameSuggestions);
+setupNameAutocomplete(surveyRespondentNameInput, surveyRespondentNameSuggestions);
+setupNameAutocomplete(defensiveNameInput, defensiveNameSuggestions);
+document.addEventListener("click", event => {
+  if(!event.target.closest(".name-search-wrap")) closeAllNameSuggestions();
+});
+
+defensiveLoadBtn.addEventListener("click", loadDefensiveLesson);
+document.getElementById("defensiveBackBtn").addEventListener("click", showHome);
+document.getElementById("defensiveSuccessHomeBtn").addEventListener("click", showHome);
+defensiveMonthSelect.value = String(currentTrainingMonth());
+  Array.from(defensiveMonthSelect.options).forEach(option=>option.disabled=Number(option.value)>currentTrainingMonth());
+
+
+/* =====================================================
+   MODE
+   ===================================================== */
+
+function showMode(mode) {
+  modeMenu.style.display = "none";
+  claimPage.style.display = mode === "claim" ? "block" : "none";
+  inspectionPage.style.display = mode === "inspection" ? "block" : "none";
+  batteryPage.style.display = mode === "battery" ? "block" : "none";
+  batteryRegisterPage.style.display = mode === "batteryRegister" ? "block" : "none";
+  surveyPage.style.display = mode === "survey" ? "block" : "none";
+  defensivePage.style.display = mode === "defensive" ? "block" : "none";
+
+  introSection.style.display = "block";
+  introText.classList.add("show");
+  introText.style.display = "block";
+  ["claimBackTop","inspectionBackTop","batteryBackTop","batteryRegisterBackTop","surveyBackTop","defensiveBackTop"].forEach(id => {
+    document.getElementById(id).style.display = "none";
+  });
+
+  if (mode === "claim") {
+    document.getElementById("claimBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "開始上班";
+    introText.textContent = "完成領車確認，準備安全出勤。";
+    claimForm.style.display = "block";
+    claimSuccess.classList.remove("show");
+  } else if (mode === "inspection") {
+    document.getElementById("inspectionBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "下班前完成安全檢查";
+    introText.textContent = "";
+    introText.style.display = "none";
+    inspectionForm.style.display = "block";
+    inspectionSuccess.classList.remove("show");
+  } else if (mode === "battery") {
+    document.getElementById("batteryBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "設備管理";
+    introText.textContent = "查詢或新增設備小卡，再填寫異常原因。";
+    batteryForm.style.display = "block";
+    batterySuccess.classList.remove("show");
+    resetBatteryForm();
+  } else if (mode === "batteryRegister") {
+    document.getElementById("batteryRegisterBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "電池建檔";
+    introText.textContent = "請先建立電池資料，之後才能正確統計正常與異常數量。";
+    batteryRegisterPage.style.display = "block";
+    resetBatteryRegisterForm();
+  } else if (mode === "survey") {
+    document.getElementById("surveyBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "完成駕駛安全調查";
+    introText.textContent = "兩部分分開計算，請依實際情況作答。";
+    surveyForm.style.display = "block";
+    surveySuccess.classList.remove("show");
+  } else if (mode === "defensive") {
+    document.getElementById("defensiveBackTop").style.display = "block";
+    pageTitle.textContent = "桃園-Rider Center";
+    introTitle.textContent = "防禦駕駛";
+    introText.textContent = "";
+    introText.style.display = "none";
+    resetDefensiveForm();
+    defensivePage.style.display = "block";
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+function showHome() {
+  modeMenu.style.display = "grid";
+  claimPage.style.display = "none";
+  inspectionPage.style.display = "none";
+  batteryPage.style.display = "none";
+  batteryRegisterPage.style.display = "none";
+  surveyPage.style.display = "none";
+  defensivePage.style.display = "none";
+
+  claimForm.style.display = "block";
+  claimSuccess.classList.remove("show");
+  inspectionForm.style.display = "block";
+  inspectionSuccess.classList.remove("show");
+  batteryForm.style.display = "block";
+  batterySuccess.classList.remove("show");
+  surveyForm.style.display = "block";
+  surveySuccess.classList.remove("show");
+
+  pageTitle.textContent = "桃園-Rider Center";
+  introTitle.textContent = "";
+  introText.textContent = "";
+  introSection.style.display = "none";
+  introText.classList.remove("show");
+  ["claimBackTop","inspectionBackTop","batteryBackTop","batteryRegisterBackTop","surveyBackTop","defensiveBackTop"].forEach(id => {
+    document.getElementById(id).style.display = "none";
+  });
+
+  resetClaimForm();
+  resetInspectionForm();
+  resetBatteryForm();
+  resetBatteryRegisterForm();
+  resetSurveyForm();
+  resetDefensiveForm();
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+/* =====================================================
+   BUTTON EVENTS
+   ===================================================== */
+
+document
+  .getElementById(
+    "claimModeBtn"
+  )
+  .addEventListener(
+    "click",
+    () =>
+      showMode("claim")
+  );
+
+
+document
+  .getElementById(
+    "returnModeBtn"
+  )
+  .addEventListener(
+    "click",
+    () =>
+      showMode("inspection")
+  );
+
+
+document.getElementById("batteryModeBtn").addEventListener("click", () => showMode("battery"));
+document.getElementById("surveyModeBtn").addEventListener("click", () => showMode("survey"));
+document.getElementById("defensiveModeBtn").addEventListener("click", () => showMode("defensive"));
+
+
+document
+  .getElementById(
+    "claimBackBtn"
+  )
+  .addEventListener(
+    "click",
+    showHome
+  );
+
+
+document
+  .getElementById(
+    "claimSuccessHomeBtn"
+  )
+  .addEventListener(
+    "click",
+    showHome
+  );
+
+
+/* =====================================================
+   新增：還車頁返回首頁
+   ===================================================== */
+
+document
+  .getElementById(
+    "inspectionBackBtn"
+  )
+  .addEventListener(
+    "click",
+    showHome
+  );
+
+
+document
+  .getElementById(
+    "inspectionSuccessHomeBtn"
+  )
+  .addEventListener(
+    "click",
+    showHome
+  );
+
+
+document.getElementById("batteryBackBtn").addEventListener("click", showHome);
+document.getElementById("batterySuccessHomeBtn").addEventListener("click", showHome);
+document.getElementById("batteryRegisterBackBtn").addEventListener("click", showHome);
+document.getElementById("surveyBackBtn").addEventListener("click", showHome);
+document.getElementById("surveySuccessHomeBtn").addEventListener("click", showHome);
+
+
+/* =====================================================
+   CLEANUP OLD INSPECTION REPORTS
+   ===================================================== */
+
+async function cleanupOldInspectionReports() {
+
+  try {
+
+    const result =
+      await db.rpc(
+        "cleanup_old_inspection_reports"
+      );
+
+
+    if (result.error) {
+
+      console.error(
+        "巡檢紀錄清理失敗：",
+        result.error
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "巡檢紀錄清理錯誤：",
+      error
+    );
+
+  }
+
+}
+
+
+// Cleanup is intentionally not run when a rider opens the page.
+
+
+/* =====================================================
+   CLAIM RECORD CLEANUP
+   ===================================================== */
+
+async function cleanupOldClaimRecords() {
+
+  try {
+
+    const result =
+      await db.rpc(
+        "cleanup_old_claim_records"
+      );
+
+
+    if (result.error) {
+
+      console.error(
+        "領車紀錄清理失敗：",
+        result.error
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "領車紀錄清理錯誤：",
+      error
+    );
+
+  }
+
+}
+
+
+// Cleanup belongs to an explicit administrative retention workflow, never page load.
+
+
+/* =====================================================
+   INITIAL
+   ===================================================== */
+
+todayDate.textContent = new Date().toLocaleDateString(
+  "zh-TW",
+  {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long"
+  }
+);
+
+showHome();
+
+/* ===============================
+   桃園 T995 員工指休表單
+================================ */
+const shiftPage = document.getElementById("shiftPage");
+const shiftForm = document.getElementById("shiftForm");
+const shiftSuccess = document.getElementById("shiftSuccess");
+const shiftNameInput = document.getElementById("shiftEmployeeName");
+const shiftEmployeeStatus = document.getElementById("shiftEmployeeStatus");
+const shiftNameSuggestions = document.getElementById("shiftEmployeeNameSuggestions");
+const shiftWeekLabel = document.getElementById("shiftWeekLabel");
+const shiftWindowMessage = document.getElementById("shiftWindowMessage");
+const shiftSubmitBtn = document.getElementById("shiftSubmitBtn");
+const shiftSubmitMessage = document.getElementById("shiftSubmitMessage");
+const shiftSuccessData = document.getElementById("shiftSuccessData");
+const shiftHomeTitle = document.getElementById("pageTitle").textContent;
+let verifiedShiftEmployee = null;
+let shiftVerifySerial = 0;
+let shiftLookupSerial = 0;
+let shiftLookupTimer = null;
+let shiftEmployeeSearchResults = [];
+
+function taipeiShiftNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const y=Number(p.year),m=Number(p.month),d=Number(p.day);
+  return {y,m,d,dow:new Date(Date.UTC(y,m-1,d)).getUTCDay(),minute:Number(p.hour)*60+Number(p.minute)};
+}
+function shiftISO(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
+function shiftDateAdd(iso,days){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+days));return shiftISO(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
+function shiftRangeLabel(start){return `${start} 至 ${shiftDateAdd(start,6)}`;}
+let shiftOpenWeeks=[];
+let shiftTestModeEnabled=false;
+let shiftSelectedWeekStart=null;
+const shiftOpenWeekPicker=document.getElementById("shiftOpenWeekPicker");
+const shiftWeekdayNames=["日","一","二","三","四","五","六"];
+function shiftDateParts(iso){const [y,m,d]=iso.split("-").map(Number);return {y,m,d,weekday:new Date(Date.UTC(y,m-1,d)).getUTCDay()};}
+function shiftDateWeekday(iso){const p=shiftDateParts(iso);return `${p.m}/${p.d}（${shiftWeekdayNames[p.weekday]}）`;}
+function shiftWeekChoiceLabel(start){return `${shiftDateWeekday(start)}–${shiftDateWeekday(shiftDateAdd(start,6))}`;}
+function shiftCurrentMonday(){const p=taipeiShiftNow();const today=shiftISO(p.y,p.m,p.d);return shiftDateAdd(today,-((p.dow+6)%7));}
+function getShiftSubmissionCycle(){
+  const available=shiftOpenWeeks.some(row=>row.week_start===shiftSelectedWeekStart);
+  return {open:Boolean(available),weekStart:available?shiftSelectedWeekStart:null,testMode:shiftTestModeEnabled,openWeeks:shiftOpenWeeks};
+}
+async function loadShiftSubmissionSettings(){
+  const [weeksResult,testResult]=await Promise.all([
+    db.from("weekly_shift_open_weeks").select("week_start").eq("is_open",true).gte("week_start",shiftCurrentMonday()).order("week_start",{ascending:true}),
+    db.rpc("shift_test_mode_enabled")
+  ]);
+  if(weeksResult.error)throw weeksResult.error;if(testResult.error)throw testResult.error;
+  shiftOpenWeeks=[...new Set((weeksResult.data||[]).map(row=>row.week_start))].map(week_start=>({week_start}));
+  shiftTestModeEnabled=Boolean(testResult.data);
+  if(!shiftSelectedWeekStart&&shiftOpenWeeks.length)shiftSelectedWeekStart=shiftOpenWeeks[0].week_start;
+  return {openWeeks:shiftOpenWeeks,testMode:shiftTestModeEnabled};
+}
+function renderShiftWeekPicker(){
+  if(!shiftOpenWeekPicker)return;
+  shiftOpenWeekPicker.innerHTML=shiftOpenWeeks.map(row=>`<button type="button" class="shift-open-week-btn ${row.week_start===shiftSelectedWeekStart?'active':''}" data-shift-open-week="${row.week_start}" aria-pressed="${row.week_start===shiftSelectedWeekStart?'true':'false'}">${shiftWeekChoiceLabel(row.week_start)}</button>`).join('');
+}
+function updateShiftDayDates(weekStart){
+  const labels=Object.keys(shiftDayLabels);
+  labels.forEach((key,index)=>{
+    const iso=shiftDateAdd(weekStart,index);const p=shiftDateParts(iso);const dayLabel=`週${shiftWeekdayNames[p.weekday]}`;
+    shiftDayLabels[key]=`${p.m}/${p.d}（${dayLabel}）`;
+    const element=shiftDaysContainer.querySelector(`[data-shift-day="${key}"] [data-shift-day-label]`);
+    if(element)element.innerHTML=`<span class="shift-day-date">${p.m}/${p.d}</span><span class="shift-day-weekday">${dayLabel}</span>`;
+    shiftDaysContainer.querySelectorAll(`[data-shift-day="${key}"] [data-shift-start]`).forEach(input=>input.setAttribute("aria-label",`${p.m}/${p.d} ${dayLabel}開始時間`));
+    shiftDaysContainer.querySelectorAll(`[data-shift-day="${key}"] [data-shift-end]`).forEach(input=>input.setAttribute("aria-label",`${p.m}/${p.d} ${dayLabel}結束時間`));
+  });
+}
+function shiftHasEnteredAvailability(){
+  return [...shiftDaysContainer.querySelectorAll("[data-shift-start],[data-shift-end]")].some(input=>input.value.trim())
+    ||[...shiftDaysContainer.querySelectorAll("[data-shift-unavailable]")].some(input=>input.checked)
+    ||Boolean(document.getElementById("shiftNotes").value.trim());
+}
+function clearShiftAvailabilityOnly(){
+  for(const dayElement of shiftDaysContainer.querySelectorAll("[data-shift-day]")){
+    dayElement.querySelector("[data-shift-unavailable]").checked=false;
+    const slots=[...dayElement.querySelectorAll("[data-shift-slot]")];for(const slot of slots.slice(1))slot.remove();
+    dayElement.querySelectorAll("[data-shift-start],[data-shift-end]").forEach(input=>input.value="");updateShiftDayControls(dayElement);
+  }
+  document.getElementById("shiftNotes").value="";
+}
+shiftOpenWeekPicker.addEventListener("click",event=>{
+  const button=event.target.closest("[data-shift-open-week]");if(!button)return;
+  const next=button.dataset.shiftOpenWeek;if(next===shiftSelectedWeekStart)return;
+  if(shiftHasEnteredAvailability()&&!confirm("切換週次會清除目前填寫的可上班時段與備註，是否繼續？"))return;
+  if(shiftHasEnteredAvailability())clearShiftAvailabilityOnly();
+  shiftSelectedWeekStart=next;shiftSubmitMessage.textContent="";updateShiftWindow();
+});
+function updateShiftWindow(){
+  const cycle=getShiftSubmissionCycle();renderShiftWeekPicker();
+  const displayWeek=cycle.weekStart||shiftSelectedWeekStart;
+  if(displayWeek){
+    shiftWeekLabel.textContent=`填寫週次：${shiftRangeLabel(displayWeek)}`;
+    updateShiftDayDates(displayWeek);
+  }else{
+    shiftWeekLabel.textContent="目前沒有開放的指休週次";
+  }
+  if(!cycle.open){
+    shiftWindowMessage.textContent=displayWeek?"所選週次已關閉，請重新選擇目前開放的日期。":"目前沒有開放的週次，請聯絡店長。";
+    shiftWindowMessage.className="hint shift-window-closed";
+  }else if(cycle.testMode){
+    shiftWindowMessage.textContent="本週已由後台開放｜目前為測試模式，提交會標記為測試資料。";
+    shiftWindowMessage.className="hint shift-window-test";
+  }else{
+    shiftWindowMessage.textContent="本週已由後台開放｜請依顯示的日期與星期填寫。";
+    shiftWindowMessage.className="hint shift-window-open";
+  }
+  shiftSubmitBtn.disabled=!cycle.open;return cycle;
+}
+async function enterShiftMode(){
+  try{
+    await loadShiftSubmissionSettings();
+    if(!shiftOpenWeeks.some(row=>row.week_start===shiftSelectedWeekStart))shiftSelectedWeekStart=shiftOpenWeeks[0]?.week_start||null;
+    const cycle=updateShiftWindow();
+    if(!cycle.open){alert("目前沒有已開放的指休週次，請留意後台設定或聯絡店長。");return;}
+    showMode("shift");
+  }catch(e){alert(`目前無法確認指休表開放狀態：${e.message||"請稍後再試"}`);}
+}
+/* Weekly rollover safety: refresh open weeks after Taipei Monday changes.
+   Existing draft entries are preserved; an expired week stays visibly closed until the user
+   explicitly chooses a current open week (the existing picker then confirms before clearing). */
+let shiftObservedWeekMonday=shiftCurrentMonday();
+let shiftRolloverRefreshBusy=false;
+async function refreshShiftWeekWindowAfterRollover(){
+  if(document.visibilityState==='hidden'||shiftRolloverRefreshBusy)return;
+  const currentMonday=shiftCurrentMonday();
+  if(currentMonday===shiftObservedWeekMonday)return;
+  shiftRolloverRefreshBusy=true;
+  try{
+    await loadShiftSubmissionSettings();
+    shiftObservedWeekMonday=currentMonday;
+    if(!shiftOpenWeeks.some(row=>row.week_start===shiftSelectedWeekStart)&&!shiftHasEnteredAvailability()){
+      shiftSelectedWeekStart=shiftOpenWeeks[0]?.week_start||null;
+    }
+    updateShiftWindow();
+  }catch(e){
+    shiftSubmitMessage.textContent='週次更新失敗，請確認網路後重新整理。';
+  }finally{shiftRolloverRefreshBusy=false;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshShiftWeekWindowAfterRollover();});
+window.addEventListener('focus',refreshShiftWeekWindowAfterRollover);
+setInterval(refreshShiftWeekWindowAfterRollover,60000);
+
+function parseAvailabilityRanges(value){
+  const text=String(value||"").trim();if(!text)return [];
+  const parts=text.split(/[，,、;；/\n]+/).map(x=>x.trim()).filter(Boolean);const out=[];
+  for(const part of parts){
+    const m=part.match(/^(\d{1,2})(?::(\d{2}))?\s*[-~～至]\s*(\d{1,2})(?::(\d{2}))?$/);
+    if(!m)return null;
+    const sh=Number(m[1]),sm=Number(m[2]||0),eh=Number(m[3]),em=Number(m[4]||0);
+    const start=sh*60+sm,end=eh*60+em;
+    if(sh>23||eh>24||sm>59||em>59||start<0||end>1440||start>=end)return null;
+    out.push([start,end]);
+  }
+  return out;
+}
+async function verifyShiftEmployee(){
+  const name=shiftNameInput.value.trim();const serial=++shiftVerifySerial;verifiedShiftEmployee=null;
+  shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  if(!name)return false;
+  shiftEmployeeStatus.textContent="確認在職名單中…";
+  try{
+    const r=await db.from("employee_directory").select("id,full_name,area_code,is_active").eq("full_name",name).eq("is_active",true).maybeSingle();
+    if(serial!==shiftVerifySerial)return false;if(r.error)throw r.error;
+    if(!r.data){shiftEmployeeStatus.textContent="歡迎加入桃園外送中心，目前查無名單，請找店長確認！";shiftEmployeeStatus.className="shift-state bad";return false;}
+    if(!r.data.area_code){shiftEmployeeStatus.textContent="已在職名單中，但尚未設定區域；請找店長確認後再填寫。";shiftEmployeeStatus.className="shift-state bad";return false;}
+    verifiedShiftEmployee=r.data;shiftEmployeeStatus.textContent=`✅ 已確認在職｜${r.data.area_code} 區`;shiftEmployeeStatus.className="shift-state ok";return true;
+  }catch(e){if(serial===shiftVerifySerial){shiftEmployeeStatus.textContent=`名單查詢失敗，請稍後重試或找店長確認。`;shiftEmployeeStatus.className="shift-state bad";}return false;}
+}
+const shiftDayLabels={monday:"週一",tuesday:"週二",wednesday:"週三",thursday:"週四",friday:"週五",saturday:"週六",sunday:"週日"};
+const shiftDaysContainer=document.getElementById("shiftDays");
+function updateShiftDayControls(dayElement){
+  const unavailable=dayElement.querySelector("[data-shift-unavailable]").checked;
+  dayElement.classList.toggle("is-unavailable",unavailable);
+  dayElement.querySelectorAll("[data-shift-start],[data-shift-end]").forEach(input=>input.disabled=unavailable);
+  const addButton=dayElement.querySelector("[data-shift-add-slot]");
+  const hasExtra=dayElement.querySelectorAll("[data-shift-slot]").length>=2;
+  addButton.disabled=unavailable||hasExtra;
+  const removeButton=dayElement.querySelector("[data-shift-remove-slot]");removeButton.hidden=unavailable||!hasExtra;removeButton.disabled=unavailable;
+  dayElement.querySelector(".shift-time-slots").hidden=unavailable;
+}
+function addShiftTimeSlot(dayElement){
+  const slots=dayElement.querySelector(".shift-time-slots");if(slots.querySelectorAll("[data-shift-slot]").length>=2)return;
+  const dayName=shiftDayLabels[dayElement.dataset.shiftDay]||"當日";const number=slots.querySelectorAll("[data-shift-slot]").length+1;
+  const slot=document.createElement("div");slot.className="shift-time-slot shift-time-slot-extra";slot.setAttribute("data-shift-slot","");
+  slot.innerHTML=`<input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-start aria-label="${dayName}第${number}時段開始時間"><span class="shift-time-separator">–</span><input class="shift-time-input" type="time" min="10:00" max="22:30" step="1800" data-shift-end aria-label="${dayName}第${number}時段結束時間">`;
+  slots.appendChild(slot);updateShiftDayControls(dayElement);
+}
+shiftDaysContainer.addEventListener("change",event=>{if(event.target.matches("[data-shift-unavailable]"))updateShiftDayControls(event.target.closest("[data-shift-day]"));});
+shiftDaysContainer.addEventListener("click",event=>{
+  const addButton=event.target.closest("[data-shift-add-slot]");if(addButton){addShiftTimeSlot(addButton.closest("[data-shift-day]"));return;}
+  const removeButton=event.target.closest("[data-shift-remove-slot]");if(removeButton){const dayElement=removeButton.closest("[data-shift-day]");dayElement.querySelector(".shift-time-slot-extra")?.remove();updateShiftDayControls(dayElement);}
+});
+function readShiftDayValue(dayKey){
+  const dayElement=shiftDaysContainer.querySelector(`[data-shift-day="${dayKey}"]`);const dayName=shiftDayLabels[dayKey];
+  if(dayElement.querySelector("[data-shift-unavailable]").checked)return {value:"無法上班",intervals:[]};
+  const slots=[...dayElement.querySelectorAll("[data-shift-slot]")].map(slot=>({start:slot.querySelector("[data-shift-start]").value,end:slot.querySelector("[data-shift-end]").value}));
+  const filled=slots.filter(slot=>slot.start||slot.end);
+  if(!filled.length)return {error:`${dayName}請填可上班時段，或選「無法上班」。`,focus:dayElement.querySelector("[data-shift-start]")};
+  if(filled.some(slot=>!slot.start||!slot.end)){
+    const index=slots.findIndex(slot=>!slot.start||!slot.end);const incomplete=slots[index];
+    return {error:`${dayName}時段請同時選擇開始與結束時間。`,focus:dayElement.querySelectorAll(incomplete.start?"[data-shift-end]":"[data-shift-start]")[index]};
+  }
+  const result=RiderRules.validateSlots(filled);
+  if(result.error)return {error:`${dayName}${result.error}`,focus:dayElement.querySelector("[data-shift-start]")};
+  return result;
+}
+async function submitShiftAvailability(){
+  try{await loadShiftSubmissionSettings();}catch(e){shiftSubmitMessage.textContent="無法確認開放狀態，請稍後再試。";return;}
+  const cycle=updateShiftWindow();if(!cycle.open){shiftSubmitMessage.textContent="指休表目前已關閉，無法送出。";return;}
+  if(!await verifyShiftEmployee())return;
+  const values={},dayResults={};
+  for(const key of Object.keys(shiftDayLabels)){
+    const result=readShiftDayValue(key);if(result.error){alert(result.error);result.focus?.focus();return;}
+    dayResults[key]=result;values[key]=result.value;
+  }
+  const notes=document.getElementById("shiftNotes").value.trim();
+  if(Object.values(values).every(value=>value==="無法上班")&&!notes){alert("七天皆無法上班，請在備註欄說明原因。");document.getElementById("shiftNotes").focus();return;}
+  if(dayResults.saturday.value==="無法上班"||dayResults.sunday.value==="無法上班"){
+    const ok=confirm("週六或週日選擇無法上班，可能影響排班工時；若能提供週末時段可增加排班彈性。仍要送出嗎？");if(!ok)return;
+  }
+  const payload={employee_id:verifiedShiftEmployee.id,week_start:cycle.weekStart,...values,notes:notes||null};
+  shiftSubmitBtn.disabled=true;shiftSubmitMessage.textContent="送出中…";
+  try{
+    const r=await db.from("weekly_shift_availability").insert(payload);if(r.error)throw r.error;
+    shiftSuccessData.textContent=`${verifiedShiftEmployee.full_name}｜${verifiedShiftEmployee.area_code} 區｜${shiftRangeLabel(cycle.weekStart)}`;
+    shiftForm.style.display="none";shiftSuccess.classList.add("show");shiftSubmitMessage.textContent="";
+  }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認指休表仍為開放狀態並稍後重試。"}`;}
+  finally{try{await loadShiftSubmissionSettings();}catch(e){}shiftSubmitBtn.disabled=!getShiftSubmissionCycle().open;}
+}
+function resetShiftForm(){
+  clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftEmployeeSearchResults=[];
+  shiftNameInput.value="";verifiedShiftEmployee=null;shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  for(const dayElement of shiftDaysContainer.querySelectorAll("[data-shift-day]")){
+    dayElement.querySelector("[data-shift-unavailable]").checked=false;
+    const slots=[...dayElement.querySelectorAll("[data-shift-slot]")];for(const slot of slots.slice(1))slot.remove();
+    dayElement.querySelectorAll("[data-shift-start],[data-shift-end]").forEach(input=>input.value="");updateShiftDayControls(dayElement);
+  }
+  document.getElementById("shiftNotes").value="";shiftSubmitMessage.textContent="";shiftForm.style.display="block";shiftSuccess.classList.remove("show");updateShiftWindow();
+}
+function renderShiftEmployeeSuggestions(matches,keyword){
+  if(!keyword){shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
+  if(!matches.length){shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#777">查無符合的在職姓名</div>';shiftNameSuggestions.classList.add("show");return;}
+  shiftNameSuggestions.innerHTML=matches.map(row=>`<button type="button" class="name-suggestion" data-shift-employee-id="${escapeHtml(row.id)}">${escapeHtml(row.full_name)}${row.area_code?`｜${escapeHtml(row.area_code)} 區`:"｜尚未設定區域"}</button>`).join("");
+  shiftNameSuggestions.classList.add("show");
+}
+async function searchShiftEmployeeSuggestions(keyword,serial){
+  try{
+    const result=await db.from("employee_directory").select("id,full_name,area_code,is_active")
+      .eq("is_active",true).ilike("full_name",`%${keyword}%`).order("full_name",{ascending:true}).limit(8);
+    if(serial!==shiftLookupSerial||keyword!==shiftNameInput.value.trim())return;
+    if(result.error)throw result.error;
+    shiftEmployeeSearchResults=(result.data||[]).filter(row=>row.is_active!==false&&row.full_name);
+    renderShiftEmployeeSuggestions(shiftEmployeeSearchResults,keyword);
+    const exact=shiftEmployeeSearchResults.find(row=>String(row.full_name||"").trim()===keyword);
+    if(exact)setShiftEmployeeSuggestion(exact);
+  }catch(error){
+    if(serial!==shiftLookupSerial||keyword!==shiftNameInput.value.trim())return;
+    shiftEmployeeSearchResults=[];
+    shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#b42318">名單查詢失敗，請稍後重試</div>';
+    shiftNameSuggestions.classList.add("show");
+    shiftEmployeeStatus.textContent="名單查詢失敗，請稍後重試或找店長確認。";shiftEmployeeStatus.className="shift-state bad";
+  }
+}
+function setShiftEmployeeSuggestion(row){
+  verifiedShiftEmployee=row;
+  shiftEmployeeStatus.textContent=row.area_code?`✅ 已確認在職｜${row.area_code} 區`:"已在職名單中，但尚未設定區域；請找店長確認後再填寫。";
+  shiftEmployeeStatus.className=row.area_code?"shift-state ok":"shift-state bad";
+}
+shiftNameInput.addEventListener("input",()=>{
+  const keyword=shiftNameInput.value.trim();++shiftVerifySerial;verifiedShiftEmployee=null;shiftEmployeeStatus.textContent="";shiftEmployeeStatus.className="shift-state";
+  clearTimeout(shiftLookupTimer);const serial=++shiftLookupSerial;
+  if(!keyword){shiftEmployeeSearchResults=[];shiftNameSuggestions.innerHTML="";shiftNameSuggestions.classList.remove("show");return;}
+  shiftNameSuggestions.innerHTML='<div class="name-suggestion" style="cursor:default;color:#777">搜尋中…</div>';shiftNameSuggestions.classList.add("show");
+  shiftLookupTimer=setTimeout(()=>searchShiftEmployeeSuggestions(keyword,serial),180);
+});
+shiftNameSuggestions.addEventListener("pointerdown",event=>{if(event.target.closest("[data-shift-employee-id]"))event.preventDefault();});
+shiftNameSuggestions.addEventListener("click",event=>{
+  const button=event.target.closest("[data-shift-employee-id]");if(!button)return;
+  const row=shiftEmployeeSearchResults.find(item=>String(item.id)===String(button.dataset.shiftEmployeeId));if(!row)return;
+  clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftNameInput.value=row.full_name;setShiftEmployeeSuggestion(row);shiftNameSuggestions.classList.remove("show");
+});
+shiftNameInput.addEventListener("blur",()=>setTimeout(()=>{clearTimeout(shiftLookupTimer);++shiftLookupSerial;shiftNameSuggestions.classList.remove("show");verifyShiftEmployee();},100));
+shiftSubmitBtn.addEventListener("click",submitShiftAvailability);
+document.getElementById("shiftEditAgainBtn").addEventListener("click",()=>{shiftSuccess.classList.remove("show");shiftForm.style.display="block";shiftSubmitMessage.textContent="重新送出後，後台將以最後一次內容為準。";window.scrollTo({top:0,behavior:"smooth"});});
+const baseShowModeForShift=showMode;
+showMode=function(mode){
+  baseShowModeForShift(mode);shiftPage.style.display=mode==="shift"?"block":"none";
+  document.getElementById("shiftBackTop").style.display=mode==="shift"?"block":"none";
+  if(mode==="shift"){
+    pageTitle.textContent=shiftHomeTitle;introTitle.textContent="員工指休表單";introText.textContent="輸入姓名確認在職後，選擇已開放週次並填寫可上班時段。";introSection.style.display="block";introText.style.display="block";resetShiftForm();
+  }
+};
+const baseShowHomeForShift=showHome;
+showHome=function(){baseShowHomeForShift();shiftPage.style.display="none";document.getElementById("shiftBackTop").style.display="none";resetShiftForm();};
+document.getElementById("shiftModeBtn").addEventListener("click",enterShiftMode);
+document.getElementById("shiftBackBtn").addEventListener("click",showHome);
+document.getElementById("shiftSuccessHomeBtn").addEventListener("click",showHome);
+
+</script>
+
+</body>
+</html>
+
