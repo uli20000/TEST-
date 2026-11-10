@@ -68,6 +68,10 @@ body{font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",Arial,sans
 #opsFeedbackPreview{max-width:100%;overflow-x:auto}
 
 .score-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:12px}.score-tiles.two-tiles{grid-template-columns:repeat(2,minmax(0,1fr));max-width:720px;margin:auto}.score-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;min-height:116px;padding:14px 8px;border:2px solid #dfc2c7;border-radius:14px;background:var(--panel,#fff);min-width:0}.score-tile h4{font-size:21px!important;color:#087ca5;margin:0!important}.score-tile strong{font-size:36px;font-weight:900;line-height:1.25;color:#b81930;overflow-wrap:anywhere}@media(max-width:600px){.score-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.score-tile{min-height:110px;padding:12px 5px}.score-tile h4{font-size:18px!important}.score-tile strong{font-size:30px}}
+html[data-display-mode="dark"] :is(.dashboard-date-toolbar,.metric-detail,.score-tile){background:var(--paper);color:var(--ink);border-color:var(--line)}
+html[data-display-mode="dark"] .dashboard-date-toolbar :is(.period-nav button,.date-actions .secondary){background:var(--bg);color:var(--ink);border-color:var(--line)}
+html[data-display-mode="dark"] .score-tile h4{color:#79c0ff}
+html[data-display-mode="dark"] .score-tile strong{color:var(--red)}
 </style>
 <link rel="stylesheet" href="display-mode.css?v=20261102-toggle3">
 <link rel="stylesheet" href="ui-shell.css?v=20261110-ui4">
@@ -104,7 +108,7 @@ body{font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",Arial,sans
   </div>
 </div>
 </main></div>
-<script src="analysis-dashboard.js?v=20261110-county-weather"></script>
+<script src="analysis-dashboard.js?v=20261110-ui-qa1"></script>
 
 <script src="operations-feedback.js?v=20261110-center-config"></script>
 <script src="ui-shell.js?v=20261110-ui4"></script>

@@ -71,7 +71,7 @@
       const r=await db.from('t995_score_import_batches').select('report_date,report_type,source_file,row_count,imported_at').order('imported_at',{ascending:false}).limit(10);
       const body=hist.querySelector('.ui-hist-body');
       if(r.error){body.innerHTML='<p class="uo-empty">讀取失敗：'+esc(r.error.message)+'</p>';return;}
-      body.innerHTML=r.data.length?'<table class="ui-table"><thead><tr><th>成績日</th><th>類型</th><th class="num">筆數</th><th>檔名</th><th>匯入時間</th></tr></thead><tbody>'+r.data.map(x=>'<tr><td>'+esc(x.report_date)+'</td><td>'+esc(x.report_type)+'</td><td class="num">'+esc(x.row_count)+'</td><td>'+esc(x.source_file)+'</td><td>'+esc(String(x.imported_at||'').slice(0,16).replace('T',' '))+'</td></tr>').join('')+'</tbody></table>':'<p class="uo-empty">尚無匯入紀錄</p>';
+      body.innerHTML=r.data.length?'<table class="ui-table"><thead><tr><th>成績日</th><th>類型</th><th class="num">筆數</th><th>檔名</th><th>匯入時間</th></tr></thead><tbody>'+r.data.map(x=>'<tr><td>'+esc(x.report_date)+'</td><td>'+esc(x.report_type)+'</td><td class="num">'+esc(x.row_count)+'</td><td>'+esc(x.source_file)+'</td><td>'+esc(x.imported_at?fmt(x.imported_at):'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="uo-empty">尚無匯入紀錄</p>';
     }
     document.querySelector('.ops-tab[data-ops-tab="scores"]')?.addEventListener('click',()=>setTimeout(loadHistory,0));
     new MutationObserver(()=>{if(/完成匯入/.test(E('opsScoreMessage')?.textContent||''))loadHistory();}).observe(E('opsScoreMessage'),{childList:true,characterData:true,subtree:true});
@@ -82,7 +82,7 @@
   drawer.innerHTML='<div class="ui-drawer-head"><b>等餐明細</b><button type="button" class="ui-drawer-close" aria-label="關閉">✕</button></div><div class="ui-drawer-body"></div>';
   document.body.appendChild(drawer);
   const dEsc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const dTime=v=>v?String(v).slice(0,16).replace('T',' '):'—';
+  const dTime=v=>v?fmt(v):'—';
   drawer.querySelector('.ui-drawer-close').onclick=()=>{drawer.hidden=true;};
   document.addEventListener('keydown',e=>{if(e.key==='Escape')drawer.hidden=true;});
   E('opsDelayList')?.addEventListener('click',async e=>{

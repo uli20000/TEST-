@@ -48,8 +48,9 @@
   }
   function renderWait(o){E('uoWait').innerHTML=waitHtml(o);}
   function lineHtml(o){
+    const lineEmpty=o.lineRegistered===0?'尚無餐廳登記劃線簽名':'已登記的餐廳都完成';
     return (o.acLine.length?o.acLine.map(x=>bar(x.name,x.rate??0,1,x.rate===null?'尚未登記':(x.rate*100).toFixed(1)+'%'+(x.missing?'（待檢查 '+x.missing+'）':''),x.rate===null?'na':x.rate>=1?'ok':'warn')).join(''):empty('沒有 AC 設定'))+
-      '<h3>缺漏最多的餐廳</h3>'+(top3(o.lineWorst,x=>(x.rate*100).toFixed(1)+'%',x=>(x.ac?x.ac+'｜':'')+'已登記 '+x.count+' 次')||empty('已登記的餐廳都完成'));
+      '<h3>缺漏最多的餐廳</h3>'+(top3(o.lineWorst,x=>(x.rate*100).toFixed(1)+'%',x=>(x.ac?x.ac+'｜':'')+'已登記 '+x.count+' 次')||empty(lineEmpty));
   }
   function renderLine(o){E('uoLine').innerHTML=lineHtml(o);}
   window.UiOverview={waitHtml,lineHtml};
@@ -62,9 +63,9 @@
     ]);
     const list=(rows,fn)=>'<ul class="uo-list">'+rows.map(fn).join('')+'</ul>';
     if(ins.error)E('uoInspect').innerHTML=empty('讀取失敗：'+ins.error.message);
-    else E('uoInspect').innerHTML='<div class="uo-count"><b>'+(insN.count??ins.data.length)+'</b> 筆</div>'+(ins.data.length?list(ins.data,x=>'<li><b>'+esc(x.vehicles?.plate4||'車輛')+'</b> '+esc((x.abnormal_items||[]).join('、'))+'<small>'+esc(x.reporter_name||'')+'｜'+esc(String(x.reported_at).slice(5,16).replace('T',' '))+'</small></li>'):empty('沒有未結案巡檢'))+'<button type="button" class="uo-more" data-go="vehicle">到車輛／巡檢 ›</button>';
+    else E('uoInspect').innerHTML='<div class="uo-count"><b>'+(insN.count??ins.data.length)+'</b> 筆</div>'+(ins.data.length?list(ins.data,x=>'<li><b>'+esc(x.vehicles?.plate4||'車輛')+'</b> '+esc((x.abnormal_items||[]).join('、'))+'<small>'+esc(x.reporter_name||'')+'｜'+esc(fmt(x.reported_at))+'</small></li>'):empty('沒有未結案巡檢'))+'<button type="button" class="uo-more" data-go="vehicle">到車輛／巡檢 ›</button>';
     const dev=[...(bat.data||[]).map(x=>({n:'電池 '+x.battery_number,d:x.issue_description,t:x.reported_at})),...(rec.data||[]).map(x=>({n:'紀錄器 '+x.recorder_number,d:x.issue_description,t:x.reported_at}))].sort((a,b)=>String(b.t).localeCompare(String(a.t)));
-    E('uoDevice').innerHTML=(bat.error||rec.error)?empty('讀取失敗：'+(bat.error||rec.error).message):'<div class="uo-count"><b>'+dev.length+(dev.length>=5?'+':'')+'</b> 件</div>'+(dev.length?list(dev.slice(0,5),x=>'<li><b>'+esc(x.n)+'</b> '+esc(x.d||'')+'<small>'+esc(String(x.t||'').slice(5,16).replace('T',' '))+'</small></li>'):empty('沒有待處理設備異常'))+'<button type="button" class="uo-more" data-go="battery">到電池／紀錄器 ›</button>';
+    E('uoDevice').innerHTML=(bat.error||rec.error)?empty('讀取失敗：'+(bat.error||rec.error).message):'<div class="uo-count"><b>'+dev.length+(dev.length>=5?'+':'')+'</b> 件</div>'+(dev.length?list(dev.slice(0,5),x=>'<li><b>'+esc(x.n)+'</b> '+esc(x.d||'')+'<small>'+esc(fmt(x.t))+'</small></li>'):empty('沒有待處理設備異常'))+'<button type="button" class="uo-more" data-go="battery">到電池／紀錄器 ›</button>';
   }
   async function renderProgress(o){
     const monday=(()=>{const d=new Date(opsToday()+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);})();
