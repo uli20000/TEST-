@@ -163,6 +163,24 @@ details.card>summary::after{content:' ▾';color:var(--faint)}details.card[open]
 .loading{text-align:center;color:var(--muted);padding:30px}
 .rc.err{border-top-color:var(--bad)}.rc.err .errmsg{color:var(--bad);text-align:center;padding:30px 0}
 .note2{font-size:12px;color:var(--faint);text-align:center;margin-top:6px}
+
+h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
+.mx{display:grid;gap:4px;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:10px}
+.mx .hd{text-align:center;font-size:13px;color:var(--muted);font-weight:800;padding:6px 0}
+.mx .rg{display:flex;align-items:center;font-weight:800;font-size:15px;border-left:4px solid var(--rc);padding-left:10px}
+.cell{border-radius:10px;padding:14px 6px;text-align:center;cursor:pointer;border:2px solid transparent;min-height:56px;display:flex;align-items:center;justify-content:center}
+.cell b{font-size:20px;font-weight:800}.cell b i{font-style:normal;font-size:12px;margin-left:3px}
+.cell.ok b{color:var(--ok)}.cell.bad{background:var(--miss)}.cell.bad b{color:var(--bad)}.cell.na b{color:var(--na);font-size:13px}.cell.sel{border-color:var(--text)}
+.why{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 20px;margin-top:12px;display:none}.why.on{display:block}
+.why h3{margin:0 0 6px;text-align:center;font-size:17px}
+.pcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.pc{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border-top:4px solid var(--rc);padding:16px;display:flex;flex-direction:column;gap:6px;text-align:center;cursor:pointer}
+.pc h3{margin:0;font-size:15px;font-weight:800}.pc .big{font-size:28px;font-weight:800;color:var(--bad)}.pc .gap{font-size:14px;font-weight:800;color:var(--bad)}
+.src{list-style:none;margin:6px 0 0;padding:0;text-align:left;border-top:1px solid var(--line)}
+.src li{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.src li b{font-weight:800}.src li em{font-style:normal;color:var(--ok);font-weight:800;white-space:nowrap}.src li small{grid-column:1/-1;color:var(--faint);font-weight:500;font-size:11px}
+@media (max-width:1100px){.pcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.mxwrap{overflow-x:auto}.mx{min-width:600px}.cell b{font-size:16px}.pcards{grid-template-columns:1fr}.top .period{flex-wrap:wrap;justify-content:center}}
 </style>
 </head>
 <body>
@@ -193,17 +211,15 @@ details.card>summary::after{content:' ▾';color:var(--faint)}details.card[open]
       <h1>全區總覽</h1>
       <div class="tabs"><div class="seg" id="tabs"><button data-t="ov" class="on">📊 總覽</button><button data-t="cmp">⚖️ 指標比較</button><button data-t="deep">🔍 各區重點</button><button data-t="alert">🔔 預警</button></div></div>
       <div class="pane on" id="p-ov">
-        <div class="hero" id="hero"></div>
-        <div class="lights" id="lights"></div>
-        <div class="rcs mb" id="rcs"><div class="loading">讀取四區資料中…</div></div>
-        <div class="g2">
-          <div class="card"><div class="card-h"><h2>本期重點</h2></div><ul class="insight" id="insight"></ul></div>
-          <div class="card" id="dqCard"><div class="card-h"><h2>資料完整度</h2></div><table class="dq" id="dq"></table></div>
-        </div>
+        <h2 class="sec">四區成績</h2>
+        <div class="mxwrap"><div class="mx" id="mx"><div class="loading">讀取四區資料中…</div></div></div>
+        <div class="why" id="why"></div>
+        <h2 class="sec">本期最需要處理</h2>
+        <div class="pcards mb" id="pcards"></div>
       </div>
       <div class="pane" id="p-cmp">
         <div class="toolbar"><div class="seg" id="cmpMetric"></div></div>
-        <div class="card mb"><div class="card-h"><h2>目標達成矩陣</h2></div><table class="matrix" id="matrix"></table>
+        <div class="card mb" id="matrixCard"><div class="card-h"><h2>目標達成矩陣</h2></div><table class="matrix" id="matrix"></table>
           <div class="dvlegend"><span>低於目標</span><i style="background:var(--dv-r3)"></i><i style="background:var(--dv-r2)"></i><i style="background:var(--dv-r1)"></i><i style="background:var(--dv-n)"></i><i style="background:var(--dv-b1)"></i><i style="background:var(--dv-b2)"></i><i style="background:var(--dv-b3)"></i><span>高於目標</span></div></div>
         <div class="card mb trend">
           <div class="toolbar"><div class="seg" id="cmpView"><button data-v="hb" class="on">四區排序</button><button data-v="tr">8 週走勢</button></div></div>
@@ -266,11 +282,11 @@ async function summary(id,start,end){
  const r=await clients[id].rpc('hq_summary',{p_start:start,p_end:end});if(r.error)throw r.error;return r.data;}
 function metrics(s){if(!s)return null;const tc=s.tc,ok=tc!==null&&tc!==undefined;const r=(y,n)=>y!=null&&n!=null&&y+n>0?y/(y+n):null;
  return{tc:ok?tc:null,sstg:s.sstg??null,d7:r(s.d7_y,s.d7_n),d25:r(s.d25_y,s.d25_n),fa:ok&&tc>0&&s.fa!=null?s.fa/tc:null,tplh:s.nonfa!=null&&s.actual_hours>0?s.nonfa/s.actual_hours:null,
-  sameTc:s.same_store_tc??null,samePrior:s.same_store_prior_tc??null,newTc:s.new_store_tc??0,nonfa:s.nonfa};}
+  sameTc:s.same_store_tc??null,samePrior:s.same_store_prior_tc??null,newTc:s.new_store_tc??0,nonfa:s.nonfa,sssg:s.sssg??null,y7:s.d7_y,v7:s.d7_y!=null?s.d7_y+s.d7_n:null,y25:s.d25_y,v25:s.d25_y!=null?s.d25_y+s.d25_n:null,faN:s.fa};}
 let R=[],RK={},TR=null;
 async function load(){
  const p=period(),today=tz();$('periodLabel').textContent=p.label;$('today').textContent=unit==='day'?'今天':unit==='week'?'本週':'本月';
- $('rcs').innerHTML='<div class="loading">讀取四區資料中…</div>';TR=null;
+ $('mx').innerHTML='<div class="loading">讀取四區資料中…</div>';$('pcards').innerHTML='';TR=null;
  const end0=p.end>today?today:p.end;
  const first=await Promise.all(CENTERS.map(async c=>{try{return{c,s:await summary(c.id,p.start,end0)}}catch(e){return{c,err:e.message||String(e)}}}));
  const lasts=first.filter(x=>x.s?.last_score_date&&x.s.last_score_date>=p.start).map(x=>x.s.last_score_date);
@@ -303,10 +319,11 @@ const ach=(k,r,x=r.v[k])=>{if(x==null)return null;const t=r.t[k];return MK[k].ca
 const gapPt=r=>r.v.sstg==null?null:(r.v.sstg-r.t.sstg)*100;
 const dvGap=g=>g==null?'':g>=1?'var(--dv-b3)':g>=.5?'var(--dv-b2)':g>=.1?'var(--dv-b1)':g>-.1?'var(--dv-n)':g>-.5?'var(--dv-r1)':g>-1?'var(--dv-r2)':'var(--dv-r3)';
 const tip=$('tip');const showTip=(e,h)=>{tip.innerHTML=h;tip.style.display='block';tip.style.left=Math.min(e.clientX+14,innerWidth-200)+'px';tip.style.top=(e.clientY+14)+'px';};const hideTip=()=>tip.style.display='none';
-function gapOf(k,r){const v=r.v,t=r.t;if(k==='d7'||k==='d25'){const n=Math.ceil((t[k]-v[k])*v.tc);return n>0?'差 '+n+' 單':null;}
+function needOf(k,r){const v=r.v,t=r.t;if(k==='d7'||k==='d25'){const y=v['y'+k.slice(1)],n=v['v'+k.slice(1)];return y==null||!n?null:Math.ceil(t[k]*n-y-1e-9);}if(k==='fa'&&v.tc)return Math.ceil(v.faN-t.fa*v.tc-1e-9);return null;}
+function gapOf(k,r){const v=r.v,t=r.t;if(k==='d7'||k==='d25'){const n=needOf(k,r);return n>0?'差 '+n+' 單':null;}
  if(k==='tplh'&&v.nonfa!=null&&v.tplh){const h=Math.round(v.nonfa/v.tplh-v.nonfa/t.tplh);return h>0?'多 '+h+' 工時':null;}
  if(k==='sstg'&&v.samePrior){const n=Math.ceil(v.samePrior*(1+t.sstg)-v.sameTc);return n>0?'差 '+n+' 單':null;}
- if(k==='fa'&&v.tc){const n=Math.ceil(v.fa*v.tc-t.fa*v.tc);return n>0?'超 '+n+' 單':null;}return null;}
+ if(k==='fa'&&v.tc){const n=needOf(k,r);return n>0?'需轉自送 '+n+' 單':null;}return null;}
 function events(){const E=[];for(const r of ok()){for(const m of M.filter(m=>!m.noTarget)){const s=status(m.k,r);if(s==='bad')E.push({sev:(m.k==='sstg'||Math.abs(ach(m.k,r)-1)<.04)?'serious':'critical',r,k:m.l,what:`本期 ${m.f(r.v[m.k])}（${tgtTxt(m.k,r)}）`,gap:gapOf(m.k,r)});}
   if(r.b.gap)E.push({sev:'serious',r,k:'資料',what:`成績缺 ${r.b.gap} 天：${(r.cov.scores?.missing_dates||[]).map(md).join('、')}`,gap:null});
   if(r.v.sstg==null&&r.v.tc!=null)E.push({sev:'warning',r,k:'SSTG',what:'去年同期資料不足，無法計算',gap:null});}
@@ -336,6 +353,31 @@ function insight(){const E=events().slice(0,4),best=R.filter(r=>RK.sstg?.[r.id]=
  $('insight').innerHTML=(E.map(e=>`<li><span>${e.sev==='critical'?'⚠':'📉'}</span><div><b>${rn(e.r)} ${e.k}</b>：${e.what}${e.gap?'，'+e.gap:''}</div></li>`).join('')+(best.length?`<li><span>📈</span><div><b>${best.map(rn).join('、')} SSTG ${best.length>1?'並列':''}最好</b>：${MK.sstg.f(best[0].v.sstg)}</div></li>`:''))||'<li><span>✅</span><div>本期各區指標都達標。</div></li>';
  const cell=(arr,extra)=>arr&&arr.length?`<td class="n">缺 ${arr.length} 天</td>`:`<td class="y">✓${extra||''}</td>`;
  $('dq').innerHTML=`<thead><tr><th>區域</th><th>成績</th><th>工時</th><th>今年 TC</th><th>去年 TC</th></tr></thead><tbody>${OFF.map(o=>`<tr><td class="off">${o.id} ${o.name}</td><td class="off" colspan="4">尚未接上</td></tr>`).join('')}${R.map(r=>r.err?`<tr><td>${rn(r)}</td><td class="n" colspan="4">讀取失敗</td></tr>`:`<tr><td><span class="dot" style="background:var(${r.c})"></span>${rn(r)}</td>${cell(r.cov.scores?.missing_dates)}${r.v.tc!=null&&r.s.actual_hours==null?'<td class="n">未輸入</td>':cell(r.cov.hours?.missing_dates)}${cell(r.cov.current_tc?.missing_dates)}${r.cov.prior_tc?.required_missing_date_count?`<td class="n">缺 ${r.cov.prior_tc.required_missing_date_count} 天</td>`:'<td class="y">✓</td>'}</tr>`).join('')}</tbody>`;}
+
+const COLS=[{k:'sssg',l:'SSSG'},{k:'sstg',l:'SSTG'},{k:'d7',l:'D7'},{k:'d25',l:'D25'},{k:'tplh',l:'TPLH'},{k:'fa',l:'FA 佔比'}];
+let sel=null;
+function mcell(r,k){if(r.err)return{st:'na',val:'—',n:null};const v=r.v;
+ if(k==='sssg'){const P=window.__period||{},full=unit==='week'&&P.useEnd===P.end,x=full?v.sssg:null;return x==null?{st:'na',val:'資料不足',n:null}:{st:'',val:MK.sstg.f(Number(x)),n:Number(x)};}
+ const x=v[k];if(x==null)return{st:'na',val:'資料不足',n:null};return{st:status(k,r),val:MK[k].f(x),n:MK[k].hi?x:-x};}
+function drivers(k,r){const st=r.s?.stores||[];if(k==='d7'||k==='d25'){const yk='y'+k.slice(1),nk='n'+k.slice(1),tot=r.v['v'+k.slice(1)]||0,t=r.t[k];
+  return st.map(x=>{const y=+x[yk]||0,n=y+(+x[nk]||0),need=Math.ceil(t*n-y-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`${y}／${n} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`補 ${x.need} 單 +${x.pt.toFixed(2)} 點`}));}
+ if(k==='fa'){const cap=r.t.fa,tot=r.v.tc||0;return st.map(x=>{const f=+x.fa||0,tc=+x.tc||0,need=Math.ceil(f-cap*tc-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`FA ${f}／${tc} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`轉 ${x.need} 單 −${x.pt.toFixed(2)} 點`}));}
+ return[];}
+const drvHtml=(k,r)=>drivers(k,r).map(x=>`<li><b>${x.name}</b><em>${x.eff}</em><small>${x.txt}</small></li>`).join('');
+function renderMx(){const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));const mx=$('mx');mx.style.gridTemplateColumns=`110px repeat(${cols.length},minmax(0,1fr))`;
+ const same=new Set(R.filter(r=>!r.err).map(r=>r.upd)).size<=1,rk={};if(same)for(const c of cols){const vals=R.map(r=>mcell(r,c.k).n).filter(x=>x!=null);if(vals.length>1&&c.k!=='sssg')rk[c.k]={b:Math.max(...vals),w:Math.min(...vals)};}
+ mx.innerHTML='<div></div>'+cols.map(c=>`<div class="hd">${c.l}</div>`).join('')+R.map(r=>`<div class="rg" style="--rc:var(${r.err?'--bad':r.c})">${rn(r)}</div>`+cols.map(c=>{const x=mcell(r,c.k),q=rk[c.k],f=q&&x.n!=null?(x.n===q.b?'<i style="color:var(--ok)">▲</i>':x.n===q.w?'<i style="color:var(--bad)">▼</i>':''):'';
+  return`<div class="cell ${x.st} ${sel===r.id+'|'+c.k?'sel':''}" data-k="${r.id}|${c.k}"><b>${x.val}${f}</b></div>`}).join('')).join('');
+ mx.querySelectorAll('.cell').forEach(el=>el.onclick=()=>{sel=sel===el.dataset.k?null:el.dataset.k;renderMx();renderWhy();});}
+function renderWhy(){const w=$('why');if(!sel){w.classList.remove('on');return;}const [id,k]=sel.split('|'),r=R.find(x=>x.id===id);if(!r||r.err){w.classList.remove('on');return;}
+ const c=COLS.find(x=>x.k===k),g=gapOf(k,r),list=drvHtml(k,r);w.classList.add('on');
+ w.innerHTML=`<h3><span class="dot" style="background:var(${r.c})"></span>${rn(r)}｜${c.l}${g?'　'+g:''}</h3>${list?`<ul class="src">${list}</ul>`:''}`;}
+function renderCards(){$('pcards').innerHTML=ok().map(r=>{const cand=['d7','d25','fa'].map(k=>({k,need:needOf(k,r)})).filter(x=>status(x.k,r)==='bad'&&x.need>0).sort((a,b)=>b.need-a.need)[0];
+  if(!cand){const other=['sstg','tplh'].find(k=>status(k,r)==='bad'),na=['d7','d25','fa'].some(k=>r.v[k]==null);
+   if(other)return`<div class="pc" data-k="${r.id}|${other}" style="--rc:var(${r.c})"><h3>${rn(r)}｜${MK[other].l}</h3><div class="big">${MK[other].f(r.v[other])}</div><div class="gap">${gapOf(other,r)||''}</div></div>`;
+   return`<div class="pc" style="--rc:var(${r.c})"><h3>${rn(r)}</h3><div class="big" style="color:var(${na?'--na':'--ok'});font-size:${na?'18px':'28px'}">${na?'資料不足':'✓'}</div></div>`;}
+  const m=MK[cand.k];return`<div class="pc" data-k="${r.id}|${cand.k}" style="--rc:var(${r.c})"><h3>${rn(r)}｜${m.l}</h3><div class="big">${m.f(r.v[cand.k])}</div><div class="gap">${gapOf(cand.k,r)}</div><ul class="src">${drvHtml(cand.k,r)}</ul></div>`;}).join('');
+ document.querySelectorAll('.pc[data-k]').forEach(a=>a.onclick=()=>{sel=a.dataset.k;renderMx();renderWhy();$('why').scrollIntoView({behavior:'smooth',block:'center'});});}
 // ===== 指標比較 =====
 function cmpView(){const m=MK[cmpK];$('cmpMetric').innerHTML=M.map(x=>`<button data-k="${x.k}" class="${x.k===cmpK?'on':''}">${x.l}</button>`).join('');
  const rows=ok().map(r=>({r,x:r.v[cmpK]})),valid=rows.filter(o=>o.x!=null).sort((a,b)=>m.hi?b.x-a.x:a.x-b.x),all=valid.map(o=>o.x).concat(m.noTarget?[]:rows.map(o=>o.r.t[cmpK])),max=Math.max(...all,0.0001)*1.12;
@@ -381,14 +423,14 @@ ${E.filter(e=>e.sev!=='warning').map((e,i)=>`　${i+1}. ${rn(e.r)} ${e.k}：${e.
 三、資料：${rs.filter(r=>r.b.gap).map(r=>rn(r)+' 成績缺 '+r.b.gap+' 天').join('；')||'各區成績完整'}；994、997 尚未接上。
 （原因與責任需再核對訂單與排班紀錄。）`;}
 // ===== 切換與登入 =====
-function render(){hero();lights();cards();insight();if($('p-cmp').classList.contains('on'))cmpView();if($('p-deep').classList.contains('on'))deep();alertsView();}
+function render(){renderMx();renderWhy();renderCards();if($('p-cmp').classList.contains('on'))cmpView();if($('p-deep').classList.contains('on'))deep();alertsView();}
 function switchTab(t){$('tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));render();scrollTo(0,0);}
 window.switchTab=switchTab;
 $('tabs').onclick=e=>{const t=e.target.closest('button')?.dataset.t;if(t)switchTab(t);};
 $('cmpMetric').onclick=e=>{const k=e.target.dataset.k;if(k){cmpK=k;cmpView();}};
-$('cmpView').onclick=e=>{const v=e.target.dataset.v;if(!v)return;$('cmpView').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));document.querySelectorAll('.vw').forEach(x=>x.classList.toggle('on',x.id==='vw-'+v));if(v==='tr')trend();};
+$('cmpView').onclick=e=>{const v=e.target.dataset.v;if(!v)return;$('cmpView').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));document.querySelectorAll('.vw').forEach(x=>x.classList.toggle('on',x.id==='vw-'+v));$('matrixCard').style.display=v==='tr'?'none':'';if(v==='tr')trend();};
 const segOn=(id,attr,val)=>$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset[attr]===val));
-$('unit').onclick=e=>{const u=e.target.dataset.u;if(!u)return;unit=u;anchor=tz();segOn('unit','u',u);load();};
+$('unit').onclick=e=>{const u=e.target.dataset.u;if(!u)return;unit=u;if(u==='day'&&sel?.endsWith('|sssg'))sel=null;anchor=tz();segOn('unit','u',u);load();};
 $('prev').onclick=()=>{shift(-1);load();};$('next').onclick=()=>{shift(1);load();};$('today').onclick=()=>{anchor=tz();load();};
 $('cut').onclick=e=>{const c=e.target.dataset.c;if(!c)return;cutoff=c;segOn('cut','c',c);load();};
 $('basis').onclick=e=>{const b=e.target.dataset.b;if(!b)return;basis=b;segOn('basis','b',b);load();};
@@ -403,7 +445,7 @@ $('loginForm').onsubmit=async e=>{e.preventDefault();const em=$('em').value.trim
  if(bad.length)alert('以下區域登入失敗，畫面會顯示讀取失敗：'+bad.map(b=>b.c.id+'（'+b.err+'）').join('、'));start(em);};
 function start(em){$('login').style.display='none';$('userBox').textContent=em+' ▾';load();}
 if(LOCAL_PREVIEW)start('本機預覽');else signedIn().then(em=>{if(em)start(em);});
-addEventListener('resize',()=>{if($('p-cmp').classList.contains('on')&&$('vw-tr').classList.contains('on'))trend();});
+addEventListener('resize',()=>{if($('p-ov').classList.contains('on'))renderMx();if($('p-cmp').classList.contains('on')&&$('vw-tr').classList.contains('on'))trend();});
 </script>
 </body>
 </html>
