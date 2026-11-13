@@ -283,7 +283,7 @@ async function load(){
      const t={...DEFAULT_T};for(const[k,v] of Object.entries(s.targets||{}))if(v!=null){const kk=k==='faShareMax'?'fa':k;t[kk]=Number(v);}
      const v=metrics(s),cov=s.coverage||{};
      return{...c,s,v,t,prev:metrics(prev),upd:s.last_score_date&&s.last_score_date>useEnd?useEnd:s.last_score_date,b:{ano:s.b_layer?.anomaly_days,wait:s.b_layer?.waiting_count,sig:s.b_layer?.line_signature_missing_count,gap:(cov.scores?.missing_dates||[]).length},
-       subs:s.prior_substitutions||[],newStores:s.new_stores||[],cov,actions:s.actions||{}};}
+       subs:[...(s.prior_substitutions||[]),...(s.store_substitutions||[])],newStores:s.new_stores||[],cov,actions:s.actions||{}};}
    catch(e){return{...c,err:e.message||String(e)}}}));
  RK=Object.fromEntries(M.map(m=>[m.k,rank(m.k)]));
  $('cut').querySelector('[data-c=common]').textContent='共同 '+md(useEnd);
@@ -341,7 +341,7 @@ function cmpView(){const m=MK[cmpK];$('cmpMetric').innerHTML=M.map(x=>`<button d
  const rows=ok().map(r=>({r,x:r.v[cmpK]})),valid=rows.filter(o=>o.x!=null).sort((a,b)=>m.hi?b.x-a.x:a.x-b.x),all=valid.map(o=>o.x).concat(m.noTarget?[]:rows.map(o=>o.r.t[cmpK])),max=Math.max(...all,0.0001)*1.12;
  $('hbTitle').textContent=`${m.l}　四區排序（${m.noTarget?'依數量':m.hi?'越高越好':'越低越好'}）`;
  $('hbars').innerHTML=valid.concat(rows.filter(o=>o.x==null)).map(({r,x})=>{const pc=v=>Math.max(0,v/max*100);return`<div class="hb"><span><span class="dot" style="background:var(${r.c})"></span>${rn(r)}</span><div class="track">${x==null?'':`<div class="fill" style="width:${pc(x)}%;background:var(${r.c})"></div>`}${m.noTarget?'':`<div class="tick" style="left:${pc(r.t[cmpK])}%"></div>`}</div><span class="val">${x==null?'<span style="color:var(--na);font-size:13px">資料不足</span>':m.f(x)+(RK[cmpK][r.id]==='best'?' ▲':RK[cmpK][r.id]==='worst'?' ▼':'')}</span></div>`}).join('');
- $('matrix').innerHTML=`<thead><tr><th>指標</th>${ok().map(r=>`<th><span class="dot" style="background:var(${r.c})"></span>${r.id}</th>`).join('')}</tr></thead><tbody>${M.filter(x=>!x.noTarget).map(x=>`<tr><td>${x.l}</td>${ok().map(r=>{const v=r.v[x.k];if(v==null)return`<td style="color:var(--na)">資料不足</td>`;let main,bg,fg;if(x.k==='sstg'){const g=gapPt(r);main=(g>=0?'超 +':'差 −')+Math.abs(g).toFixed(1)+'點';bg=dvGap(g);fg=g>=1||g<=-1?'#fff':'var(--text)';}else{const a=ach(x.k,r);main=(a*100).toFixed(0)+'%';bg=dv(a);fg=ink(a);}return`<td style="background:${bg};color:${fg}" title="${x.f(v)}（${tgtTxt(x.k,r)}）">${main}</td>`}).join('')}</tr>`).join('')}</tbody>`;
+ $('matrix').innerHTML=`<thead><tr><th>指標</th>${ok().map(r=>`<th><span class="dot" style="background:var(${r.c})"></span>${r.id}</th>`).join('')}</tr></thead><tbody>${M.filter(x=>!x.noTarget).map(x=>`<tr><td>${x.l}</td>${ok().map(r=>{const v=r.v[x.k];if(v==null)return`<td style="color:var(--na)">資料不足</td>`;let main,bg,fg;if(x.k==='sstg'){const g=gapPt(r);main=x.f(v);bg=dvGap(g);fg=g>=1||g<=-1?'#fff':'var(--text)';}else{const a=ach(x.k,r);main=(a*100).toFixed(0)+'%';bg=dv(a);fg=ink(a);}return`<td style="background:${bg};color:${fg}" title="${x.f(v)}（${tgtTxt(x.k,r)}）">${main}</td>`}).join('')}</tr>`).join('')}</tbody>`;
  if($('vw-tr').classList.contains('on'))trend();}
 async function trendData(){if(TR)return TR;const p=period('week',anchor),weeks=[];for(let i=7;i>=0;i--){const s=addDays(p.start,-7*i);weeks.push({start:s,end:addDays(s,6),label:'W'+isoWeek(s)});}
  const today=tz();TR={weeks,d:{}};await Promise.all(ok().map(async r=>{TR.d[r.id]=await Promise.all(weeks.map(w=>summary(r.id,w.start,w.end>today?today:w.end).then(metrics).catch(()=>null)));}));return TR;}
@@ -364,7 +364,7 @@ function deep(){const r=R.find(x=>x.id===deepId)||R[0];if(!r)return;deepId=r.id;
  $('regpick').querySelectorAll('button').forEach(b=>b.onclick=()=>{deepId=b.dataset.id;deep();});
  if(r.err){$('deepSum').innerHTML=`<li><span>⚠</span><div>讀取失敗：${r.err}</div></li>`;$('watch').innerHTML='';}else{
  const E=events().filter(e=>e.r.id===r.id);$('deepSum').innerHTML=E.map(e=>`<li><span>${e.sev==='critical'?'⚠':'📉'}</span><div><b>${e.k}</b>：${e.what}${e.gap?'，'+e.gap:''}</div></li>`).join('')||'<li><span>✅</span><div>本期指標都達標，資料完整。</div></li>';
- const W2=[...r.subs.map(x=>[`去年比較日 ${md(x.original)} 為停班日`,`改用 ${x.used?md(x.used):'資料不足'}`,'SSTG 用替代日計算']),...(r.newStores.length?[[`新店不列入 SSTG`,r.newStores.join('、'),`本期新店單量 ${r.v.newTc} 單`]]:[]),
+ const W2=[...r.subs.map(x=>[`${x.store?x.store+' ':''}去年比較日 ${md(x.original)} 為停班日`,`改用 ${x.used?md(x.used):'資料不足'}`,'SSTG 用替代日計算']),...(r.newStores.length?[[`新店不列入 SSTG`,r.newStores.join('、'),`本期新店單量 ${r.v.newTc} 單`]]:[]),
   ...(r.cov.prior_tc?.required_missing_date_count?[['去年同期資料不足',`缺 ${r.cov.prior_tc.required_missing_date_count} 天`,(r.cov.prior_tc.missing_dates||[]).map(md).join('、')+'（有店缺去年資料）']]:[]),
   ...(r.s.actual_hours==null&&r.v.tc!=null?[['工時未輸入','TPLH 無法計算','請各區負責人在後台補工時']]:[])];
  $('watch').innerHTML=W2.map(([a,b,c])=>`<li><span>${a}</span><b class="down">${b}</b><small>${c}</small></li>`).join('')||'<li><span>沒有替代比較日或資料缺漏</span></li>';}
