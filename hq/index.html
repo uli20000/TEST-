@@ -315,7 +315,7 @@ const tgtTxt=(k,r)=>{const m=MK[k];return m.noTarget?'':(m.cap?'上限 ':'目標
 const rn=r=>`${r.id} ${r.name}`;
 function delta(k,r){const m=MK[k],x=r.v[k];let y=null;if(basis==='ly'){if(k==='tc'&&r.v.samePrior!=null){const d=r.v.sameTc/r.v.samePrior-1;return`<span class="delta ${d>=0?'up':'down'}" title="同店 vs 去年">${d>=0?'▲':'▼'}${Math.abs(d*100).toFixed(1)}%</span>`;}return'<span class="delta flat" title="去年同期無此指標">—</span>';}
  y=r.prev?.[k];if(x==null||y==null)return'<span class="delta flat" title="比較資料不足">—</span>';const d=k==='tc'?x/y-1:x-y,good=m.hi?d>0:d<0,ar=d>0?'▲':d<0?'▼':'＝';
- const txt=k==='tc'?Math.abs(d*100).toFixed(1)+'%':m.pt?Math.abs(d*100).toFixed(1)+'點':Math.abs(d).toFixed(2);return`<span class="delta ${Math.abs(d)<1e-4?'flat':good?'up':'down'}" title="vs 上期">${ar}${txt}</span>`;}
+ const txt=k==='tc'?Math.abs(d*100).toFixed(1)+'%':m.pt?Math.abs(d*100).toFixed(1)+'%':Math.abs(d).toFixed(2);return`<span class="delta ${Math.abs(d)<1e-4?'flat':good?'up':'down'}" title="vs 上期">${ar}${txt}</span>`;}
 const dv=a=>a==null?'':a>=1.10?'var(--dv-b3)':a>=1.04?'var(--dv-b2)':a>=1.01?'var(--dv-b1)':a>=.99?'var(--dv-n)':a>=.96?'var(--dv-r1)':a>=.90?'var(--dv-r2)':'var(--dv-r3)';
 const ink=a=>a!=null&&(a>=1.10||a<.90)?'#fff':'var(--text)';
 const ach=(k,r,x=r.v[k])=>{if(x==null)return null;const t=r.t[k];return MK[k].cap?t/x:x/t;};
@@ -363,11 +363,11 @@ function mcell(r,k){if(r.err)return{st:'na',val:'—',n:null};const v=r.v;
  if(k==='sssg'){const P=window.__period||{},full=unit==='week'&&P.useEnd===P.end&&basis==='gap',x=full?v.sssg:null;return x==null?{st:'na',val:'資料不足',n:null}:{st:'',val:MK.sstg.f(Number(x)),n:Number(x)};}
  const x=v[k];if(x==null)return{st:'na',val:'資料不足',n:null};
  if(basis==='prev'){const y=r.prev?.[k];if(y==null)return{st:'na',val:'資料不足',n:null};const m=MK[k],d=k==='tc'?x/y-1:x-y,good=m.hi?d>=0:d<=0;
-  const txt=(d>=0?'+':'−')+(k==='tplh'?Math.abs(d).toFixed(2):Math.abs(d*100).toFixed(1)+(k==='tc'?'%':'點'));return{st:good?'ok':'bad',val:txt,n:m.hi?d:-d};}
+  const txt=(d>=0?'+':'−')+(k==='tplh'?Math.abs(d).toFixed(2):Math.abs(d*100).toFixed(1)+'%');return{st:good?'ok':'bad',val:txt,n:m.hi?d:-d};}
  return{st:status(k,r),val:MK[k].f(x),n:MK[k].hi?x:-x};}
 function drivers(k,r){const st=r.s?.stores||[];if(k==='d7'||k==='d25'){const yk='y'+k.slice(1),nk='n'+k.slice(1),tot=r.v['v'+k.slice(1)]||0,t=r.t[k];
-  return st.map(x=>{const y=+x[yk]||0,n=y+(+x[nk]||0),need=Math.ceil(t*n-y-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`${y}／${n} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`補 ${x.need} 單 +${x.pt.toFixed(2)} 點`}));}
- if(k==='fa'){const cap=r.t.fa,tot=r.v.tc||0;return st.map(x=>{const f=+x.fa||0,tc=+x.tc||0,need=Math.ceil(f-cap*tc-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`FA ${f}／${tc} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`轉 ${x.need} 單 −${x.pt.toFixed(2)} 點`}));}
+  return st.map(x=>{const y=+x[yk]||0,n=y+(+x[nk]||0),need=Math.ceil(t*n-y-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`${y}／${n} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`補 ${x.need} 單 +${x.pt.toFixed(2)}%`}));}
+ if(k==='fa'){const cap=r.t.fa,tot=r.v.tc||0;return st.map(x=>{const f=+x.fa||0,tc=+x.tc||0,need=Math.ceil(f-cap*tc-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`FA ${f}／${tc} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`轉 ${x.need} 單 −${x.pt.toFixed(2)}%`}));}
  return[];}
 const drvHtml=(k,r)=>drivers(k,r).map(x=>`<li><b>${x.name}</b><em>${x.eff}</em><small>${x.txt}</small></li>`).join('');
 function renderMx(){const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));const mx=$('mx');mx.style.gridTemplateColumns=`110px repeat(${cols.length},minmax(0,1fr))`;
