@@ -178,7 +178,7 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
 .pc h3{margin:0;font-size:15px;font-weight:800}.pc .big{font-size:28px;font-weight:800;color:var(--bad)}.pc .gap{font-size:14px;font-weight:800;color:var(--bad)}
 .src{list-style:none;margin:6px 0 0;padding:0;text-align:center;border-top:1px solid var(--line)}
 .src li{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:4px 14px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
-.pc .src li{grid-template-columns:minmax(0,1fr) auto;}.pc .src li:nth-child(n+4){display:none}.pc .src li .counts{grid-column:1/-1;font-weight:500;color:var(--faint);font-size:11px}
+.pc .src li{grid-template-columns:minmax(0,1fr) auto;}.pc .src li .counts{grid-column:1/-1;font-weight:500;color:var(--faint);font-size:11px}
 .src li b{font-weight:800}.src li em{font-style:normal;color:var(--ok);font-weight:800;white-space:nowrap}.dimbar{margin:4px 0 10px}.dimseg button{padding:5px 14px}
 .src .counts{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}.src .missing{color:var(--na);font-weight:800}.mx .rg{justify-content:center;padding:0;border-left-width:4px}.dimseg{display:flex;flex-wrap:wrap;justify-content:center}.pc h3,.src b{overflow-wrap:anywhere}button:disabled{opacity:.5;cursor:wait}
 @media (max-width:1100px){.pcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -428,7 +428,8 @@ function cmpView(){const m=MK[cmpK];$('cmpMetric').innerHTML=M.map(x=>`<button d
  if($('vw-tr').classList.contains('on'))trend();}
 async function trendData(){if(TR)return TR;const p=period('week',anchor),weeks=[];for(let i=7;i>=0;i--){const s=addDays(p.start,-7*i);weeks.push({start:s,end:addDays(s,6),label:'W'+isoWeek(s)});}
  const today=tz();TR={weeks,d:{}};await Promise.all(ok().map(async r=>{TR.d[r.id]=await Promise.all(weeks.map(w=>summary(r.id,w.start,w.end>today?today:w.end).then(metrics).catch(()=>null)));}));return TR;}
-async function trend(){const m=MK[cmpK],svg=$('chart');$('trTitle').textContent=`${m.l}　近 8 週走勢`;$('trNote').textContent='讀取中…';const T=await trendData();$('trNote').textContent='';
+let trendSeq=0;
+async function trend(){const mySeq=++trendSeq,myK=cmpK,m=MK[cmpK],svg=$('chart');$('trTitle').textContent=`${m.l}　近 8 週走勢`;$('trNote').textContent='讀取中…';const T=await trendData();if(mySeq!==trendSeq||myK!==cmpK)return;$('trNote').textContent='';
  const W=T.weeks.map(w=>w.label),s=Object.fromEntries(ok().map(r=>[r.id,(T.d[r.id]||[]).map(x=>x?x[cmpK]??null:null)])),tgs=m.noTarget?[]:[...new Set(ok().map(r=>r.t[cmpK]))],tg=tgs.length===1?tgs[0]:null;
  const w=svg.clientWidth||800,h=300,pl=58,pr=96,pt=14,pb=28,all=Object.values(s).flat().filter(x=>x!=null).concat(tgs);if(!all.length){svg.innerHTML='';$('trNote').textContent='資料不足';return;}
  let lo=Math.min(...all),hi=Math.max(...all);const pad=(hi-lo)*.12||Math.abs(hi)*.1||.01;lo-=pad;hi+=pad;const X=i=>pl+i*(w-pl-pr)/(W.length-1),Y=v=>pt+(hi-v)/(hi-lo)*(h-pt-pb);
@@ -448,8 +449,10 @@ function deep(){const r=R.find(x=>x.id===deepId)||R[0];if(!r)return;deepId=r.id;
  const E=events().filter(e=>e.r.id===r.id);$('deepSum').innerHTML=E.map(e=>`<li><span>${e.sev==='critical'?'⚠':'📉'}</span><div><b>${e.k}</b>：${e.what}${e.gap?'，'+e.gap:''}</div></li>`).join('')||(M.some(m=>r.v[m.k]==null)?'<li><span>ℹ️</span><div>有指標資料不足，見右側說明。</div></li>':'<li><span>✅</span><div>本期指標都達標。</div></li>');
  const W2=[...r.subs.map(x=>[`${x.store?x.store+' ':''}去年比較日 ${md(x.original)} 為停班日`,`改用 ${x.used?md(x.used):'資料不足'}`,'SSTG 用替代日計算']),...(r.newStores.length?[[`新店不列入 SSTG`,r.newStores.join('、'),`本期新店單量 ${r.v.newTc} 單`]]:[]),
   ...(r.cov.prior_tc?.required_missing_date_count?[['去年同期資料不足',`缺 ${r.cov.prior_tc.required_missing_date_count} 天`,(r.cov.prior_tc.missing_dates||[]).map(md).join('、')+'（有店缺去年資料）']]:[]),
-  ...(r.s.actual_hours==null&&r.v.tc!=null?[['工時未輸入','TPLH 無法計算','請各區負責人在後台補工時']]:[])];
- $('watch').innerHTML=W2.map(([a,b,c])=>`<li><span>${a}</span><b class="down">${b}</b><small>${c}</small></li>`).join('')||'<li><span>沒有替代比較日或資料缺漏</span></li>';}
+  ...((r.cov.current_tc?.missing_dates||[]).length?[['今年 TC 缺日',(r.cov.current_tc.missing_dates).map(md).join('、'),'']]:[]),
+  ...((r.cov.scores?.missing_dates||[]).length?[['成績缺日',(r.cov.scores.missing_dates).map(md).join('、'),'']]:[]),
+  ...(r.s.actual_hours==null&&r.v.tc!=null?[['工時未輸入','TPLH 資料不足','']]:[])];
+ $('watch').innerHTML=W2.map(([a,b,c])=>`<li><span>${a}</span><b class="down">${b}</b>${c?`<small>${c}</small>`:''}</li>`).join('')||'<li><span>沒有替代比較日或資料缺漏</span></li>';}
  $('links').innerHTML=`<a class="golink" href="https://uli20000.github.io/T${r.id}/analysis.html" target="_blank" rel="noopener" style="--rc:var(${r.c})">開啟 ${rn(r)} 分析儀表板 →</a>`;}
 // ===== 預警 =====
 function alertsView(){const E=events(),SI={critical:'⛔',serious:'⚠',warning:'△'},SL={critical:'嚴重',serious:'注意',warning:'觀察'};
@@ -496,7 +499,7 @@ function pngCanvas(view){const cv=document.createElement('canvas'),W=1600,pad=32
  rect(0,0,W,H,bg);txt('全區總覽　'+view.label,W/2,35,28);txt(`${view.start}–${view.end}　${view.basis}　${view.dimension}`,W/2,78,18);
  rect(pad,matrixY,W-2*pad,matrixH,card);const first=180,cw=(W-2*pad-first)/view.cols.length;
  view.cols.forEach((c,i)=>txt(c.l,pad+first+(i+.5)*cw,matrixY+30,19));
- view.matrix.forEach((row,j)=>{const y=matrixY+60+j*70;rect(pad,y,W-2*pad,1,line);txt(row.name,pad+first/2,y+35,20);
+ view.matrix.forEach((row,j)=>{const y=matrixY+60+j*70;rect(pad,y,W-2*pad,1,line);txt(row.name,pad+first/2,y+28,20);if(row.date)txt('資料到 '+row.date,pad+first/2,y+52,14,text);
   row.cells.forEach((cell,i)=>txt(row.error?'讀取失敗':cell.val,pad+first+(i+.5)*cw,y+35,row.error||cell.st==='na'?17:24,cell.st==='bad'?bad:cell.st==='ok'?good:text));});
  txt('本期最需要處理',W/2,cardsY-35,23);
  view.cards.forEach((c,i)=>{const x=pad+i*(cardW+gap),cx=x+cardW/2;rect(x,cardsY,cardW,cardH,card);rect(x,cardsY,cardW,4,color(c.r.c)||bad);txt(cardTitle(c),cx,cardsY+30,17);txt(c.value,cx,cardsY+70,28,c.k?bad:text);txt(c.gap,cx,cardsY+105,17,bad);let y=cardsY+135;
