@@ -176,9 +176,11 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
 .pcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .pc{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border-top:4px solid var(--rc);padding:16px;display:flex;flex-direction:column;gap:6px;text-align:center;cursor:pointer}
 .pc h3{margin:0;font-size:15px;font-weight:800}.pc .big{font-size:28px;font-weight:800;color:var(--bad)}.pc .gap{font-size:14px;font-weight:800;color:var(--bad)}
-.src{list-style:none;margin:6px 0 0;padding:0;text-align:left;border-top:1px solid var(--line)}
-.src li{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
-.src li b{font-weight:800}.src li em{font-style:normal;color:var(--ok);font-weight:800;white-space:nowrap}.src li small{grid-column:1/-1;color:var(--faint);font-weight:500;font-size:11px}
+.src{list-style:none;margin:6px 0 0;padding:0;text-align:center;border-top:1px solid var(--line)}
+.src li{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:4px 14px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
+.pc .src li{grid-template-columns:minmax(0,1fr) auto;}.pc .src li:nth-child(n+4){display:none}.pc .src li .counts{grid-column:1/-1;font-weight:500;color:var(--faint);font-size:11px}
+.src li b{font-weight:800}.src li em{font-style:normal;color:var(--ok);font-weight:800;white-space:nowrap}.dimbar{margin:4px 0 10px}.dimseg button{padding:5px 14px}
+.src .counts{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}.src .missing{color:var(--na);font-weight:800}.mx .rg{justify-content:center;padding:0;border-left-width:4px}.dimseg{display:flex;flex-wrap:wrap;justify-content:center}.pc h3,.src b{overflow-wrap:anywhere}button:disabled{opacity:.5;cursor:wait}
 @media (max-width:1100px){.pcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.mxwrap{overflow-x:auto}.mx{min-width:600px}.cell b{font-size:16px}.pcards{grid-template-columns:1fr}.top .period{flex-wrap:wrap;justify-content:center}}
 </style>
@@ -215,16 +217,17 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
         <div class="mxwrap"><div class="mx" id="mx"><div class="loading">讀取四區資料中…</div></div></div>
         <div class="why" id="why"></div>
         <h2 class="sec">本期最需要處理</h2>
+        <div class="toolbar dimbar" id="dimbar"></div>
         <div class="pcards mb" id="pcards"></div>
+        <div class="btnrow" id="exportbar"><button id="exPng">🖼 匯出 PNG</button><button id="exXlsx">📊 匯出 Excel</button></div>
       </div>
       <div class="pane" id="p-cmp">
         <div class="toolbar"><div class="seg" id="cmpMetric"></div></div>
-        <div class="card mb" id="matrixCard"><div class="card-h"><h2>目標達成矩陣</h2></div><table class="matrix" id="matrix"></table>
-          <div class="dvlegend"><span>低於目標</span><i style="background:var(--dv-r3)"></i><i style="background:var(--dv-r2)"></i><i style="background:var(--dv-r1)"></i><i style="background:var(--dv-n)"></i><i style="background:var(--dv-b1)"></i><i style="background:var(--dv-b2)"></i><i style="background:var(--dv-b3)"></i><span>高於目標</span></div></div>
+        <div class="card mb" id="matrixCard"><div class="card-h"><h2>目標達成矩陣</h2></div><table class="matrix" id="matrix"></table></div>
         <div class="card mb trend">
           <div class="toolbar"><div class="seg" id="cmpView"><button data-v="hb" class="on">四區排序</button><button data-v="tr">8 週走勢</button></div></div>
           <div class="vw on" id="vw-hb"><div class="card-h"><h2 id="hbTitle">四區排序</h2></div><div class="hbars" id="hbars"></div></div>
-          <div class="vw" id="vw-tr"><div class="card-h"><h2 id="trTitle">近 8 週走勢</h2></div><div class="legend" id="legend"></div><svg id="chart"></svg><div class="note2" id="trNote"></div></div>
+          <div class="vw" id="vw-tr"><div class="card-h"><h2 id="trTitle">近 8 週走勢</h2></div><svg id="chart"></svg><div class="note2" id="trNote"></div></div>
         </div>
       </div>
       <div class="pane" id="p-deep">
@@ -283,9 +286,10 @@ async function summary(id,start,end){
 function metrics(s){if(!s)return null;const tc=s.tc,ok=tc!==null&&tc!==undefined;const r=(y,n)=>y!=null&&n!=null&&y+n>0?y/(y+n):null;
  return{tc:ok?tc:null,sstg:s.sstg??null,d7:r(s.d7_y,s.d7_n),d25:r(s.d25_y,s.d25_n),fa:ok&&tc>0&&s.fa!=null?s.fa/tc:null,tplh:s.nonfa!=null&&s.actual_hours>0?s.nonfa/s.actual_hours:null,
   sameTc:s.same_store_tc??null,samePrior:s.same_store_prior_tc??null,newTc:s.new_store_tc??0,nonfa:s.nonfa,sssg:s.sssg??null,y7:s.d7_y,v7:s.d7_y!=null?s.d7_y+s.d7_n:null,y25:s.d25_y,v25:s.d25_y!=null?s.d25_y+s.d25_n:null,faN:s.fa};}
-let R=[],RK={},TR=null;
+let R=[],RK={},TR=null,loading=true;
 let loadSeq=0;
 async function load(){
+ loading=true;exportEnabled();$('why').classList.remove('on');
  const seq=++loadSeq,p=period(),today=tz();$('periodLabel').textContent=p.label;$('today').textContent=unit==='day'?'今天':unit==='week'?'本週':'本月';
  $('mx').innerHTML='<div class="loading">讀取四區資料中…</div>';$('pcards').innerHTML='';TR=null;
  const end0=p.end>today?today:p.end;
@@ -295,7 +299,7 @@ async function load(){
  const useEnd=cutoff==='common'?(common<end0?common:end0):end0;
  if(seq!==loadSeq)return;
  const pp=prevPeriod({start:p.start,end:useEnd});
- R=await Promise.all(first.map(async x=>{const c=x.c;if(x.err)return{...c,err:x.err};
+ const loaded=await Promise.all(first.map(async x=>{const c=x.c;if(x.err)return{...c,err:x.err};
    try{const s=cutoff==='common'&&useEnd!==end0?await summary(c.id,p.start,useEnd):x.s;
      const prev=basis==='prev'?await summary(c.id,pp.start,pp.end).catch(()=>null):null;
      const t={...DEFAULT_T};for(const[k,v] of Object.entries(s.targets||{}))if(v!=null){const kk=k==='faShareMax'?'fa':k;t[kk]=Number(v);}
@@ -304,6 +308,7 @@ async function load(){
        subs:[...(s.prior_substitutions||[]),...(s.store_substitutions||[])],newStores:s.new_stores||[],cov,actions:s.actions||{}};}
    catch(e){return{...c,err:e.message||String(e)}}}));
  if(seq!==loadSeq)return;
+ R=loaded;loading=false;exportEnabled();
  RK=Object.fromEntries(M.map(m=>[m.k,rank(m.k)]));
  $('cut').querySelector('[data-c=common]').textContent='共同 '+md(useEnd);
  window.__period={...p,useEnd};render();}
@@ -363,13 +368,47 @@ function mcell(r,k){if(r.err)return{st:'na',val:'—',n:null};const v=r.v;
  if(k==='sssg'){const P=window.__period||{},full=unit==='week'&&P.useEnd===P.end&&basis==='gap',x=full?v.sssg:null;return x==null?{st:'na',val:'資料不足',n:null}:{st:'',val:MK.sstg.f(Number(x)),n:Number(x)};}
  const x=v[k];if(x==null)return{st:'na',val:'資料不足',n:null};
  if(basis==='prev'){const y=r.prev?.[k];if(y==null)return{st:'na',val:'資料不足',n:null};const m=MK[k],d=k==='tc'?x/y-1:x-y,good=m.hi?d>=0:d<=0;
-  const txt=(d>=0?'+':'−')+(k==='tplh'?Math.abs(d).toFixed(2):Math.abs(d*100).toFixed(1)+'%');return{st:good?'ok':'bad',val:txt,n:m.hi?d:-d};}
+  const change=k==='tplh'?(y>0?x/y-1:null):d;if(change==null)return{st:'na',val:'資料不足',n:null};
+  const txt=(change>=0?'+':'−')+Math.abs(change*100).toFixed(1)+'%';return{st:good?'ok':'bad',val:txt,n:m.hi?change:-change};}
  return{st:status(k,r),val:MK[k].f(x),n:MK[k].hi?x:-x};}
-function drivers(k,r){const st=r.s?.stores||[];if(k==='d7'||k==='d25'){const yk='y'+k.slice(1),nk='n'+k.slice(1),tot=r.v['v'+k.slice(1)]||0,t=r.t[k];
-  return st.map(x=>{const y=+x[yk]||0,n=y+(+x[nk]||0),need=Math.ceil(t*n-y-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`${y}／${n} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`補 ${x.need} 單 +${x.pt.toFixed(2)}%`}));}
- if(k==='fa'){const cap=r.t.fa,tot=r.v.tc||0;return st.map(x=>{const f=+x.fa||0,tc=+x.tc||0,need=Math.ceil(f-cap*tc-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`FA ${f}／${tc} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`轉 ${x.need} 單 −${x.pt.toFixed(2)}%`}));}
+// 主因分組的缺欄與缺值保持 null；不拿部分同店資料拼成完整商圈。
+const DIMS={store:'店',area:'商圈',ac:'AC',slot:'時段'},DIM_OF={d7:['store','area','ac','slot'],d25:['store','area','ac','slot'],fa:['store','area','ac'],sstg:['store','area','ac'],tplh:['area']};
+const SLOT_L=['11 時前','11–13 時','14–16 時','17–20 時','21 時後'];
+let dim='store';
+const dimOf=k=>{const a=DIM_OF[k]||[];return a.includes(dim)?dim:a[0];};
+const number=x=>x==null||String(x).trim()===''||!Number.isFinite(Number(x))?null:Number(x);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const groupName=(d,x)=>d==='store'?((x.code?x.code+' ':'')+(x.name||'資料不足')):d==='area'?(x.area&&x.area!=='?'?x.area+' 區':'未分商圈'):d==='ac'?(x.ac&&x.ac!=='?'?x.ac:'未分 AC'):(SLOT_L[x.slot]||'資料不足');
+function groups(r,d,k){const s=r.s||{},base=x=>Object.fromEntries(['tc','fa','y7','n7','y25','n25','nonfa','hours','current','prior'].map(f=>[f,number(x[f]) ]));
+ if(k==='sstg'){
+  const rows=(s.store_sstg||[]).map(x=>({...base(x),...x,name:groupName(d,x),complete:x.complete===true}));
+  if(d==='store')return rows;
+  const m=new Map();for(const x of rows){const key=d==='area'?x.area:x.ac;if(!m.has(key))m.set(key,{name:x.name,current:0,prior:0,complete:true});const o=m.get(key);o.complete&&=x.complete&&number(x.current)!=null&&number(x.prior)!=null;o.current+=number(x.current)??0;o.prior+=number(x.prior)??0;}
+  return [...m.values()].map(x=>({...x,current:x.complete?x.current:null,prior:x.complete?x.prior:null}));
+ }
+ const rows=k==='tplh'?s.area_tplh:d==='store'?s.stores:d==='area'?s.areas:d==='ac'?s.acs:s.slots;
+ return(rows||[]).map(x=>({...base(x),name:groupName(d,x),complete:k==='tplh'?x.complete===true:true}));
+}
+function topThree(rows,key,ascending=false){rows.sort((a,b)=>(ascending?a[key]-b[key]:b[key]-a[key])||a.name.localeCompare(b.name,'zh-Hant'));if(rows.length<=3)return rows;const edge=rows[2][key];return rows.filter(x=>ascending?x[key]<=edge:x[key]>=edge);}
+function drivers(k,r,d=dimOf(k)){if(!d||r.v?.[k]==null)return[];const G=groups(r,d,k),t=r.t[k];
+ if(k==='d7'||k==='d25'){const yk='y'+k.slice(1),nk='n'+k.slice(1),tot=r.v['v'+k.slice(1)];
+  return topThree(G.filter(x=>x[yk]!=null&&x[nk]!=null).map(x=>{const y=x[yk],n=y+x[nk],need=Math.ceil(t*n-y-1e-9);return{name:x.name,txt:`${y}／${n} 單`,need,pt:tot>0?need/tot*100:null};}).filter(x=>x.need>0),'need').map(x=>({...x,eff:`+${x.pt.toFixed(2)}%`,detail:`補 ${x.need} 單`}));}
+ if(k==='fa'){const tot=r.v.tc;return topThree(G.filter(x=>x.fa!=null&&x.tc!=null).map(x=>{const need=Math.ceil(x.fa-t*x.tc-1e-9);return{name:x.name,txt:`FA ${x.fa}／${x.tc} 單`,need};}).filter(x=>x.need>0),'need').map(x=>({...x,eff:`−${(x.need/tot*100).toFixed(2)}%`,detail:`轉 ${x.need} 單`}));}
+ if(k==='sstg')return topThree(G.filter(x=>x.complete&&number(x.prior)>0&&number(x.current)!=null).map(x=>{const g=x.current/x.prior-1;return{name:x.name,g,txt:`${x.current}／${x.prior} 單`,eff:MK.sstg.f(g),detail:''};}),'g',true);
+ if(k==='tplh')return topThree(G.filter(x=>x.complete&&x.hours>0&&x.nonfa!=null).map(x=>{const over=x.hours-x.nonfa/t;return{name:x.name,over,txt:`自送 ${x.nonfa} 單／${Number(x.hours.toFixed(2))} 工時`,eff:(x.nonfa/x.hours).toFixed(2),detail:`多 ${Number(over.toFixed(2))} 工時`};}).filter(x=>x.over>1e-9),'over');
  return[];}
-const drvHtml=(k,r)=>drivers(k,r).map(x=>`<li><b>${x.name}</b><em>${x.eff}</em><small>${x.txt}</small></li>`).join('');
+function driverRows(k,r,d=dimOf(k)){if(!DIM_OF[k])return[{name:'資料不足',missing:true}];const rows=drivers(k,r,d),G=groups(r,d,k),fields=k==='d7'?['y7','n7']:k==='d25'?['y25','n25']:k==='sstg'?['current','prior']:k==='tplh'?['nonfa','hours']:['tc','fa'];
+ const missing=r.v?.[k]==null||!G.length||G.some(x=>!x.complete||fields.some(f=>x[f]==null)||(k==='sstg'&&x.prior<=0)||(k==='tplh'&&x.hours<=0));
+ if(missing)rows.push({name:'資料不足',eff:'',txt:'',detail:'',missing:true});
+ if(!rows.length)rows.push({name:'0 單',eff:'',txt:'',detail:''});return rows;}
+const dimSeg=k=>{const a=k?DIM_OF[k]||[]:Object.keys(DIMS),cur=k?dimOf(k):dim;return a.length>1||!k?`<div class="seg dimseg">${a.map(d=>`<button data-dim="${d}" class="${d===cur?'on':''}">${DIMS[d]}</button>`).join('')}</div>`:'';};
+const rowsHtml=rows=>rows.map(x=>`<li class="${x.missing?'missing':''}"><b>${esc(x.name)}</b>${x.eff?`<em>${esc(x.eff)}</em>`:''}${x.txt?`<span class="counts">${esc(x.txt)}</span>`:''}${x.detail?`<span class="counts">${esc(x.detail)}</span>`:''}</li>`).join('');
+const drvHtml=(k,r)=>rowsHtml(driverRows(k,r));
+function problemCard(r){if(r.err)return{r,k:null,value:'讀取失敗',gap:'',rows:[]};
+ const cand=['d7','d25','fa'].map(k=>({k,need:needOf(k,r)})).filter(x=>status(x.k,r)==='bad'&&x.need>0).sort((a,b)=>b.need-a.need)[0];
+ const k=cand?.k||['sstg','tplh'].find(k=>status(k,r)==='bad');if(k)return{r,k,value:MK[k].f(r.v[k]),gap:gapOf(k,r)||'',rows:driverRows(k,r),dimension:DIMS[dimOf(k)]};
+ return{r,k:null,value:M.some(m=>r.v[m.k]==null)?'資料不足':'✓',gap:'',rows:[]};}
+const cardTitle=c=>rn(c.r)+(c.k?'｜'+MK[c.k].l+'｜'+c.dimension:'');
 function renderMx(){const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));const mx=$('mx');mx.style.gridTemplateColumns=`110px repeat(${cols.length},minmax(0,1fr))`;
  const same=new Set(R.filter(r=>!r.err).map(r=>r.upd)).size<=1,rk={};if(same)for(const c of cols){const vals=R.map(r=>mcell(r,c.k).n).filter(x=>x!=null);if(vals.length>1&&c.k!=='sssg')rk[c.k]={b:Math.max(...vals),w:Math.min(...vals)};}
  mx.innerHTML='<div></div>'+cols.map(c=>`<div class="hd">${c.l}</div>`).join('')+R.map(r=>`<div class="rg" style="--rc:var(${r.err?'--bad':r.c})">${rn(r)}</div>`+(r.err?`<div class="cell bad" style="grid-column:span ${cols.length}"><b style="font-size:14px">讀取失敗</b></div>`:cols.map(c=>{const x=mcell(r,c.k),q=rk[c.k],f=q&&x.n!=null?(x.n===q.b?'<i style="color:var(--ok)">▲</i>':x.n===q.w?'<i style="color:var(--bad)">▼</i>':''):'';
@@ -377,26 +416,21 @@ function renderMx(){const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));con
  mx.querySelectorAll('.cell').forEach(el=>el.onclick=()=>{sel=sel===el.dataset.k?null:el.dataset.k;renderMx();renderWhy();});}
 function renderWhy(){const w=$('why');if(!sel){w.classList.remove('on');return;}const [id,k]=sel.split('|'),r=R.find(x=>x.id===id);if(!r||r.err){w.classList.remove('on');return;}
  const c=COLS.find(x=>x.k===k),g=gapOf(k,r),list=drvHtml(k,r);w.classList.add('on');
- w.innerHTML=`<h3><span class="dot" style="background:var(${r.c})"></span>${rn(r)}｜${c.l}${g?'　'+g:''}</h3>${list?`<ul class="src">${list}</ul>`:''}`;}
-function renderCards(){$('pcards').innerHTML=R.map(r=>{if(r.err)return`<div class="pc" style="--rc:var(--bad)"><h3>${rn(r)}</h3><div class="big" style="font-size:18px">讀取失敗</div></div>`;const cand=['d7','d25','fa'].map(k=>({k,need:needOf(k,r)})).filter(x=>status(x.k,r)==='bad'&&x.need>0).sort((a,b)=>b.need-a.need)[0];
-  if(!cand){const other=['sstg','tplh'].find(k=>status(k,r)==='bad'),na=['d7','d25','fa'].some(k=>r.v[k]==null);
-   if(other)return`<div class="pc" data-k="${r.id}|${other}" style="--rc:var(${r.c})"><h3>${rn(r)}｜${MK[other].l}</h3><div class="big">${MK[other].f(r.v[other])}</div><div class="gap">${gapOf(other,r)||''}</div></div>`;
-   const na2=na||['sstg','tplh'].some(k=>r.v[k]==null);return`<div class="pc" style="--rc:var(${r.c})"><h3>${rn(r)}</h3><div class="big" style="color:var(${na2?'--na':'--ok'});font-size:${na2?'18px':'28px'}">${na2?'資料不足':'✓'}</div></div>`;}
-  const m=MK[cand.k];return`<div class="pc" data-k="${r.id}|${cand.k}" style="--rc:var(${r.c})"><h3>${rn(r)}｜${m.l}</h3><div class="big">${m.f(r.v[cand.k])}</div><div class="gap">${gapOf(cand.k,r)}</div><ul class="src">${drvHtml(cand.k,r)}</ul></div>`;}).join('');
+ w.innerHTML=`<h3><span class="dot" style="background:var(${r.c})"></span>${rn(r)}｜${c.l}${g?'　'+g:''}</h3>${DIM_OF[k]?`<div class="toolbar dimbar">${dimSeg(k)}</div>`:''}${list?`<ul class="src">${list}</ul>`:k==='sssg'?'<div class="loading">資料不足</div>':''}`;}
+function renderCards(){$('pcards').innerHTML=R.map(problemCard).map(c=>`<div class="pc" ${c.k?`data-k="${c.r.id}|${c.k}"`:''} style="--rc:var(${c.r.err?'--bad':c.r.c})"><h3>${esc(cardTitle(c))}</h3><div class="big"${c.k?'':' style="font-size:20px;color:var(--text)"'}>${esc(c.value)}</div>${c.gap?`<div class="gap">${esc(c.gap)}</div>`:''}${c.rows.length?`<ul class="src">${rowsHtml(c.rows)}</ul>`:''}</div>`).join('');
  document.querySelectorAll('.pc[data-k]').forEach(a=>a.onclick=()=>{sel=a.dataset.k;renderMx();renderWhy();$('why').scrollIntoView({behavior:'smooth',block:'center'});});}
 // ===== 指標比較 =====
 function cmpView(){const m=MK[cmpK];$('cmpMetric').innerHTML=M.map(x=>`<button data-k="${x.k}" class="${x.k===cmpK?'on':''}">${x.l}</button>`).join('');
- const rows=ok().map(r=>({r,x:r.v[cmpK]})),valid=rows.filter(o=>o.x!=null).sort((a,b)=>m.hi?b.x-a.x:a.x-b.x),all=valid.map(o=>o.x).concat(m.noTarget?[]:rows.map(o=>o.r.t[cmpK])),max=Math.max(...all,0.0001)*1.12;
- $('hbTitle').textContent=`${m.l}　四區排序（${m.noTarget?'依數量':m.hi?'越高越好':'越低越好'}）`;
+ const rows=ok().map(r=>({r,x:r.v[cmpK]})),valid=rows.filter(o=>o.x!=null).sort((a,b)=>new Set(ok().map(r=>r.upd)).size>1?0:m.hi?b.x-a.x:a.x-b.x),all=valid.map(o=>o.x).concat(m.noTarget?[]:rows.map(o=>o.r.t[cmpK])),max=Math.max(...all,0.0001)*1.12;
+ $('hbTitle').textContent=m.l+'　四區數值';
  $('hbars').innerHTML=valid.concat(rows.filter(o=>o.x==null)).map(({r,x})=>{const pc=v=>Math.max(0,v/max*100);return`<div class="hb"><span><span class="dot" style="background:var(${r.c})"></span>${rn(r)}</span><div class="track">${x==null?'':`<div class="fill" style="width:${pc(x)}%;background:var(${r.c})"></div>`}${m.noTarget?'':`<div class="tick" style="left:${pc(r.t[cmpK])}%"></div>`}</div><span class="val">${x==null?'<span style="color:var(--na);font-size:13px">資料不足</span>':m.f(x)+(RK[cmpK][r.id]==='best'?' ▲':RK[cmpK][r.id]==='worst'?' ▼':'')}</span></div>`}).join('');
  $('matrix').innerHTML=`<thead><tr><th>指標</th>${ok().map(r=>`<th><span class="dot" style="background:var(${r.c})"></span>${r.id}</th>`).join('')}</tr></thead><tbody>${M.filter(x=>!x.noTarget).map(x=>`<tr><td>${x.l}</td>${ok().map(r=>{const v=r.v[x.k];if(v==null)return`<td style="color:var(--na)">資料不足</td>`;let main,bg,fg;if(x.k==='sstg'){const g=gapPt(r);main=x.f(v);bg=dvGap(g);fg=g>=1||g<=-1?'#fff':'var(--text)';}else{const a=ach(x.k,r);main=(a*100).toFixed(0)+'%';bg=dv(a);fg=ink(a);}return`<td style="background:${bg};color:${fg}" title="${x.f(v)}（${tgtTxt(x.k,r)}）">${main}</td>`}).join('')}</tr>`).join('')}</tbody>`;
  if($('vw-tr').classList.contains('on'))trend();}
 async function trendData(){if(TR)return TR;const p=period('week',anchor),weeks=[];for(let i=7;i>=0;i--){const s=addDays(p.start,-7*i);weeks.push({start:s,end:addDays(s,6),label:'W'+isoWeek(s)});}
  const today=tz();TR={weeks,d:{}};await Promise.all(ok().map(async r=>{TR.d[r.id]=await Promise.all(weeks.map(w=>summary(r.id,w.start,w.end>today?today:w.end).then(metrics).catch(()=>null)));}));return TR;}
-async function trend(){const m=MK[cmpK],svg=$('chart');$('trTitle').textContent=`${m.l}　近 8 週走勢`;$('trNote').textContent='讀取中…';const T=await trendData();$('trNote').textContent='缺資料的週不畫點、線斷開；滑鼠移上去看數字。';
- $('legend').innerHTML=ok().map(r=>`<span><span class="ln" style="background:var(${r.c})"></span>${rn(r)}</span>`).join('');
+async function trend(){const m=MK[cmpK],svg=$('chart');$('trTitle').textContent=`${m.l}　近 8 週走勢`;$('trNote').textContent='讀取中…';const T=await trendData();$('trNote').textContent='';
  const W=T.weeks.map(w=>w.label),s=Object.fromEntries(ok().map(r=>[r.id,(T.d[r.id]||[]).map(x=>x?x[cmpK]??null:null)])),tgs=m.noTarget?[]:[...new Set(ok().map(r=>r.t[cmpK]))],tg=tgs.length===1?tgs[0]:null;
- const w=svg.clientWidth||800,h=300,pl=58,pr=96,pt=14,pb=28,all=Object.values(s).flat().filter(x=>x!=null).concat(tgs);if(!all.length){svg.innerHTML='';$('trNote').textContent='這段期間沒有資料。';return;}
+ const w=svg.clientWidth||800,h=300,pl=58,pr=96,pt=14,pb=28,all=Object.values(s).flat().filter(x=>x!=null).concat(tgs);if(!all.length){svg.innerHTML='';$('trNote').textContent='資料不足';return;}
  let lo=Math.min(...all),hi=Math.max(...all);const pad=(hi-lo)*.12||Math.abs(hi)*.1||.01;lo-=pad;hi+=pad;const X=i=>pl+i*(w-pl-pr)/(W.length-1),Y=v=>pt+(hi-v)/(hi-lo)*(h-pt-pb);
  let g='<g class="gridl">';for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;g+=`<line x1="${pl}" x2="${w-pr}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${pl-8}" y="${Y(v)+4}" text-anchor="end">${m.f(v)}</text>`;}g+='</g>';
  const step=w<500?2:1;g+=W.map((x,i)=>(W.length-1-i)%step?'':`<text class="ax" x="${X(i)}" y="${h-8}" text-anchor="middle">${x}</text>`).join('');
@@ -429,7 +463,7 @@ ${E.filter(e=>e.sev!=='warning').map((e,i)=>`　${i+1}. ${rn(e.r)} ${e.k}：${e.
 三、資料：${rs.filter(r=>r.b.gap).map(r=>rn(r)+' 成績缺 '+r.b.gap+' 天').join('；')||'各區成績完整'}；994、997 尚未接上。
 （原因與責任需再核對訂單與排班紀錄。）`;}
 // ===== 切換與登入 =====
-function render(){renderMx();renderWhy();renderCards();if($('p-cmp').classList.contains('on'))cmpView();if($('p-deep').classList.contains('on'))deep();alertsView();}
+function render(){$('dimbar').innerHTML=dimSeg(null);renderMx();renderWhy();renderCards();if($('p-cmp').classList.contains('on'))cmpView();if($('p-deep').classList.contains('on'))deep();alertsView();}
 function switchTab(t){$('tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));render();scrollTo(0,0);}
 window.switchTab=switchTab;
 $('tabs').onclick=e=>{const t=e.target.closest('button')?.dataset.t;if(t)switchTab(t);};
@@ -441,6 +475,60 @@ $('prev').onclick=()=>{shift(-1);load();};$('next').onclick=()=>{shift(1);load()
 $('cut').onclick=e=>{const c=e.target.dataset.c;if(!c)return;cutoff=c;segOn('cut','c',c);load();};
 $('basis').onclick=e=>{const b=e.target.dataset.b;if(!b)return;basis=b;segOn('basis','b',b);load();};
 $('reload').onclick=()=>load();
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dim]');if(!b)return;e.stopPropagation();dim=b.dataset.dim;$('dimbar').innerHTML=dimSeg(null);renderWhy();renderCards();},true);
+// ===== 匯出：使用同一份畫面快照；PNG 與 XLSX 均不需另載入套件 =====
+function exportEnabled(){for(const id of ['exPng','exXlsx'])$(id).disabled=loading||!R.length;}
+const fname=(view,ext)=>`全區總覽_${view.start}_${view.end}.${ext}`;
+function overviewData(){if(loading||R.length!==CENTERS.length)throw new Error('資料讀取中');const p=window.__period,cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));
+ return{start:p.start,end:p.useEnd||p.end,label:$('periodLabel').textContent,basis:basis==='prev'?'前期變化':'目標差距',dimension:DIMS[dim],cols,
+  matrix:R.map(r=>({name:rn(r),date:r.upd||'資料不足',error:!!r.err,cells:cols.map(c=>mcell(r,c.k))})),cards:R.map(problemCard),regions:R};}
+function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
+async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='匯出中…';try{await fn(overviewData());}catch(e){alert('匯出失敗：'+(e.message||e));}finally{btn.textContent=t;exportEnabled();}}
+function pngCanvas(view){const cv=document.createElement('canvas'),W=1600,pad=32,gap=20,cardW=(W-2*pad-3*gap)/4;
+ const style=getComputedStyle(document.documentElement),color=n=>style.getPropertyValue(n).trim(),bg=color('--bg')||'#f6f5f2',card=color('--card')||'#ffffff',text=color('--text')||'#252525',bad=color('--bad')||'#c92c2c',good=color('--ok')||'#228541',line=color('--line')||'#dedbd5';
+ const ctx=cv.getContext('2d');ctx.font='800 17px "Microsoft JhengHei",sans-serif';
+ const wrap=(value,width)=>{const out=[];let row='';for(const ch of String(value)){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}if(row)out.push(row);return out;};
+ const linesFor=row=>[row.name,row.eff,row.txt,row.detail].filter(Boolean).flatMap(x=>wrap(x,cardW-32));
+ const heights=view.cards.map(c=>125+c.rows.reduce((n,row)=>n+linesFor(row).length*25+20,0)),cardH=Math.max(180,...heights),matrixY=115,matrixH=60+view.matrix.length*70,cardsY=matrixY+matrixH+75,H=cardsY+cardH+pad;
+ cv.width=W*2;cv.height=H*2;ctx.scale(2,2);ctx.textAlign='center';ctx.textBaseline='middle';
+ const rect=(x,y,w,h,fill)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);};
+ const txt=(value,x,y,size=19,fill=text)=>{ctx.font=`800 ${size}px "Microsoft JhengHei",sans-serif`;ctx.fillStyle=fill;ctx.fillText(value,x,y);};
+ rect(0,0,W,H,bg);txt('全區總覽　'+view.label,W/2,35,28);txt(`${view.start}–${view.end}　${view.basis}　${view.dimension}`,W/2,78,18);
+ rect(pad,matrixY,W-2*pad,matrixH,card);const first=180,cw=(W-2*pad-first)/view.cols.length;
+ view.cols.forEach((c,i)=>txt(c.l,pad+first+(i+.5)*cw,matrixY+30,19));
+ view.matrix.forEach((row,j)=>{const y=matrixY+60+j*70;rect(pad,y,W-2*pad,1,line);txt(row.name,pad+first/2,y+35,20);
+  row.cells.forEach((cell,i)=>txt(row.error?'讀取失敗':cell.val,pad+first+(i+.5)*cw,y+35,row.error||cell.st==='na'?17:24,cell.st==='bad'?bad:cell.st==='ok'?good:text));});
+ txt('本期最需要處理',W/2,cardsY-35,23);
+ view.cards.forEach((c,i)=>{const x=pad+i*(cardW+gap),cx=x+cardW/2;rect(x,cardsY,cardW,cardH,card);rect(x,cardsY,cardW,4,color(c.r.c)||bad);txt(cardTitle(c),cx,cardsY+30,17);txt(c.value,cx,cardsY+70,28,c.k?bad:text);txt(c.gap,cx,cardsY+105,17,bad);let y=cardsY+135;
+  for(const row of c.rows){rect(x+16,y-10,cardW-32,1,line);ctx.font='800 17px "Microsoft JhengHei",sans-serif';for(const value of linesFor(row)){txt(value,cx,y,17,row.missing?text:row.eff===value?good:text);y+=25;}y+=20;}});
+ return cv;}
+$('exPng').onclick=()=>busy($('exPng'),async view=>{await document.fonts?.ready;const cv=pngCanvas(view);const blob=await new Promise((resolve,reject)=>cv.toBlob(x=>x?resolve(x):reject(new Error('PNG 產生失敗')),'image/png'));download(blob,fname(view,'png'));});
+function excelSheets(view){const A=[['期間',view.label,'起日',view.start,'截止',view.end,'比較',view.basis],[],['區域','資料到',...view.cols.map(c=>c.l)]];
+ for(const row of view.matrix)A.push([row.name,row.date,...row.cells.map(x=>row.error?'讀取失敗':x.val)]);
+ const B=[['期間',view.start,view.end,'比較',view.basis],[],['區域','資料到','指標','分組','本期','缺口','項目','影響','單數／工時','改善單數／工時']];
+ for(const c of view.cards){const prefix=[rn(c.r),c.r.upd||'資料不足',c.k?MK[c.k].l:'',c.dimension||'',c.value,c.gap];if(!c.rows.length)B.push(prefix);else for(const row of c.rows)B.push([...prefix,row.name,row.eff,row.txt,row.detail]);}
+ const C=[['區域','資料到','指標','分組','項目','影響','單數／工時','改善單數／工時']];
+ for(const r of view.regions.filter(r=>!r.err))for(const [k,dims] of Object.entries(DIM_OF))for(const d of dims)for(const row of driverRows(k,r,d))C.push([rn(r),r.upd||'資料不足',MK[k].l,DIMS[d],row.name,row.eff,row.txt,row.detail]);
+ const keys=['tc','fa','y7','n7','y25','n25','nonfa','hours','current','prior','sstg','tplh'],D=[['區域','分組','項目',...keys,'完整']];
+ for(const r of view.regions.filter(r=>!r.err))for(const [key,d] of [['stores','store'],['areas','area'],['acs','ac'],['slots','slot'],['store_sstg','store'],['area_tplh','area']])for(const x of r.s[key]||[])D.push([rn(r),key,groupName(d,x),...keys.map(k=>number(x[k])??'資料不足'),x.complete==null?'':x.complete?'是':'資料不足']);
+ return[{name:'四區成績',rows:A},{name:'四張問題卡',rows:B},{name:'拉低前三',rows:C},{name:'彙總數字',rows:D}];}
+// Minimal OOXML writer: inline strings prevent formula execution; ZIP entries are stored without compression.
+function xlsxBlob(sheets){const enc=new TextEncoder(),xml=x=>String(x??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+ const header='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main',rel='http://schemas.openxmlformats.org/package/2006/relationships';
+ const column=n=>{let r='';for(n++;n;n=Math.floor((n-1)/26))r=String.fromCharCode(65+(n-1)%26)+r;return r;};
+ const files=[['[Content_Types].xml',header+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`],
+ ['_rels/.rels',header+`<Relationships xmlns="${rel}"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+ ['xl/workbook.xml',header+`<workbook xmlns="${ns}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${xml(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`],
+ ['xl/_rels/workbook.xml.rels',header+`<Relationships xmlns="${rel}">${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="styles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+ ['xl/styles.xml',header+`<styleSheet xmlns="${ns}"><fonts count="1"><font><b/><sz val="12"/><name val="Microsoft JhengHei"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="1"><xf fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`]];
+ sheets.forEach((s,i)=>files.push([`xl/worksheets/sheet${i+1}.xml`,header+`<worksheet xmlns="${ns}"><sheetFormatPr defaultRowHeight="24"/><cols><col min="1" max="${Math.max(...s.rows.map(r=>r.length))}" width="24" customWidth="1"/></cols><sheetData>${s.rows.map((row,j)=>`<row r="${j+1}">${row.map((x,k)=>{const ref=column(k)+(j+1);return typeof x==='number'&&Number.isFinite(x)?`<c r="${ref}"><v>${x}</v></c>`:`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xml(x)}</t></is></c>`;}).join('')}</row>`).join('')}</sheetData></worksheet>`]));
+ const crcTable=Array.from({length:256},(_,n)=>{for(let j=0;j<8;j++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;}),crc=bytes=>{let n=0xffffffff;for(const b of bytes)n=crcTable[(n^b)&255]^(n>>>8);return(n^0xffffffff)>>>0;};
+ const parts=[],central=[];let offset=0;const block=n=>{const a=new Uint8Array(n);return[a,new DataView(a.buffer)];};
+ for(const [name,value] of files){const path=enc.encode(name),data=enc.encode(value),sum=crc(data),[h,v]=block(30+path.length);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x800,true);v.setUint16(12,33,true);v.setUint32(14,sum,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);v.setUint16(26,path.length,true);h.set(path,30);parts.push(h,data);
+  const [c,w]=block(46+path.length);w.setUint32(0,0x02014b50,true);w.setUint16(4,20,true);w.setUint16(6,20,true);w.setUint16(8,0x800,true);w.setUint16(14,33,true);w.setUint32(16,sum,true);w.setUint32(20,data.length,true);w.setUint32(24,data.length,true);w.setUint16(28,path.length,true);w.setUint32(42,offset,true);c.set(path,46);central.push(c);offset+=h.length+data.length;}
+ const size=central.reduce((n,x)=>n+x.length,0),[end,v]=block(22);v.setUint32(0,0x06054b50,true);v.setUint16(8,files.length,true);v.setUint16(10,files.length,true);v.setUint32(12,size,true);v.setUint32(16,offset,true);
+ return new Blob([...parts,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});}
+$('exXlsx').onclick=()=>busy($('exXlsx'),view=>download(xlsxBlob(excelSheets(view)),fname(view,'xlsx')));
 $('copyReport').onclick=()=>navigator.clipboard?.writeText($('report').textContent);
 $('sideNav').insertAdjacentHTML('beforeend',CENTERS.map(c=>`<a href="https://uli20000.github.io/T${c.id}/analysis.html" target="_blank" rel="noopener"><span class="dot" style="background:var(${c.c})"></span>${c.id} ${c.name}</a>`).join('')+OFF.map(o=>`<a class="dim">⚪ ${o.id} ${o.name}（未接上）</a>`).join('')+'<a href="#" id="logout">🚪 登出</a>');
 $('logout').onclick=async e=>{e.preventDefault();await Promise.all(CENTERS.map(c=>clients[c.id].auth.signOut().catch(()=>{})));location.reload();};
