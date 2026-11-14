@@ -203,7 +203,7 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
       </div>
       <div class="right">
         <span class="seg" id="cut" title="截止日"><button data-c="common" class="on">共同截止</button><button data-c="latest">各區最新</button></span>
-        <span class="seg" id="basis" title="比較基準"><button data-b="ly" class="on">去年同期</button><button data-b="lw">上期</button></span>
+        <span class="seg" id="basis"><button data-b="gap" class="on">目標差距</button><button data-b="prev">前期變化</button></span>
         <button class="ghost" id="reload">🔄 重新讀取</button><button class="theme">🌙 夜間</button><span class="user" id="userBox">—</span>
       </div>
     </header>
@@ -270,7 +270,7 @@ const addDays=(d,n)=>{const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate
 const dow=d=>new Date(d+'T12:00:00Z').getUTCDay();
 const md=d=>d?(+d.slice(5,7))+'/'+(+d.slice(8,10)):'—';
 const isoWeek=d=>{const x=new Date(d+'T12:00:00Z');const t=new Date(x);t.setUTCDate(x.getUTCDate()+3-((x.getUTCDay()+6)%7));const y=new Date(Date.UTC(t.getUTCFullYear(),0,4));return 1+Math.round(((t-y)/864e5-3+((y.getUTCDay()+6)%7))/7);};
-let unit='week',anchor=tz(),cutoff='common',basis='ly',cmpK='d7',deepId='995';
+let unit='week',anchor=tz(),cutoff='common',basis='gap',cmpK='d7',deepId='995';
 function period(u=unit,a=anchor){if(u==='day')return{start:a,end:a,label:md(a)};if(u==='week'){const s=addDays(a,-((dow(a)+6)%7));return{start:s,end:addDays(s,6),label:'W'+isoWeek(s)+'　'+md(s)+'–'+md(addDays(s,6))};}
  const s=a.slice(0,8)+'01',e=addDays(new Date(Date.UTC(+a.slice(0,4),+a.slice(5,7),0,12)).toISOString().slice(0,10),0);return{start:s,end:e,label:a.slice(0,4)+'/'+(+a.slice(5,7))+' 月'};}
 function shift(n){if(unit==='day')anchor=addDays(anchor,n);else if(unit==='week')anchor=addDays(anchor,7*n);else{const d=new Date(anchor+'T12:00:00Z');d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);anchor=d.toISOString().slice(0,10);}}
@@ -284,29 +284,32 @@ function metrics(s){if(!s)return null;const tc=s.tc,ok=tc!==null&&tc!==undefined
  return{tc:ok?tc:null,sstg:s.sstg??null,d7:r(s.d7_y,s.d7_n),d25:r(s.d25_y,s.d25_n),fa:ok&&tc>0&&s.fa!=null?s.fa/tc:null,tplh:s.nonfa!=null&&s.actual_hours>0?s.nonfa/s.actual_hours:null,
   sameTc:s.same_store_tc??null,samePrior:s.same_store_prior_tc??null,newTc:s.new_store_tc??0,nonfa:s.nonfa,sssg:s.sssg??null,y7:s.d7_y,v7:s.d7_y!=null?s.d7_y+s.d7_n:null,y25:s.d25_y,v25:s.d25_y!=null?s.d25_y+s.d25_n:null,faN:s.fa};}
 let R=[],RK={},TR=null;
+let loadSeq=0;
 async function load(){
- const p=period(),today=tz();$('periodLabel').textContent=p.label;$('today').textContent=unit==='day'?'今天':unit==='week'?'本週':'本月';
+ const seq=++loadSeq,p=period(),today=tz();$('periodLabel').textContent=p.label;$('today').textContent=unit==='day'?'今天':unit==='week'?'本週':'本月';
  $('mx').innerHTML='<div class="loading">讀取四區資料中…</div>';$('pcards').innerHTML='';TR=null;
  const end0=p.end>today?today:p.end;
  const first=await Promise.all(CENTERS.map(async c=>{try{return{c,s:await summary(c.id,p.start,end0)}}catch(e){return{c,err:e.message||String(e)}}}));
  const lasts=first.filter(x=>x.s?.last_score_date&&x.s.last_score_date>=p.start).map(x=>x.s.last_score_date);
  const common=lasts.length?lasts.reduce((a,b)=>a<b?a:b):end0;
  const useEnd=cutoff==='common'?(common<end0?common:end0):end0;
+ if(seq!==loadSeq)return;
  const pp=prevPeriod({start:p.start,end:useEnd});
  R=await Promise.all(first.map(async x=>{const c=x.c;if(x.err)return{...c,err:x.err};
    try{const s=cutoff==='common'&&useEnd!==end0?await summary(c.id,p.start,useEnd):x.s;
-     const prev=basis==='lw'?await summary(c.id,pp.start,pp.end).catch(()=>null):null;
+     const prev=basis==='prev'?await summary(c.id,pp.start,pp.end).catch(()=>null):null;
      const t={...DEFAULT_T};for(const[k,v] of Object.entries(s.targets||{}))if(v!=null){const kk=k==='faShareMax'?'fa':k;t[kk]=Number(v);}
      const v=metrics(s),cov=s.coverage||{};
      return{...c,s,v,t,prev:metrics(prev),upd:s.last_score_date&&s.last_score_date>useEnd?useEnd:s.last_score_date,b:{ano:s.b_layer?.anomaly_days,wait:s.b_layer?.waiting_count,sig:s.b_layer?.line_signature_missing_count,gap:(cov.scores?.missing_dates||[]).length},
        subs:[...(s.prior_substitutions||[]),...(s.store_substitutions||[])],newStores:s.new_stores||[],cov,actions:s.actions||{}};}
    catch(e){return{...c,err:e.message||String(e)}}}));
+ if(seq!==loadSeq)return;
  RK=Object.fromEntries(M.map(m=>[m.k,rank(m.k)]));
  $('cut').querySelector('[data-c=common]').textContent='共同 '+md(useEnd);
  window.__period={...p,useEnd};render();}
 // ===== 共用 =====
 const ok=()=>R.filter(r=>!r.err&&r.v);
-function rank(k){const m=MK[k];if(m.noRank)return{};const rs=ok().filter(r=>r.v[k]!=null);if(rs.length<2)return{};const vals=rs.map(r=>r.v[k]);const b=m.hi?Math.max(...vals):Math.min(...vals),w=m.hi?Math.min(...vals):Math.max(...vals);const o={};rs.forEach(r=>{if(r.v[k]===b)o[r.id]='best';else if(r.v[k]===w)o[r.id]='worst';});return o;}
+function rank(k){const m=MK[k];if(m.noRank)return{};if(new Set(ok().map(r=>r.upd)).size>1)return{};const rs=ok().filter(r=>r.v[k]!=null);if(rs.length<2)return{};const vals=rs.map(r=>r.v[k]);const b=m.hi?Math.max(...vals):Math.min(...vals),w=m.hi?Math.min(...vals):Math.max(...vals);const o={};rs.forEach(r=>{if(r.v[k]===b)o[r.id]='best';else if(r.v[k]===w)o[r.id]='worst';});return o;}
 const status=(k,r,x=r.v?.[k])=>{const m=MK[k];if(x==null)return'na';if(m.noTarget)return'';const t=r.t[k];return(m.cap?x<=t:x>=t)?'ok':'bad';};
 const tgtTxt=(k,r)=>{const m=MK[k];return m.noTarget?'':(m.cap?'上限 ':'目標 ')+m.f(r.t[k]);};
 const rn=r=>`${r.id} ${r.name}`;
@@ -357,8 +360,11 @@ function insight(){const E=events().slice(0,4),best=R.filter(r=>RK.sstg?.[r.id]=
 const COLS=[{k:'sssg',l:'SSSG'},{k:'sstg',l:'SSTG'},{k:'d7',l:'D7'},{k:'d25',l:'D25'},{k:'tplh',l:'TPLH'},{k:'fa',l:'FA 佔比'}];
 let sel=null;
 function mcell(r,k){if(r.err)return{st:'na',val:'—',n:null};const v=r.v;
- if(k==='sssg'){const P=window.__period||{},full=unit==='week'&&P.useEnd===P.end,x=full?v.sssg:null;return x==null?{st:'na',val:'資料不足',n:null}:{st:'',val:MK.sstg.f(Number(x)),n:Number(x)};}
- const x=v[k];if(x==null)return{st:'na',val:'資料不足',n:null};return{st:status(k,r),val:MK[k].f(x),n:MK[k].hi?x:-x};}
+ if(k==='sssg'){const P=window.__period||{},full=unit==='week'&&P.useEnd===P.end&&basis==='gap',x=full?v.sssg:null;return x==null?{st:'na',val:'資料不足',n:null}:{st:'',val:MK.sstg.f(Number(x)),n:Number(x)};}
+ const x=v[k];if(x==null)return{st:'na',val:'資料不足',n:null};
+ if(basis==='prev'){const y=r.prev?.[k];if(y==null)return{st:'na',val:'資料不足',n:null};const m=MK[k],d=k==='tc'?x/y-1:x-y,good=m.hi?d>=0:d<=0;
+  const txt=(d>=0?'+':'−')+(k==='tplh'?Math.abs(d).toFixed(2):Math.abs(d*100).toFixed(1)+(k==='tc'?'%':'點'));return{st:good?'ok':'bad',val:txt,n:m.hi?d:-d};}
+ return{st:status(k,r),val:MK[k].f(x),n:MK[k].hi?x:-x};}
 function drivers(k,r){const st=r.s?.stores||[];if(k==='d7'||k==='d25'){const yk='y'+k.slice(1),nk='n'+k.slice(1),tot=r.v['v'+k.slice(1)]||0,t=r.t[k];
   return st.map(x=>{const y=+x[yk]||0,n=y+(+x[nk]||0),need=Math.ceil(t*n-y-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`${y}／${n} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`補 ${x.need} 單 +${x.pt.toFixed(2)} 點`}));}
  if(k==='fa'){const cap=r.t.fa,tot=r.v.tc||0;return st.map(x=>{const f=+x.fa||0,tc=+x.tc||0,need=Math.ceil(f-cap*tc-1e-9);return{name:(x.code?x.code+' ':'')+x.name,txt:`FA ${f}／${tc} 單`,need,pt:tot?need/tot*100:0};}).filter(x=>x.need>0).sort((a,b)=>b.need-a.need).slice(0,3).map(x=>({...x,eff:`轉 ${x.need} 單 −${x.pt.toFixed(2)} 點`}));}
@@ -366,16 +372,16 @@ function drivers(k,r){const st=r.s?.stores||[];if(k==='d7'||k==='d25'){const yk=
 const drvHtml=(k,r)=>drivers(k,r).map(x=>`<li><b>${x.name}</b><em>${x.eff}</em><small>${x.txt}</small></li>`).join('');
 function renderMx(){const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));const mx=$('mx');mx.style.gridTemplateColumns=`110px repeat(${cols.length},minmax(0,1fr))`;
  const same=new Set(R.filter(r=>!r.err).map(r=>r.upd)).size<=1,rk={};if(same)for(const c of cols){const vals=R.map(r=>mcell(r,c.k).n).filter(x=>x!=null);if(vals.length>1&&c.k!=='sssg')rk[c.k]={b:Math.max(...vals),w:Math.min(...vals)};}
- mx.innerHTML='<div></div>'+cols.map(c=>`<div class="hd">${c.l}</div>`).join('')+R.map(r=>`<div class="rg" style="--rc:var(${r.err?'--bad':r.c})">${rn(r)}</div>`+cols.map(c=>{const x=mcell(r,c.k),q=rk[c.k],f=q&&x.n!=null?(x.n===q.b?'<i style="color:var(--ok)">▲</i>':x.n===q.w?'<i style="color:var(--bad)">▼</i>':''):'';
-  return`<div class="cell ${x.st} ${sel===r.id+'|'+c.k?'sel':''}" data-k="${r.id}|${c.k}"><b>${x.val}${f}</b></div>`}).join('')).join('');
+ mx.innerHTML='<div></div>'+cols.map(c=>`<div class="hd">${c.l}</div>`).join('')+R.map(r=>`<div class="rg" style="--rc:var(${r.err?'--bad':r.c})">${rn(r)}</div>`+(r.err?`<div class="cell bad" style="grid-column:span ${cols.length}"><b style="font-size:14px">讀取失敗</b></div>`:cols.map(c=>{const x=mcell(r,c.k),q=rk[c.k],f=q&&x.n!=null?(x.n===q.b?'<i style="color:var(--ok)">▲</i>':x.n===q.w?'<i style="color:var(--bad)">▼</i>':''):'';
+  return`<div class="cell ${x.st} ${sel===r.id+'|'+c.k?'sel':''}" data-k="${r.id}|${c.k}"><b>${x.val}${f}</b></div>`}).join(''))).join('');
  mx.querySelectorAll('.cell').forEach(el=>el.onclick=()=>{sel=sel===el.dataset.k?null:el.dataset.k;renderMx();renderWhy();});}
 function renderWhy(){const w=$('why');if(!sel){w.classList.remove('on');return;}const [id,k]=sel.split('|'),r=R.find(x=>x.id===id);if(!r||r.err){w.classList.remove('on');return;}
  const c=COLS.find(x=>x.k===k),g=gapOf(k,r),list=drvHtml(k,r);w.classList.add('on');
  w.innerHTML=`<h3><span class="dot" style="background:var(${r.c})"></span>${rn(r)}｜${c.l}${g?'　'+g:''}</h3>${list?`<ul class="src">${list}</ul>`:''}`;}
-function renderCards(){$('pcards').innerHTML=ok().map(r=>{const cand=['d7','d25','fa'].map(k=>({k,need:needOf(k,r)})).filter(x=>status(x.k,r)==='bad'&&x.need>0).sort((a,b)=>b.need-a.need)[0];
+function renderCards(){$('pcards').innerHTML=R.map(r=>{if(r.err)return`<div class="pc" style="--rc:var(--bad)"><h3>${rn(r)}</h3><div class="big" style="font-size:18px">讀取失敗</div></div>`;const cand=['d7','d25','fa'].map(k=>({k,need:needOf(k,r)})).filter(x=>status(x.k,r)==='bad'&&x.need>0).sort((a,b)=>b.need-a.need)[0];
   if(!cand){const other=['sstg','tplh'].find(k=>status(k,r)==='bad'),na=['d7','d25','fa'].some(k=>r.v[k]==null);
    if(other)return`<div class="pc" data-k="${r.id}|${other}" style="--rc:var(${r.c})"><h3>${rn(r)}｜${MK[other].l}</h3><div class="big">${MK[other].f(r.v[other])}</div><div class="gap">${gapOf(other,r)||''}</div></div>`;
-   return`<div class="pc" style="--rc:var(${r.c})"><h3>${rn(r)}</h3><div class="big" style="color:var(${na?'--na':'--ok'});font-size:${na?'18px':'28px'}">${na?'資料不足':'✓'}</div></div>`;}
+   const na2=na||['sstg','tplh'].some(k=>r.v[k]==null);return`<div class="pc" style="--rc:var(${r.c})"><h3>${rn(r)}</h3><div class="big" style="color:var(${na2?'--na':'--ok'});font-size:${na2?'18px':'28px'}">${na2?'資料不足':'✓'}</div></div>`;}
   const m=MK[cand.k];return`<div class="pc" data-k="${r.id}|${cand.k}" style="--rc:var(${r.c})"><h3>${rn(r)}｜${m.l}</h3><div class="big">${m.f(r.v[cand.k])}</div><div class="gap">${gapOf(cand.k,r)}</div><ul class="src">${drvHtml(cand.k,r)}</ul></div>`;}).join('');
  document.querySelectorAll('.pc[data-k]').forEach(a=>a.onclick=()=>{sel=a.dataset.k;renderMx();renderWhy();$('why').scrollIntoView({behavior:'smooth',block:'center'});});}
 // ===== 指標比較 =====
@@ -405,7 +411,7 @@ function deep(){const r=R.find(x=>x.id===deepId)||R[0];if(!r)return;deepId=r.id;
  $('regpick').innerHTML=R.map(x=>`<button data-id="${x.id}" class="${x.id===deepId?'on':''}" style="--rc:var(${x.c})"><span class="dot" style="background:var(${x.c})"></span>${rn(x)}</button>`).join('');
  $('regpick').querySelectorAll('button').forEach(b=>b.onclick=()=>{deepId=b.dataset.id;deep();});
  if(r.err){$('deepSum').innerHTML=`<li><span>⚠</span><div>讀取失敗：${r.err}</div></li>`;$('watch').innerHTML='';}else{
- const E=events().filter(e=>e.r.id===r.id);$('deepSum').innerHTML=E.map(e=>`<li><span>${e.sev==='critical'?'⚠':'📉'}</span><div><b>${e.k}</b>：${e.what}${e.gap?'，'+e.gap:''}</div></li>`).join('')||'<li><span>✅</span><div>本期指標都達標，資料完整。</div></li>';
+ const E=events().filter(e=>e.r.id===r.id);$('deepSum').innerHTML=E.map(e=>`<li><span>${e.sev==='critical'?'⚠':'📉'}</span><div><b>${e.k}</b>：${e.what}${e.gap?'，'+e.gap:''}</div></li>`).join('')||(M.some(m=>r.v[m.k]==null)?'<li><span>ℹ️</span><div>有指標資料不足，見右側說明。</div></li>':'<li><span>✅</span><div>本期指標都達標。</div></li>');
  const W2=[...r.subs.map(x=>[`${x.store?x.store+' ':''}去年比較日 ${md(x.original)} 為停班日`,`改用 ${x.used?md(x.used):'資料不足'}`,'SSTG 用替代日計算']),...(r.newStores.length?[[`新店不列入 SSTG`,r.newStores.join('、'),`本期新店單量 ${r.v.newTc} 單`]]:[]),
   ...(r.cov.prior_tc?.required_missing_date_count?[['去年同期資料不足',`缺 ${r.cov.prior_tc.required_missing_date_count} 天`,(r.cov.prior_tc.missing_dates||[]).map(md).join('、')+'（有店缺去年資料）']]:[]),
   ...(r.s.actual_hours==null&&r.v.tc!=null?[['工時未輸入','TPLH 無法計算','請各區負責人在後台補工時']]:[])];
