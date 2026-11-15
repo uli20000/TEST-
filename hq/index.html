@@ -201,7 +201,7 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
     <header class="top">
       <div class="period">
         <div class="seg" id="unit"><button data-u="day">日</button><button data-u="week" class="on">週</button><button data-u="month">月</button></div>
-        <button class="icon" id="prev">‹</button><b id="periodLabel">—</b><button class="icon" id="next">›</button><button class="ghost" id="today">本週</button>
+        <button class="icon" id="prev">‹</button><b id="periodLabel">—</b><button class="icon" id="next">›</button><button class="ghost" id="today">今日</button>
       </div>
       <div class="right">
         <span class="seg" id="cut" title="截止日"><button data-c="common" class="on">共同截止</button><button data-c="latest">各區最新</button></span>
@@ -290,7 +290,7 @@ let R=[],RK={},TR=null,loading=true;
 let loadSeq=0;
 async function load(){
  loading=true;exportEnabled();$('why').classList.remove('on');
- const seq=++loadSeq,p=period(),today=tz();$('periodLabel').textContent=p.label;$('today').textContent=unit==='day'?'今天':unit==='week'?'本週':'本月';
+ const seq=++loadSeq,p=period(),today=tz();$('periodLabel').textContent=p.label;
  $('mx').innerHTML='<div class="loading">讀取四區資料中…</div>';$('pcards').innerHTML='';TR=null;
  const end0=p.end>today?today:p.end;
  const first=await Promise.all(CENTERS.map(async c=>{try{return{c,s:await summary(c.id,p.start,end0)}}catch(e){return{c,err:e.message||String(e)}}}));
