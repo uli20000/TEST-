@@ -212,3 +212,7 @@ html[data-display-mode=dark] .scope-note{background:#3A2F14;color:#E3B341}
 @media (max-width:1100px) and (min-width:901px){#uiOverviewPage .uo-pend .uo-card{padding:16px 14px}#uoPendDelay .uo-bar-row,#uoPendA .uo-bar-row{grid-template-columns:58px 1fr 48px;gap:6px;font-size:13px}}
 #uiOverviewPage .uo-card h3.uo-sub{margin:4px 0 8px;color:var(--ui-text);font-size:14px;font-weight:800}
 #uiOverviewPage .uo-card h3.uo-sub-month{margin-top:22px;padding-top:16px;border-top:1px dashed var(--ui-line)}
+/* 依選定日期三張：電腦三欄；長數字欄縮小 */
+@media (min-width:1101px){#uiOverviewPage .uo-grid3.uo-day{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}}
+#uiOverviewPage .uo-day .uo-bar-row{grid-template-columns:64px 1fr auto;gap:8px;font-size:13px}
+#uiOverviewPage .uo-day .uo-card{padding:16px}
