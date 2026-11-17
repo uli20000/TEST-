@@ -37,6 +37,8 @@
   const page=document.createElement('section');page.id='uiOverviewPage';page.className='ui-overview';
   page.innerHTML='<div class="uo-head"><h1 id="uoTitle">營運成績</h1><div class="uo-date"><span class="uo-period" role="group" aria-label="期間">'+['day','week','month'].map(p=>'<button type="button" data-p="'+p+'">'+PLABEL[p]+'</button>').join('')+'</span><button type="button" data-d="-1" aria-label="上一期">‹</button><label class="date-display"><b id="uoDate"></b><input id="uoDatePick" type="date" aria-label="選擇日期"></label><button type="button" data-d="1" aria-label="下一期">›</button><button type="button" data-d="0">今日</button></div></div>'+
     '<div id="uoKpis" class="uo-kpis"></div>'+
+    '<div class="uo-pend-head"><h2>待處理</h2><small id="uoPendNote"></small></div>'+
+    '<div class="uo-grid3 uo-pend"><article class="uo-card"><h2>🛵 車輛待處理</h2><div id="uoPendVehicle"></div></article><article class="uo-card"><h2>⏱️ 等餐待回饋</h2><div id="uoPendDelay"></div></article><article class="uo-card"><h2>📝 A 項待回饋</h2><div id="uoPendA"></div></article></div>'+
     '<div class="uo-grid2"><article class="uo-card"><h2>等餐（依 AC）</h2><div id="uoWait"></div></article><article class="uo-card"><h2>劃線簽名（依 AC）</h2><div id="uoLine"></div></article></div>'+
     '<p id="uoFoot" class="uo-foot"></p><p id="uoStatus" class="uo-status" role="status"></p>';
   content.prepend(page);
@@ -69,9 +71,59 @@
       '<h3>缺漏最多的餐廳</h3>'+(top3(o.lineWorst,x=>(x.rate*100).toFixed(1)+'%',x=>(x.ac?x.ac+'｜':'')+'已登記 '+x.count+' 次')||empty(lineEmpty));
   }
   function renderLine(o){E('uoLine').innerHTML=lineHtml(o);}
-  window.UiOverview={waitHtml,lineHtml};
+  // ===== 待處理：車輛（目前狀態）、等餐與 A 項（所選日期的當月份），等餐／A 項依 AC 排、列前三家 =====
+  const md=d=>String(d||'').slice(5,10).replace('-','/');
+  const okBox=t=>'<p class="uo-pend-zero">✓ '+esc(t)+'</p>';
+  const bigNum=(n,unit,text)=>'<div class="uo-pend-big"><b>'+num(n)+'</b><span>'+esc(unit+text)+'</span></div>';
+  const link=(key,text)=>'<button type="button" class="uo-pend-go" data-go="'+key+'">'+esc(text)+' →</button>';
+  function rankByAc(rows,monthStart){
+    const M=window.OpsMetrics,assign=M.acAssignmentsForDate(monthStart),acOf=new Map();
+    for(const ac of assign)for(const code of ac.stores)if(!M.NON_DELIVERY_STORES.has(code))acOf.set(String(code),ac.name);
+    const ac=new Map(assign.map(a=>[a.name,0])),stores=new Map();let other=0;
+    for(const x of rows){const code=String(x.store_code||''),name=acOf.get(code);if(name)ac.set(name,ac.get(name)+1);else other++;
+      const k=code||x.restaurant_name;const s=stores.get(k)||{store_code:code,restaurant_name:x.restaurant_name||'',ac:name||'',rows:[]};s.rows.push(x);stores.set(k,s);}
+    const acs=[...ac].map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
+    const list=[...stores.values()].sort((a,b)=>b.rows.length-a.rows.length||String(a.store_code).localeCompare(String(b.store_code)));
+    const top=list.slice(0,3),cut=top.length?top[top.length-1].rows.length:0,tied=list.slice(3).filter(x=>x.rows.length===cut).length;
+    return {acs,top,tied,other};
+  }
+  function acBars(acs){const max=Math.max(0,...acs.map(x=>x.count));return acs.map(x=>bar(x.name,x.count,max,x.count+' 筆','red')).join('');}
+  function pendCard(rows,monthStart,o){
+    if(!rows.length)return okBox(o.zero);
+    const r=rankByAc(rows,monthStart);
+    return bigNum(rows.length,'筆',o.unit)+acBars(r.acs)+(r.other?'<p class="uo-note">另有 '+r.other+' 筆不在 AC 負責範圍（店號未對到）</p>':'')+
+      '<h3>待回饋最多的餐廳</h3>'+top3(r.top,x=>x.rows.length+' 筆',o.sub)+(r.tied?'<p class="uo-note">另有 '+r.tied+' 家同筆數並列</p>':'')+link(o.go,o.goText);
+  }
+  async function loadPendingVehicles(){
+    const vr=await db.from('vehicles').select('id,plate4').eq('active',true);if(vr.error)throw vr.error;
+    const plate=new Map((vr.data||[]).map(v=>[v.id,v.plate4]));if(!plate.size)return [];
+    const rr=await db.from('inspection_reports').select('vehicle_id,reported_at,abnormal_items,resolution_status').eq('overall_status','abnormal').in('vehicle_id',[...plate.keys()]).order('reported_at',{ascending:true});if(rr.error)throw rr.error;
+    const by=new Map();for(const x of rr.data||[]){if(x.resolution_status==='resolved')continue;const v=by.get(x.vehicle_id)||{plate:plate.get(x.vehicle_id),first:x.reported_at,items:new Set(),n:0};v.n++;for(const it of Array.isArray(x.abnormal_items)?x.abnormal_items:String(x.abnormal_items||'').split(/[、,，]/))if(String(it).trim())v.items.add(String(it).trim());by.set(x.vehicle_id,v);}
+    const today=new Date(opsToday()+'T12:00:00Z');
+    return [...by.values()].map(v=>({...v,days:Math.max(0,Math.round((today-new Date(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei'}).format(new Date(v.first))+'T12:00:00Z'))/86400000))})).sort((a,b)=>b.days-a.days||String(a.plate).localeCompare(String(b.plate)));
+  }
+  function vehicleHtml(list){
+    if(!list.length)return okBox('沒有待處理的車輛');
+    return bigNum(list.length,'台','待處理異常｜最久 '+list[0].days+' 天')+'<ol class="uo-top">'+list.slice(0,3).map(v=>'<li><b>'+esc(v.plate||'—')+'</b><small>'+esc([...v.items].join('、')||'異常')+(v.n>1?'（'+v.n+' 筆回報）':'')+'</small><em class="'+(v.days>3?'uo-old':'')+'">'+v.days+' 天</em></li>').join('')+'</ol>'+(list.length>3?'<p class="uo-note">另有 '+(list.length-3)+' 台</p>':'')+link('vehicle','到車輛／巡檢處理');
+  }
+  let pendReq=0;
+  async function loadPending(){
+    const id=++pendReq,m=S.range(date,'month'),label=m.start.slice(0,4)+'年'+(+m.start.slice(5,7))+'月';
+    E('uoPendNote').textContent='等餐、A 項：'+label+'（所選日期的當月）｜車輛：目前狀態';
+    const set=(el,html)=>{if(id===pendReq)E(el).innerHTML=html;},fail=(el,e)=>set(el,'<p class="uo-empty">讀取失敗：'+esc(e.message||e)+'</p>');
+    for(const el of ['uoPendVehicle','uoPendDelay','uoPendA'])E(el).innerHTML='<p class="uo-empty">讀取中…</p>';
+    loadPendingVehicles().then(l=>set('uoPendVehicle',vehicleHtml(l)),e=>fail('uoPendVehicle',e));
+    window.OpsReport.readRows('t995_delay_orders','store_code,restaurant_name,record_date,status',q=>q.gte('record_date',m.start).lte('record_date',m.end).eq('status','pending'))
+      .then(rows=>{rows=window.OpsMetrics.scopeData({delay:rows}).delay.filter(x=>!window.OpsMetrics.NON_DELIVERY_STORES.has(String(x.store_code)));
+        set('uoPendDelay',pendCard(rows,m.start,{zero:'餐廳都已回覆等餐原因',unit:'餐廳還沒回覆等餐原因',go:'ops:delay',goText:'到等餐紀錄',sub:x=>(x.ac?x.ac+'｜':'')+'最早 '+md(x.rows.map(r=>r.record_date).sort()[0])}));},e=>fail('uoPendDelay',e));
+    if(!window.OpsAReplyAdmin?.readRange)set('uoPendA','<p class="uo-empty">此版本沒有 A 項回饋功能</p>');
+    else window.OpsAReplyAdmin.readRange(m).then(rows=>{rows=rows.filter(x=>x.reply?.status!=='completed');
+        set('uoPendA',pendCard(rows,m.start,{zero:'餐廳都已回饋 A 項',unit:'0800 A 項還沒填根源與行動',go:'ops:a0800',goText:'到 A 項回饋',sub:x=>{const c=new Map();for(const r of x.rows){const k=r.item_1||'其他';c.set(k,(c.get(k)||0)+1);}return (x.ac?x.ac+'｜':'')+[...c].map(([k,n])=>k+' '+n).join('、');}}));},e=>fail('uoPendA',e));
+  }
+  window.UiOverview={waitHtml,lineHtml,rankByAc};
   async function load(){
     const id=++req;E('uoDate').textContent=label(date);page.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===period));E('uoDatePick').value=date;E('uoDatePick').max=opsToday();E('uoTitle').textContent='T'+((window.CENTER_CONFIG&&window.CENTER_CONFIG.center)||(window.CenterBusinessConfig||{}).center||'')+' '+((window.CenterBusinessConfig||{}).centerName||'外送中心')+'｜營運成績';E('uoStatus').textContent='讀取中…';E('uoFoot').textContent='';
+    loadPending();
     try{
       if(window.KpiSettings&&typeof db!=='undefined'){try{await window.KpiSettings.load(db);}catch(e){}}
       const o=await window.OpsReport.overview(date,period);if(id!==req)return;

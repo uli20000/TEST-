@@ -198,3 +198,15 @@ html[data-display-mode=dark] .scope-note{background:#3A2F14;color:#E3B341}
 }
 @media (max-width:480px){#uiOverviewPage .uo-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media print{.ui-tabbar{display:none!important}body.ui-shell-body{padding-bottom:0}}
+
+/* 總覽「待處理」：車輛（目前）、等餐與 A 項（當月）依 AC */
+#uiOverviewPage .uo-pend-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 12px;flex-wrap:wrap}
+#uiOverviewPage .uo-pend-head h2{margin:0;font-size:18px;font-weight:800}
+#uiOverviewPage .uo-pend-head small{color:var(--ui-faint);font-size:13px}
+#uiOverviewPage .uo-pend .uo-bar-row{grid-template-columns:70px 1fr 56px}
+.uo-pend-big{display:flex;align-items:baseline;gap:8px;margin:0 0 10px}.uo-pend-big b{font-size:32px;line-height:1;font-weight:800;color:var(--ui-red)}.uo-pend-big span{color:var(--ui-muted);font-size:13px}
+.uo-pend-zero{margin:14px 0;text-align:center!important;color:var(--ui-ok);font-weight:700}
+.uo-pend-go{display:block;margin:12px auto 0;border:0;background:none;color:var(--ui-red);font:inherit;font-weight:700;cursor:pointer;text-align:center!important}
+.uo-top em.uo-old{background:var(--ui-red);color:#fff;border-radius:99px;padding:1px 8px}
+@media (min-width:901px){#uiOverviewPage .uo-grid3.uo-pend{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}}
+@media (max-width:1100px) and (min-width:901px){#uiOverviewPage .uo-pend .uo-card{padding:16px 14px}#uiOverviewPage .uo-pend .uo-bar-row{grid-template-columns:58px 1fr 48px;gap:6px;font-size:13px}}

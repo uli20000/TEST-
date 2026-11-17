@@ -51,5 +51,5 @@
     E('opsASearch')?.addEventListener('input',render);E('opsAStatus')?.addEventListener('change',render);
     E('opsAList')?.addEventListener('click',e=>{const b=e.target.closest('[data-return-a]');if(b)returnReply(b.dataset.returnA,b);});
   });
-  window.OpsAReplyAdmin={load,exportRows};
+  window.OpsAReplyAdmin={load,exportRows,readRange};
 })();
