@@ -1,7 +1,7 @@
 {
   "center": "995",
   "environment": "test",
-  "sourceCommit": "6d71c71cd2adec02e87936c86b54efb0b14fe832",
+  "sourceCommit": "d6649ff50cd477ed50cf59c389b3e261d111b580",
   "sourceDirty": true,
   "dryRun": false,
   "features": {
@@ -12,7 +12,7 @@
     "monthReplyGatewayReady": true,
     "archiveDedup": false
   },
-  "generatedAt": "2026-11-17T06:44:26.685Z",
+  "generatedAt": "2026-11-17T13:53:01.829Z",
   "files": [
     "admin.html",
     "analysis-dashboard.js",
@@ -22,6 +22,7 @@
     "center-ui.js",
     "display-mode.css",
     "display-mode.js",
+    "feedback-a-reply.js",
     "front-shell.css",
     "front-shell.js",
     "index.html",
@@ -34,6 +35,7 @@
     "operations-report.css",
     "operations-report.js",
     "operations-summary.js",
+    "ops-a-reply.js",
     "ops-insights.css",
     "ops-insights.js",
     "reply-drafts.js",

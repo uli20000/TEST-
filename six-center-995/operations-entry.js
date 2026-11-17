@@ -3,7 +3,7 @@
   const E=id=>document.getElementById(id),S=window.OpsSummary,R=window.OpsReport,escape=opsEscape;
   const sharedDate={key:'t995-shared-date-v1',get(){try{const x=JSON.parse(localStorage.getItem(this.key)||'null');if(x&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&['day','week','month'].includes(x.period)&&Date.now()-x.at<43200000)return x;}catch(e){}return null;},set(date,period){try{localStorage.setItem(this.key,JSON.stringify({date,period,at:Date.now()}));}catch(e){}}};
   const sharedStart=sharedDate.get();
-  const dateControl=window.OpsDateControl={date:opsToday(),period:sharedStart?.period||'day',set(date,period=this.period,refresh=true){this.date=date||opsToday();this.period=period;sharedDate.set(this.date,this.period);paintToolbar();if(state.active==='line'&&E('opsLineStore').value)R.fillLineState(E('opsLineStore').value,this.date);if(refresh)refreshActive();}};
+  const dateControl=window.OpsDateControl={date:opsToday(),period:sharedStart?.period||'day',set(date,period=this.period,refresh=true){this.date=date||opsToday();this.period=period;sharedDate.set(this.date,this.period);paintToolbar();if(state.active==='line'&&E('opsLineStore').value)R.fillLineState(E('opsLineStore').value);if(refresh)refreshActive();}};
   sharedDate.set(dateControl.date,dateControl.period);
   const state={delay:[],line:[],stores:[],delayRequest:0,lineRequest:0,active:'delay',lineFilter:'all'};
   const periodRange=()=>S.range(dateControl.date,dateControl.period);
@@ -23,6 +23,7 @@
   function refreshActive(force=false){
     if(state.active==='delay')return loadDelay();
     if(state.active==='line')return loadLine();
+    if(state.active==='a0800')return window.OpsAReplyAdmin?.load(periodRange(),periodLabel());
     return R.open(state.active,force).catch(()=>{});
   }
   async function loadDelay(){
@@ -32,7 +33,7 @@
   function renderDelay(){
     const search=E('opsDelaySearch').value.trim().toLowerCase(),rows=state.delay.filter(x=>!search||[x.store_code,x.restaurant_name].some(v=>String(v).toLowerCase().includes(search)));
     E('opsDelayListTitle').textContent='等餐紀錄　'+periodLabel();
-    E('opsDelayList').innerHTML=rows.length?'<table class="ops-table ops-records-table"><thead><tr><th>日期</th><th>店號／餐廳</th><th>編號</th><th>狀態</th><th>等餐原因</th><th>操作</th></tr></thead><tbody>'+rows.map(x=>'<tr><td data-label="日期">'+x.record_date+'</td><td data-label="店號／餐廳">'+escape(x.store_code)+'／'+escape(x.restaurant_name)+'</td><td data-label="編號">'+escape(x.order_number)+'</td><td data-label="狀態">'+(x.status==='completed'?'已回覆':'待回覆')+'</td><td data-label="等餐原因">'+escape(x.reason||'—')+'</td><td data-label="操作"><button type="button" class="ops-delete-btn" data-delete-delay="'+x.id+'" aria-label="刪除 '+escape(x.restaurant_name)+' 訂單 '+escape(x.order_number)+'">刪除</button>'+replyReturnButton(x)+'</td></tr>').join('')+'</tbody></table>':'<div class="ops-empty">沒有符合條件的紀錄</div>';
+    E('opsDelayList').innerHTML=rows.length?'<table class="ops-table ops-records-table"><thead><tr><th>日期</th><th>店號／餐廳</th><th>編號</th><th>狀態</th><th>等餐原因</th><th>操作</th></tr></thead><tbody>'+rows.map(x=>'<tr><td data-label="日期">'+x.record_date+'</td><td data-label="店號／餐廳">'+escape(x.store_code)+'／'+escape(x.restaurant_name)+'</td><td data-label="編號">'+escape(x.order_number)+'</td><td data-label="狀態">'+(x.status==='completed'?'已回覆':'待回覆')+'</td><td data-label="等餐原因">'+escape(x.reason||'—')+'</td><td data-label="操作"><div class="ops-row-actions"><button type="button" class="ops-delete-btn ops-row-btn" data-delete-delay="'+x.id+'" aria-label="刪除 '+escape(x.restaurant_name)+' 訂單 '+escape(x.order_number)+'">刪除</button>'+replyReturnButton(x)+'</div></td></tr>').join('')+'</tbody></table>':'<div class="ops-empty">沒有符合條件的紀錄</div>';
   }
   function replyReturnEnabled(){
     const features=window.CENTER_CONFIG?.features;
@@ -40,7 +41,7 @@
   }
   function replyReturnButton(row){
     if(row.status!=='completed')return '';
-    return '<button type="button" class="action-btn" data-return-delay="'+escape(row.id)+'" '+(replyReturnEnabled()?'':'disabled title="回覆修訂與月份連結入口尚未驗收，暫不開放"')+'>退回修改</button>';
+    return '<button type="button" class="ops-row-btn ops-return-btn" data-return-delay="'+escape(row.id)+'" '+(replyReturnEnabled()?'':'disabled title="回覆修訂與月份連結入口尚未驗收，暫不開放"')+'>退回修改</button>';
   }
   const returningReplies=new Set();
   async function returnDelayReply(id,button){
@@ -91,17 +92,17 @@
   E('opsDelayList').onclick=e=>{const returned=e.target.closest('[data-return-delay]');if(returned){returnDelayReply(returned.dataset.returnDelay,returned);return;}const b=e.target.closest('[data-delete-delay]');if(b)removeRecord('delay',b.dataset.deleteDelay,b);};
   E('opsLineList').onclick=e=>{const b=e.target.closest('[data-delete-line]');if(b)removeRecord('line',b.dataset.deleteLine,b);};
   E('opsDelaySave').onclick=async()=>{
-    const date=dateControl.date,order=E('opsDelayOrder').value.trim(),msg=E('opsDelayMessage');if(!/^[0-9]{4}$/.test(order)){msg.textContent='請輸入 4 碼訂單編號';return;}
+    const date=opsToday(),order=E('opsDelayOrder').value.trim(),msg=E('opsDelayMessage');if(!/^[0-9]{4}$/.test(order)){msg.textContent='請輸入 4 碼訂單編號';return;}
     E('opsDelaySave').disabled=true;msg.textContent='儲存中…';
     try{const restaurant=await window.opsFindRestaurant('opsDelayStore');if(!restaurant)throw new Error('請選擇正確的店號');const result=await db.from('t995_delay_orders').insert({record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,order_number:order,status:'pending'});if(result.error)throw result.error;
-      E('opsDelayOrder').value='';E('opsDelaySearch').value='';await loadDelay();msg.textContent='已新增';E('opsDelayOrder').focus();
+      E('opsDelayOrder').value='';E('opsDelaySearch').value='';await loadDelay();msg.textContent=date===dateControl.date?'已新增':'已新增到今天（'+date.replace(/-/g,'/')+'）';E('opsDelayOrder').focus();
     }catch(e){msg.textContent=e.code==='23505'?'同日、同餐廳的訂單編號已存在':'新增失敗：'+e.message;}finally{E('opsDelaySave').disabled=false;}
   };
   for(const id of ['opsLineMark','opsSignMark'])E(id).onclick=()=>opsSetToggle(id,E(id).getAttribute('aria-pressed')!=='true');
   E('opsLineSave').onclick=async()=>{
-    const date=dateControl.date,msg=E('opsLineMessage'),marked=E('opsLineMark').getAttribute('aria-pressed')==='true',signed=E('opsSignMark').getAttribute('aria-pressed')==='true';
+    const date=opsToday(),msg=E('opsLineMessage'),marked=E('opsLineMark').getAttribute('aria-pressed')==='true',signed=E('opsSignMark').getAttribute('aria-pressed')==='true';
     E('opsLineSave').disabled=true;msg.textContent='儲存中…';
-    try{const restaurant=await window.opsFindRestaurant('opsLineStore');if(!restaurant)throw new Error('請選擇正確的店號');const result=await db.from('t995_line_signature_records').upsert({record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,status:marked&&signed?'completed':'not_completed',line_completed:marked,signature_completed:signed,updated_at:new Date().toISOString()},{onConflict:'record_date,store_code'});if(result.error)throw result.error;await loadLine();msg.textContent='已新增';}catch(e){msg.textContent='新增失敗：'+e.message;}finally{E('opsLineSave').disabled=false;}
+    try{const restaurant=await window.opsFindRestaurant('opsLineStore');if(!restaurant)throw new Error('請選擇正確的店號');const result=await db.from('t995_line_signature_records').upsert({record_date:date,store_code:restaurant.store_code,restaurant_name:restaurant.restaurant_name,status:marked&&signed?'completed':'not_completed',line_completed:marked,signature_completed:signed,updated_at:new Date().toISOString()},{onConflict:'record_date,store_code'});if(result.error)throw result.error;await loadLine();msg.textContent=date===dateControl.date?'已新增':'已新增到今天（'+date.replace(/-/g,'/')+'）';}catch(e){msg.textContent='新增失敗：'+e.message;}finally{E('opsLineSave').disabled=false;}
   };
   paintToolbar();
   E('opsGlobalDate').onchange=()=>dateControl.set(E('opsGlobalDate').value||opsToday());
@@ -145,8 +146,8 @@
   E('opsLinkCopy').onclick=async()=>{if(!E('opsLinkUrl').value||E('opsLinkResult').hidden)return;try{await navigator.clipboard.writeText(E('opsLinkUrl').value);E('opsLinkMessage').textContent='已複製'+E('opsLinkMonthLabel').textContent+'的連結';}catch{E('opsLinkUrl').select();document.execCommand('copy');E('opsLinkMessage').textContent='已複製'+E('opsLinkMonthLabel').textContent+'的連結';}};
   function openTab(name){
     state.active=name;document.querySelectorAll('.ops-tab').forEach(b=>b.classList.toggle('active',b.dataset.opsTab===name));
-    for(const [tab,id] of Object.entries({delay:'opsDelayPanel',line:'opsLinePanel',scores:'opsScoresPanel',summary:'opsSummaryPanel'}))E(id).hidden=tab!==name;
-    if(name==='delay')loadDelay();else if(name==='line')loadLine();else R.open(name).catch(()=>{});
+    for(const [tab,id] of Object.entries({delay:'opsDelayPanel',line:'opsLinePanel',a0800:'opsAPanel',scores:'opsScoresPanel',summary:'opsSummaryPanel'}))E(id).hidden=tab!==name;
+    if(name==='delay')loadDelay();else if(name==='line')loadLine();else if(name==='a0800')window.OpsAReplyAdmin?.load(periodRange(),periodLabel());else R.open(name).catch(()=>{});
   }
   document.querySelectorAll('.ops-tab').forEach(b=>b.onclick=()=>openTab(b.dataset.opsTab));
   const original=showAdminMode;showAdminMode=function(mode){original(mode);E('opsModePage').style.display=mode==='ops'?'block':'none';if(mode==='ops')openTab(state.active);};
