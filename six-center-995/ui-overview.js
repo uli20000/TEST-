@@ -38,8 +38,10 @@
   page.innerHTML='<div class="uo-head"><h1 id="uoTitle">營運成績</h1><div class="uo-date"><span class="uo-period" role="group" aria-label="期間">'+['day','week','month'].map(p=>'<button type="button" data-p="'+p+'">'+PLABEL[p]+'</button>').join('')+'</span><button type="button" data-d="-1" aria-label="上一期">‹</button><label class="date-display"><b id="uoDate"></b><input id="uoDatePick" type="date" aria-label="選擇日期"></label><button type="button" data-d="1" aria-label="下一期">›</button><button type="button" data-d="0">今日</button></div></div>'+
     '<div id="uoKpis" class="uo-kpis"></div>'+
     '<div class="uo-pend-head"><h2>待處理</h2><small id="uoPendNote"></small></div>'+
-    '<div class="uo-grid3 uo-pend"><article class="uo-card"><h2>🛵 車輛待處理</h2><div id="uoPendVehicle"></div></article><article class="uo-card"><h2>⏱️ 等餐待回饋</h2><div id="uoPendDelay"></div></article><article class="uo-card"><h2>📝 A 項待回饋</h2><div id="uoPendA"></div></article></div>'+
-    '<div class="uo-grid2"><article class="uo-card"><h2>等餐（依 AC）</h2><div id="uoWait"></div></article><article class="uo-card"><h2>劃線簽名（依 AC）</h2><div id="uoLine"></div></article></div>'+
+    '<div class="uo-grid2 uo-pend"><article class="uo-card"><h2>🛵 車輛待處理</h2><div id="uoPendVehicle"></div></article>'+
+    '<article class="uo-card"><h2>⏱️ 等餐</h2><h3 class="uo-sub" id="uoWaitLabel">本期（依 AC）</h3><div id="uoWait"></div><h3 class="uo-sub uo-sub-month" id="uoPendDelayLabel">當月待回饋</h3><div id="uoPendDelay"></div></article>'+
+    '<article class="uo-card"><h2>✍️ 劃線簽名</h2><div id="uoLine"></div></article>'+
+    '<article class="uo-card"><h2>📝 A 項待回饋</h2><div id="uoPendA"></div></article></div>'+
     '<p id="uoFoot" class="uo-foot"></p><p id="uoStatus" class="uo-status" role="status"></p>';
   content.prepend(page);
   page.querySelector('.uo-date').addEventListener('click',e=>{const pb=e.target.closest('[data-p]');if(pb){period=pb.dataset.p;sync();load();return;}const b=e.target.closest('[data-d]');if(!b)return;const d=+b.dataset.d;date=d===0?opsToday():step(date,d);if(date>opsToday())date=opsToday();sync();load();});
@@ -121,7 +123,7 @@
   let pendReq=0;
   async function loadPending(){
     const id=++pendReq,m=S.range(date,'month'),label=m.start.slice(0,4)+'年'+(+m.start.slice(5,7))+'月';
-    E('uoPendNote').textContent='等餐、A 項：'+label+'（所選日期的當月）｜車輛：目前狀態';
+    E('uoPendNote').textContent='等餐、劃線：所選期間｜等餐當月待回饋、A 項：'+label+'｜車輛：目前狀態';E('uoPendDelayLabel').textContent=label+' 待回饋';E('uoWaitLabel').textContent=({day:'當天',week:'本週',month:'本月'}[period])+'（依 AC）';
     const set=(el,html)=>{if(id===pendReq)E(el).innerHTML=html;},fail=(el,e)=>set(el,'<p class="uo-empty">讀取失敗：'+esc(e.message||e)+'</p>');
     for(const el of ['uoPendVehicle','uoPendDelay','uoPendA'])E(el).innerHTML='<p class="uo-empty">讀取中…</p>';
     loadPendingVehicles().then(v=>set('uoPendVehicle',vehicleHtml(v)),e=>fail('uoPendVehicle',e));
