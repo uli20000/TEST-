@@ -5,14 +5,24 @@
   const isA=t=>window.FeedbackAReply?FeedbackAReply.isAItem(t):/^A(\s|$)/.test(String(t||'').trim());
   const state={rows:[],request:0,label:''};const returning=new Set();
   function enabled(){const f=window.CENTER_CONFIG?.features;return f?.monthReplyGatewayReady===true;}
+  // 期間內 0800 A 項＋回覆（後台清單與報表匯出共用）
+  async function readRange(range){
+    const fb=await window.OpsReport.readRows('t995_feedback_import_rows','id,record_date,store_code,restaurant_name,main_topic,item_1,item_2,content,work_order,invoice_number',q=>q.eq('source_type','0800').gte('record_date',range.start).lte('record_date',range.end));
+    const rows=fb.filter(x=>isA(x.main_topic)),ids=rows.map(x=>x.id),replies=new Map();
+    for(let i=0;i<ids.length;i+=150){const r=await db.from('feedback_a_replies').select('feedback_id,status,packer,root_cause,action_plan,responded_at,reply_version').in('feedback_id',ids.slice(i,i+150));if(r.error)throw r.error;for(const x of r.data||[])replies.set(x.feedback_id,x);}
+    return rows.map(x=>({...x,reply:replies.get(x.id)||null}));
+  }
+  const statusText=x=>x.reply?.status==='completed'?'已回覆':x.reply?'退回待重填':'待回覆';
+  async function exportRows(range){
+    const rows=await readRange(range),fmt=t=>t?new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(t)):'';
+    return rows.sort((a,b)=>a.record_date.localeCompare(b.record_date)||String(a.store_code).localeCompare(String(b.store_code))).map(x=>{const done=x.reply?.status==='completed';return {日期:x.record_date,店號:x.store_code||'',餐廳:x.restaurant_name||'',項目:x.item_1||'',品項:x.item_2||'',顧客回饋內容:x.content||'',工作單號:x.work_order||'',發票號碼:x.invoice_number||'',回覆狀態:statusText(x),配餐人員:done?x.reply.packer:'',根源:done?x.reply.root_cause:'',行動:done?x.reply.action_plan:'',回覆時間:done?fmt(x.reply.responded_at):''};});
+  }
   async function load(range,label){
     if(!E('opsAList'))return;const request=++state.request;state.label=label||'';E('opsAList').innerHTML='<div class="ops-empty">讀取中…</div>';
     try{
-      const fb=await window.OpsReport.readRows('t995_feedback_import_rows','id,record_date,store_code,restaurant_name,main_topic,item_1,item_2,content,work_order,invoice_number',q=>q.eq('source_type','0800').gte('record_date',range.start).lte('record_date',range.end));
-      const rows=fb.filter(x=>isA(x.main_topic)),ids=rows.map(x=>x.id),replies=new Map();
-      for(let i=0;i<ids.length;i+=150){const r=await db.from('feedback_a_replies').select('feedback_id,status,packer,root_cause,action_plan,responded_at,reply_version').in('feedback_id',ids.slice(i,i+150));if(r.error)throw r.error;for(const x of r.data||[])replies.set(x.feedback_id,x);}
+      const rows=await readRange(range);
       if(request!==state.request)return;
-      state.rows=rows.map(x=>({...x,reply:replies.get(x.id)||null})).sort((a,b)=>b.record_date.localeCompare(a.record_date)||String(a.store_code).localeCompare(String(b.store_code)));render();
+      state.rows=rows.slice().sort((a,b)=>b.record_date.localeCompare(a.record_date)||String(a.store_code).localeCompare(String(b.store_code)));render();
     }catch(e){if(request===state.request){state.rows=[];E('opsAList').textContent='讀取失敗：'+(e.message||e);}}
   }
   function render(){
@@ -41,5 +51,5 @@
     E('opsASearch')?.addEventListener('input',render);E('opsAStatus')?.addEventListener('change',render);
     E('opsAList')?.addEventListener('click',e=>{const b=e.target.closest('[data-return-a]');if(b)returnReply(b.dataset.returnA,b);});
   });
-  window.OpsAReplyAdmin={load};
+  window.OpsAReplyAdmin={load,exportRows};
 })();
