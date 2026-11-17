@@ -140,7 +140,7 @@ details.card>summary::after{content:' ▾';color:var(--faint)}details.card[open]
 @media (max-width:760px){
  .app{grid-template-columns:1fr}.side{display:none}
  .top{height:auto;flex-direction:column;gap:8px;padding:10px 12px}.top .right{flex-wrap:wrap;justify-content:center}
- .period b{min-width:0;font-size:14px}.page{padding:16px 10px 40px}
+ .period b{min-width:0;font-size:14px}.period .date-display{min-width:110px}.page{padding:16px 10px 40px}
  .tabs .seg{display:grid;grid-template-columns:repeat(2,1fr);width:100%}.tabs .seg button{padding:8px 6px;font-size:14px}
  .hero{gap:10px}.hero .kpi b{font-size:22px}
  .mhead,.mrow{grid-template-columns:56px repeat(3,minmax(0,1fr))}
@@ -201,7 +201,7 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
     <header class="top">
       <div class="period">
         <div class="seg" id="unit"><button data-u="day">日</button><button data-u="week" class="on">週</button><button data-u="month">月</button></div>
-        <button class="icon" id="prev">‹</button><b id="periodLabel">—</b><button class="icon" id="next">›</button><button class="ghost" id="today">今日</button>
+        <button class="icon" id="prev">‹</button><label class="date-display"><b id="periodLabel">—</b><input id="periodPick" type="date" aria-label="選擇日期"></label><button class="icon" id="next">›</button><button class="ghost" id="today">今日</button>
       </div>
       <div class="right">
         <span class="seg" id="cut" title="截止日"><button data-c="common" class="on">共同截止</button><button data-c="latest">各區最新</button></span>
@@ -276,6 +276,7 @@ const isoWeek=d=>{const x=new Date(d+'T12:00:00Z');const t=new Date(x);t.setUTCD
 let unit='week',anchor=tz(),cutoff='common',basis='gap',cmpK='d7',deepId='995';
 function period(u=unit,a=anchor){if(u==='day')return{start:a,end:a,label:md(a)};if(u==='week'){const s=addDays(a,-((dow(a)+6)%7));return{start:s,end:addDays(s,6),label:'W'+isoWeek(s)+'　'+md(s)+'–'+md(addDays(s,6))};}
  const s=a.slice(0,8)+'01',e=addDays(new Date(Date.UTC(+a.slice(0,4),+a.slice(5,7),0,12)).toISOString().slice(0,10),0);return{start:s,end:e,label:a.slice(0,4)+'/'+(+a.slice(5,7))+' 月'};}
+function navLabel(u=unit,a=anchor){if(u==='week')return 'W'+String(isoWeek(addDays(a,-((dow(a)+6)%7)))).padStart(2,'0');if(u==='month')return a.slice(0,4)+'年'+(+a.slice(5,7))+'月';return a.replace(/-/g,'/')+'（'+['日','一','二','三','四','五','六'][dow(a)]+'）';}
 function shift(n){if(unit==='day')anchor=addDays(anchor,n);else if(unit==='week')anchor=addDays(anchor,7*n);else{const d=new Date(anchor+'T12:00:00Z');d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);anchor=d.toISOString().slice(0,10);}}
 function prevPeriod(p){if(unit==='month'){const d=new Date(p.start+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-1);const s=d.toISOString().slice(0,10);const e=new Date(Date.UTC(+s.slice(0,4),+s.slice(5,7),0,12)).toISOString().slice(0,10);return{start:s,end:e};}const n=unit==='day'?1:7;return{start:addDays(p.start,-n),end:addDays(p.end,-n)};}
 // ===== 讀取 =====
@@ -290,7 +291,7 @@ let R=[],RK={},TR=null,loading=true;
 let loadSeq=0;
 async function load(){
  loading=true;exportEnabled();$('why').classList.remove('on');
- const seq=++loadSeq,p=period(),today=tz();$('periodLabel').textContent=p.label;
+ const seq=++loadSeq,p=period(),today=tz();$('periodLabel').textContent=navLabel();$('periodPick').value=anchor;
  $('mx').innerHTML='<div class="loading">讀取四區資料中…</div>';$('pcards').innerHTML='';TR=null;
  const end0=p.end>today?today:p.end;
  const first=await Promise.all(CENTERS.map(async c=>{try{return{c,s:await summary(c.id,p.start,end0)}}catch(e){return{c,err:e.message||String(e)}}}));
@@ -474,7 +475,7 @@ $('cmpMetric').onclick=e=>{const k=e.target.dataset.k;if(k){cmpK=k;cmpView();}};
 $('cmpView').onclick=e=>{const v=e.target.dataset.v;if(!v)return;$('cmpView').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));document.querySelectorAll('.vw').forEach(x=>x.classList.toggle('on',x.id==='vw-'+v));$('matrixCard').style.display=v==='tr'?'none':'';if(v==='tr')trend();};
 const segOn=(id,attr,val)=>$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset[attr]===val));
 $('unit').onclick=e=>{const u=e.target.dataset.u;if(!u)return;unit=u;if(u==='day'&&sel?.endsWith('|sssg'))sel=null;anchor=tz();segOn('unit','u',u);load();};
-$('prev').onclick=()=>{shift(-1);load();};$('next').onclick=()=>{shift(1);load();};$('today').onclick=()=>{anchor=tz();load();};
+$('prev').onclick=()=>{shift(-1);load();};$('next').onclick=()=>{shift(1);load();};$('today').onclick=()=>{anchor=tz();load();};$('periodPick').onclick=e=>{try{e.target.showPicker?.();}catch(_){}};$('periodPick').onchange=e=>{if(e.target.value){anchor=e.target.value;load();}};
 $('cut').onclick=e=>{const c=e.target.dataset.c;if(!c)return;cutoff=c;segOn('cut','c',c);load();};
 $('basis').onclick=e=>{const b=e.target.dataset.b;if(!b)return;basis=b;segOn('basis','b',b);load();};
 $('reload').onclick=()=>load();
@@ -483,7 +484,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dim]');if(
 function exportEnabled(){for(const id of ['exPng','exXlsx'])$(id).disabled=loading||!R.length;}
 const fname=(view,ext)=>`全區總覽_${view.start}_${view.end}.${ext}`;
 function overviewData(){if(loading||R.length!==CENTERS.length)throw new Error('資料讀取中');const p=window.__period,cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));
- return{start:p.start,end:p.useEnd||p.end,label:$('periodLabel').textContent,basis:basis==='prev'?'前期變化':'目標差距',dimension:DIMS[dim],cols,
+ return{start:p.start,end:p.useEnd||p.end,label:period().label,basis:basis==='prev'?'前期變化':'目標差距',dimension:DIMS[dim],cols,
   matrix:R.map(r=>({name:rn(r),date:r.upd||'資料不足',error:!!r.err,cells:cols.map(c=>mcell(r,c.k))})),cards:R.map(problemCard),regions:R};}
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
 async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='匯出中…';try{await fn(overviewData());}catch(e){alert('匯出失敗：'+(e.message||e));}finally{btn.textContent=t;exportEnabled();}}

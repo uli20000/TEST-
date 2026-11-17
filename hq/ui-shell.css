@@ -19,7 +19,7 @@ body{margin:0;font-family:var(--font);font-weight:600;color:var(--text);backgrou
 .side .group{color:#8C959F;font-size:12px;font-weight:500;padding:16px 12px 6px}
 main{min-width:0}
 .top{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5}
-.period{display:flex;align-items:center;gap:10px}.period b{font-size:16px;min-width:150px;text-align:center}
+.period{display:flex;align-items:center;gap:10px}.period b{font-size:16px;min-width:150px;text-align:center}.period .date-display{position:relative;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.period .date-display input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
 .seg{display:inline-flex;background:#F0EDE7;border-radius:8px;padding:3px}
 .seg button{border:0;background:none;font:inherit;padding:6px 14px;border-radius:6px;cursor:pointer;color:var(--muted)}
 .seg button.on{background:#fff;color:var(--text);box-shadow:var(--shadow)}
