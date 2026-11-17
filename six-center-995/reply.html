@@ -9,13 +9,15 @@
 <div class="toolbar"><label for="restaurantFilter">篩選餐廳</label><select id="restaurantFilter"><option value="">全部餐廳</option></select></div>
 <div id="orders"></div>
 </div></section>
-</main><script src="reply-drafts.js"></script><script src="reply-gateway.js"></script><script>
+</main><script src="reply-drafts.js"></script><script src="reply-gateway.js"></script><script src="reply-legacy.js"></script><script>
 const SUPABASE_URL=window.CENTER_CONFIG.supabaseUrl;
 const SUPABASE_KEY=window.CENTER_CONFIG.publishableKey;
 const db=window.CenterRuntime.createClient(SUPABASE_URL,SUPABASE_KEY);
 const token=new URLSearchParams(location.search).get("token")||"";
 const monthLink=new URLSearchParams(location.search).get("kind")==="month";
-const gateway=ReplyGateway.create(db,{enabled:monthLink&&window.CENTER_CONFIG.features?.monthReplyGatewayReady===true,boundSchema:window.CENTER_CONFIG.schema,token});
+// 新版月回覆未啟用的中心（996／998）沿用舊制回覆函式，舊連結照常可用
+const gatewayReady=window.CENTER_CONFIG.features?.monthReplyGatewayReady===true;
+const gateway=gatewayReady?ReplyGateway.create(db,{enabled:monthLink,boundSchema:window.CENTER_CONFIG.schema,production:window.CENTER_CONFIG.environment==='production',token}):ReplyLegacy.create(db,{monthLink,token});
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const ZH_ERRORS={"Invalid or expired month link":"連結已失效或已重新產生，請向值班人員索取最新連結。","Reply changed; reload before submitting":"這筆訂單已被回覆或退回修改，請重新整理頁面後再填。","Order not available for this month link":"這筆訂單不屬於此月份連結。","Invalid reply fields":"回覆內容需為 1 至 500 字。","Request ID reused with different data":"上次送出結果尚未確認，請重新整理後核對。","Reply could not be completed":"送出未完成，請重新整理後再試。"};
@@ -37,7 +39,7 @@ function renderOrders(){
 async function load(){
  $("replyForm").hidden=true;$("orders").replaceChildren();
  if(!token){$("message").textContent="連結缺少識別碼，請向值班人員索取共用回覆連結。";return;}
- try{const d=await gateway.list();current=d.orders||[];currentMonth=d.month||"";$("restaurant").textContent=(monthLink?"固定回覆月份：":"待回覆月份（舊制當月）：")+(currentMonth||"—")+"｜共 "+current.length+" 筆訂單";
+ try{const d=await gateway.list();current=d.orders||[];currentMonth=d.month||"";$("restaurant").textContent=(monthLink?"固定回覆月份：":"待回覆月份：")+(currentMonth||"—")+"｜共 "+current.length+" 筆訂單";
  if(!current.length){$("message").innerHTML='<span class="success">目前沒有待回覆訂單。</span>';return;}
  $("message").textContent="請逐筆填寫原因，並按該筆訂單下方的送出按鈕；完成的訂單會從清單移除。";
  renderOrders();$("replyForm").hidden=false;return true;

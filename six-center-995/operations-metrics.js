@@ -51,9 +51,18 @@
     if(mapped)return mapped;
     const ac=String(p.AC||'').match(new RegExp(BUSINESS.center+'[-\\s]?([A-Z0-9]+)$','i'));return ac&&AREAS.some(([code])=>code===ac[1].toUpperCase())?ac[1].toUpperCase():'?';
   }
-  function empty(){return {tc:0,fa:0,d7Y:0,d7N:0,d25Y:0,d25N:0,qtSum:0,qtN:0,d7Seconds:0,d7TimeN:0,d25Seconds:0,d25TimeN:0,prior:0,priorN:0};}
+  function empty(){return {tc:0,fa:0,newTc:0,newFa:0,d7Y:0,d7N:0,d25Y:0,d25N:0,qtSum:0,qtN:0,d7Seconds:0,d7TimeN:0,d25Seconds:0,d25TimeN:0,prior:0,priorN:0};}
   function add(target,source){for(const k of Object.keys(empty()))target[k]+=source[k]||0;return target;}
-  function derived(x){const nonfa=x.tc-x.fa,forecast=null;return {...x,nonfa,forecast,forecastHours:forecast===null?null:forecast/FORECAST_TPLH,faShare:ratio(x.fa,x.tc),sstg:x.priorN&&x.prior>0?x.tc/x.prior-1:null,sstgExFA:x.priorN&&x.prior>0?nonfa/x.prior-1:null,tcAchievement:ratio(x.tc,forecast),d7:ratio(x.d7Y,x.d7Y+x.d7N),d25:ratio(x.d25Y,x.d25Y+x.d25N),qt:ratio(x.qtSum,x.qtN),d7Avg:ratio(x.d7Seconds,x.d7TimeN),d25Avg:ratio(x.d25Seconds,x.d25TimeN)};}
+  function derived(x){const nonfa=x.tc-x.fa,forecast=null;return {...x,nonfa,forecast,forecastHours:forecast===null?null:forecast/FORECAST_TPLH,faShare:ratio(x.fa,x.tc),sstg:x.priorN&&x.prior>0?(x.tc-x.newTc)/x.prior-1:null,sstgExFA:x.priorN&&x.prior>0?(nonfa-(x.newTc-x.newFa))/x.prior-1:null,tcAchievement:ratio(x.tc,forecast),d7:ratio(x.d7Y,x.d7Y+x.d7N),d25:ratio(x.d25Y,x.d25Y+x.d25N),qt:ratio(x.qtSum,x.qtN),d7Avg:ratio(x.d7Seconds,x.d7TimeN),d25Avg:ratio(x.d25Seconds,x.d25TimeN)};}
+  // 該日 Power BI 單量：日期有任一在範圍內餐廳的 Power BI 列才採用；缺列的餐廳視為當日 0 單（停業）。
+  // 全店皆 0（可疑匯出）、同鍵衝突或缺自送數時不採用，退回 DMS。
+  function powerBiDay(source,date){
+    const eligible=source.eligible(date);if(!eligible.length||source.suspectDates.has(date))return null;
+    const keys=eligible.map(s=>date+'|'+s.name);if(!keys.some(k=>source.index.has(k)))return null;
+    if(keys.some(k=>source.conflicts.has(k)))return null;
+    const stores=[];for(const s of eligible){const v=source.index.has(date+'|'+s.name)?source.actual(s.name,date):{tc:0,self:0,fa:0};if(!v||v.fa===null)return null;stores.push({code:s.code,name:s.restaurant_name,area:s.area,tc:v.tc,fa:v.fa});}
+    return {stores};
+  }
   function buildOrders({rows,batches,history,mapping,catalog,reports,start,end,powerbiData}){
     rows=scopeData({rows,batches}).rows;
     const rangeAreas=areasForDate(start);
@@ -66,6 +75,8 @@
       if(b.report_type==='ByOrder'){
         a.tc++;const fa=String(p['自動/手動']||'').trim()==='第三方';if(fa)a.fa++;
         else{const f7=String(p.D7||'').toUpperCase(),f25=String(p.D25||'').toUpperCase();if(f7==='Y')a.d7Y++;if(f7==='N')a.d7N++;if(f25==='Y')a.d25Y++;if(f25==='N')a.d25N++;}
+        // 新店單量照算 TC，但 SSTG 只比同店：另記新店單數，計算 SSTG 時扣除。
+        if(F.isNewStore(row.store_code,b.report_date,row.restaurant_name)){a.newTc++;if(fa)a.newFa++;}
         day.orders.push({...row,area_code:code,fa});
       }else{
         const qt=number(p.QT),t7=duration(p['留店時間']),t25=duration(p['外送達成時間（D30)']);
@@ -74,22 +85,34 @@
     }
     // Actual DMS orders stay unchanged; comparisons share the forecast's target-date cohort and prior-week source.
     const priorSource=F.prepare({history:powerbiData?.history||history,mapping,catalog,batches:powerbiData?.batches||batches,reports:powerbiData?.reports||reports,inScope:storeInScope});
+    // 單量（TC／FA）以 Power BI 為準；該日尚未上傳 Power BI 時先用 DMS ByOrder 暫估，上傳後自動改用 Power BI。D7／D25／QT 一律用 DMS。
+    for(const day of days.values()){
+      const pbi=powerBiDay(priorSource,day.date);day.dmsTc=null;
+      if(pbi){
+        let dmsTc=0;for(const a of day.areas.values()){dmsTc+=a.tc;a.tc=0;a.fa=0;a.newTc=0;a.newFa=0;}day.dmsTc=day.types.has('ByOrder')?dmsTc:null;
+        for(const x of pbi.stores){if(!day.areas.has(x.area))day.areas.set(x.area,empty());const a=day.areas.get(x.area);a.tc+=x.tc;a.fa+=x.fa;if(F.isNewStore(x.code,day.date,x.name)){a.newTc+=x.tc;a.newFa+=x.fa;}}
+        day.storeTc=pbi.stores;day.tcSource='powerbi';
+      }else day.tcSource=day.types.has('ByOrder')?'dms':null;
+    }
     for(const day of days.values()){
       const eligible=priorSource.eligible(day.date),covered=new Set();
-      day.baselineDate=F.comparisonDate(day.date);day.baselineMissingAreas=new Set();
+      day.baselineDate=F.priorDate(day.date);day.baselineSubstitution=F.priorSubstitution(day.date);day.baselineMissingAreas=new Set();day.newStores=[];let expected=0;
       for(const store of eligible){
         const a=day.areas.get(store.area);if(!a)continue;
+        if(F.isNewStore(store.code,day.date,store.name)){day.newStores.push(store.name);continue;}
+        expected++;
+        {const ss=F.priorSubstitution(day.date,store.code);if(ss&&ss.used!==day.baselineDate)(day.storeSubstitutions||=[]).push({...ss,store:store.name});}
         const value=priorSource.priorYear(store.name,day.date);
         if(value===null){day.baselineMissingAreas.add(store.area);continue;}
         a.prior+=value;a.priorN++;covered.add(store.name);
       }
-      day.baselineCount=covered.size;day.baselineComplete=eligible.length>0&&covered.size===eligible.length;
+      day.baselineCount=covered.size;day.baselineComplete=expected>0&&covered.size===expected;
     }
     const areas=new Map(rangeAreas.map(([a])=>[a,empty()]));if([...days.values()].some(d=>d.areas.has('?')))areas.set('?',empty());
     const total=empty(),hourTotals=new Map(rangeAreas.map(([a])=>[a,{hours:0,count:0}]));let totalHours=0,transferOut=0,transferIn=0,completeHours=true,hasHours=false;
     const missingPairs=[],missingHourDays=[],missingBaselineDays=[],hoursWithoutScores=[],invalidHourDays=[];
     for(const day of days.values()){
-      day.scoreExcluded=!!day.report?.score_excluded;const active=day.types.has('ByOrder')&&!day.scoreExcluded;if(day.types.size&&day.types.size<2&&!day.scoreExcluded)missingPairs.push(day.date);
+      day.scoreExcluded=!!day.report?.score_excluded;const active=!!day.tcSource&&!day.scoreExcluded;if(day.types.size&&day.types.size<2&&!day.scoreExcluded)missingPairs.push(day.date);
       day.metrics=empty();for(const [code,x] of day.areas){if(!day.scoreExcluded&&(active||start===end)){add(total,x);add(day.metrics,x);if(!areas.has(code))areas.set(code,empty());add(areas.get(code),x);}}
       day.metrics=derived(day.metrics);if(!day.baselineComplete){day.metrics.prior=null;day.metrics.sstg=null;day.metrics.sstgExFA=null;}day.hours=null;day.actualHours=null;
       const saved=day.report?.area_hours||{};let sum=0,entered=0,missing=0;
@@ -105,7 +128,7 @@
     }
     const summary=derived(total),actualHours=hasHours&&completeHours?totalHours-transferOut+transferIn:null;
     if(missingBaselineDays.length){summary.forecast=null;summary.forecastHours=null;summary.prior=null;summary.sstg=null;summary.sstgExFA=null;summary.tcAchievement=null;}
-    return {priorSource,days,areas:new Map([...areas].map(([a,x])=>{const value=derived(x);if([...days.values()].some(d=>!d.scoreExcluded&&(d.types.has('ByOrder')||start===end)&&d.baselineMissingAreas.has(a))){value.prior=null;value.sstg=null;value.sstgExFA=null;}return [a,value];})),summary:{...summary,totalHours:hasHours?totalHours:null,transferOut,transferIn,actualHours,tplh:hoursWithoutScores.length?null:ratio(summary.nonfa,actualHours),hoursAchievement:hoursWithoutScores.length?null:ratio(actualHours,summary.forecastHours)},hourTotals,missingPairs,missingHourDays,missingBaselineDays,hoursWithoutScores,invalidHourDays};
+    return {priorSource,days,areas:new Map([...areas].map(([a,x])=>{const value=derived(x);if([...days.values()].some(d=>!d.scoreExcluded&&(d.tcSource||start===end)&&d.baselineMissingAreas.has(a))){value.prior=null;value.sstg=null;value.sstgExFA=null;}return [a,value];})),summary:{...summary,totalHours:hasHours?totalHours:null,transferOut,transferIn,actualHours,tplh:hoursWithoutScores.length?null:ratio(summary.nonfa,actualHours),hoursAchievement:hoursWithoutScores.length?null:ratio(actualHours,summary.forecastHours)},hourTotals,missingPairs,missingHourDays,missingBaselineDays,hoursWithoutScores,invalidHourDays,baselineSubstitutions:[...days.values()].filter(d=>!d.scoreExcluded&&d.tcSource).flatMap(d=>[d.baselineSubstitution,...(d.storeSubstitutions||[])]).filter(Boolean),newStores:[...new Set([...days.values()].flatMap(d=>d.newStores||[]))],provisionalDays:[...days.values()].filter(d=>d.tcSource==='dms'&&!d.scoreExcluded).map(d=>d.date),powerBiDays:[...days.values()].filter(d=>d.tcSource==='powerbi'&&!d.scoreExcluded).map(d=>d.date)};
   }
   function build(args){
     const v=buildOrders(args),{start,end,mapping,catalog}=args;
@@ -113,20 +136,30 @@
     const forecastDetails=[];
     const today=args.today||new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     const sumForecast=rows=>rows.length&&rows.every(x=>x.totalTc!==null)?rows.reduce((n,x)=>n+x.totalTc,0):null;
-    const decorate=(base,forecasts)=>{
+    // 預估不計入缺去年 TC 的店時，達成率的實際 TC 也同步扣除這些店，避免分子分母範圍不同而灌高達成率。
+    const decorate=(base,forecasts,uncounted=0)=>{
       const forecast=sumForecast(forecasts),forecastHours=forecast===null?null:forecast/FORECAST_TPLH;
-      return {...base,forecast,forecastHours,tcAchievement:ratio(base.tc,forecast)};
+      return {...base,forecast,forecastHours,uncountedTc:uncounted,tcAchievement:ratio(base.tc-uncounted,forecast)};
     };
+    const storeKey=(code,name)=>{const c=String(code??'').trim();return [c?'c:'+(/^\d+$/.test(c)?c.padStart(3,'0'):c):null,name?'n:'+clean(name):null].filter(Boolean);};
+    function uncountedOrders(day,forecasts){
+      const keys=new Set();for(const f of forecasts)if(f.totalTc!==null)for(const st of f.missingPriorStores||[])for(const k of storeKey(st.code,st.name))keys.add(k);
+      const byArea=new Map();let total=0;if(!keys.size)return {total,byArea};
+      if(day.tcSource==='powerbi'){for(const x of day.storeTc||[])if(storeKey(x.code,x.name).some(k=>keys.has(k))){total+=x.tc;byArea.set(x.area,(byArea.get(x.area)||0)+x.tc);}return {total,byArea};}
+      for(const o of day.orders){if(storeKey(o.store_code,o.restaurant_name).some(k=>keys.has(k))){total++;byArea.set(o.area_code,(byArea.get(o.area_code)||0)+1);}}
+      return {total,byArea};
+    }
     for(const day of v.days.values()){
       const f=prepared.forecast(day.date);
       if(day.scoreExcluded)for(const x of f)x.excluded=true;
       forecastDetails.push(...f);
-      day.tcComplete=day.types.has('ByOrder')&&!day.scoreExcluded;
-      day.metrics=decorate(day.metrics,f);
+      day.tcComplete=!!day.tcSource&&!day.scoreExcluded;
+      const unc=uncountedOrders(day,f);day.uncountedTc=unc.total;day.uncountedByArea=unc.byArea;
+      day.metrics=decorate(day.metrics,f,unc.total);
       day.attainmentEligible=day.tcComplete&&day.date<=today;
       if(!day.attainmentEligible)day.metrics.tcAchievement=null;
       day.metrics.hoursAchievement=ratio(day.actualHours,day.metrics.forecastHours);
-      for(const [area,base] of day.areas){const value=derived(base);if(day.baselineMissingAreas.has(area)){value.prior=null;value.sstg=null;value.sstgExFA=null;}const decorated=decorate(value,f.filter(x=>x.area===area));if(!day.attainmentEligible)decorated.tcAchievement=null;day.areas.set(area,decorated);}
+      for(const [area,base] of day.areas){const value=derived(base);if(day.baselineMissingAreas.has(area)){value.prior=null;value.sstg=null;value.sstgExFA=null;}const decorated=decorate(value,f.filter(x=>x.area===area),unc.byArea.get(area)||0);if(!day.attainmentEligible)decorated.tcAchievement=null;day.areas.set(area,decorated);}
     }
     const includedForecasts=forecastDetails.filter(x=>!x.excluded);
     v.summary=decorate(v.summary,includedForecasts);
@@ -136,25 +169,28 @@
     const attainmentDays=[...v.days.values()].filter(day=>day.attainmentEligible);
     const attainmentForecasts=forecastDetails.filter(x=>!x.excluded&&v.days.get(x.date)?.attainmentEligible);
     v.summary.attainmentForecast=sumForecast(attainmentForecasts);
-    v.summary.attainmentActual=attainmentDays.length?attainmentDays.reduce((sum,day)=>sum+day.metrics.tc,0):null;
+    v.summary.attainmentActual=attainmentDays.length?attainmentDays.reduce((sum,day)=>sum+day.metrics.tc-(day.uncountedTc||0),0):null;
     v.summary.tcAchievement=ratio(v.summary.attainmentActual,v.summary.attainmentForecast);
     for(const [area,value] of v.areas){
       value.attainmentForecast=sumForecast(attainmentForecasts.filter(x=>x.area===area));
-      value.attainmentActual=attainmentDays.length?attainmentDays.reduce((sum,day)=>sum+(day.areas.get(area)?.tc||0),0):null;
+      value.attainmentActual=attainmentDays.length?attainmentDays.reduce((sum,day)=>sum+(day.areas.get(area)?.tc||0)-(day.uncountedByArea?.get(area)||0),0):null;
       value.tcAchievement=ratio(value.attainmentActual,value.attainmentForecast);
     }
     v.forecastDetails=forecastDetails;
-    v.missingTcDays=[...v.days.values()].filter(day=>day.date<=today&&!day.scoreExcluded&&!day.types.has('ByOrder')).map(day=>day.date);
+    v.missingTcDays=[...v.days.values()].filter(day=>day.date<=today&&!day.scoreExcluded&&!day.tcSource).map(day=>day.date);
     v.powerbi=prepared;
     v.forecastWarnings=[];
-    if(v.missingTcDays.length)v.forecastWarnings.push('預估達成率已排除缺少 ByOrder 的日期（實際與預估同時排除）：'+v.missingTcDays.join('、'));
+    if(v.provisionalDays.length)v.forecastWarnings.push('尚未上傳 Power BI，單量先用 DMS 暫估：'+v.provisionalDays.join('、'));
+    if(v.missingTcDays.length)v.forecastWarnings.push('預估達成率已排除缺少單量（Power BI 與 ByOrder 皆無）的日期（實際與預估同時排除）：'+v.missingTcDays.join('、'));
     if([...v.days.values()].some(day=>day.date>today))v.forecastWarnings.push('預估達成率僅計算截至今日已匯入 ByOrder 的日期；今日採整日預估');
     const missing=includedForecasts.filter(x=>x.totalTc===null);
     if(missing.length)v.forecastWarnings.push('去年對應週TC缺漏：'+missing.length+'組區域／日期無法預估');
+    const partialNames=[...new Set(includedForecasts.filter(x=>x.totalTc!==null).flatMap(x=>(x.missingPriorStores||[]).map(st=>st.name||st.code)))];
+    if(partialNames.length)v.forecastWarnings.push('預估未計入缺去年TC的店，達成率的實際TC同步扣除：'+partialNames.join('、'));
     if(prepared.conflicts.size)v.forecastWarnings.push('Power BI重複鍵內容衝突：'+prepared.conflicts.size+'筆，待核對');
     return v;
   }
-  const api={BUSINESS,AREAS,AC_ASSIGNMENTS,HISTORICAL_AC_ASSIGNMENTS,SCOPE_EFFECTIVE_DATE,REMOVED_STORES,storeInScope,areasForDate,acAssignmentsForDate,scopeData,NON_DELIVERY_STORES,GROWTH,FORECAST_TPLH,number,ratio,clean,duration,addDays,range,dates,weeks,latestBatches,areaFor,build};
+  const api={BUSINESS,AREAS,AC_ASSIGNMENTS,HISTORICAL_AC_ASSIGNMENTS,SCOPE_EFFECTIVE_DATE,REMOVED_STORES,storeInScope,areasForDate,acAssignmentsForDate,scopeData,NON_DELIVERY_STORES,GROWTH,FORECAST_TPLH,number,ratio,clean,duration,addDays,range,dates,weeks,latestBatches,areaFor,powerBiDay,build};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OpsMetrics=api;
 })(typeof window!=='undefined'?window:globalThis);
 

@@ -3,7 +3,7 @@
 <html lang="zh-Hant">
 <head><script src="center-config.js"></script><script src="center-runtime.js"></script><link rel="stylesheet" href="shared-shell.css">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#f4f0e8">
 
   <title>KFC｜桃園-T995 車輛管理</title>
@@ -926,7 +926,7 @@
  .shift-add-slot,.shift-slot-remove,.shift-unavailable{width:100%;min-width:0;height:40px;min-height:40px;padding:4px 5px;font-size:12px}
 }
 </style>
-<link rel="stylesheet" href="front-shell.css?v=20261110-f1">
+<link rel="stylesheet" href="front-shell.css?v=20261111-c4">
 </head>
 
 <body>
@@ -1027,26 +1027,7 @@
         <label class="label">領車點</label>
 
         <div>
-          <select id="claimPoint">
-            <option value="">請選擇領車點</option>
-            <option>新竹中正</option>
-            <option>新竹民生</option>
-            <option>新竹光復</option>
-            <option>新竹竹北</option>
-            <option>新竹新豐</option>
-            <option>龍潭北龍</option>
-            <option>楊梅中山</option>
-            <option>桃園大溪</option>
-            <option>桃園大竹</option>
-            <option>桃園大園</option>
-            <option>桃園大興西</option>
-            <option>桃園萬壽</option>
-            <option>桃園中山二</option>
-            <option>林口文化</option>
-            <option>南崁中正</option>
-            <option>中壢中正</option>
-            <option>中壢環中東</option>
-          </select>
+          <select id="claimPoint"><option value="">請選擇領車點</option></select>
         </div>
       </section>
 
@@ -1434,22 +1415,7 @@
           <div class="device-register-note">查無此設備，請先補充資料建立小卡，建立後再填寫異常原因。</div>
           <div id="batteryRegisterFields">
             <label class="label" for="batteryRestaurant">電池所在餐廳</label>
-            <select id="batteryRestaurant">
-              <option value="">請選擇餐廳名稱</option>
-              <option value="093">林口文化（093）</option><option value="018">林口復興（018）</option><option value="099">南崁中正（099）</option>
-              <option value="201">桃園台茂（201）</option><option value="095">中壢環中東（095）</option><option value="209">中壢環中東二（209）</option>
-              <option value="137">桃園大園（137）</option><option value="062">龍潭北龍（062）</option><option value="154">新竹清大（154）</option>
-              <option value="227">桃園新屋（227）</option><option value="248">桃園領航（248）</option><option value="041">楊梅中山（041）</option>
-              <option value="161">楊梅大成（161）</option><option value="516">中壢中正（516）</option><option value="544">中壢中和（544）</option>
-              <option value="084">中壢民族（084）</option><option value="242">中壢過嶺（242）</option>
-              <option value="133">新竹新豐（133）</option><option value="203">新竹湖口（203）</option><option value="562">新竹竹北（562）</option>
-              <option value="144">竹北自強（144）</option><option value="587">新竹民生（587）</option><option value="066">新竹竹東（066）</option>
-              <option value="214">新竹中正（214）</option><option value="594">新竹亞太（594）</option><option value="235">竹北中華（235）</option>
-              <option value="142">桃園桃鶯（142）</option>
-              <option value="182">桃園萬壽（182）</option><option value="167">桃園介壽（167）</option><option value="165">桃園南平（165）</option>
-              <option value="179">桃園大竹（179）</option><option value="190">桃園大溪（190）</option><option value="098">桃園大興西（098）</option>
-              <option value="183">桃園中山二（183）</option><option value="013">新竹光復（013）</option>
-            </select>
+            <select id="batteryRestaurant"><option value="">請選擇餐廳名稱</option></select>
           </div>
           <div id="recorderRegisterFields" style="display:none">
             <label class="label" for="recorderRegisterSize">紀錄器型號</label>
@@ -1496,16 +1462,7 @@
       <section class="card">
         <div class="section-number">02・餐廳</div>
         <label class="label" for="batteryRegisterRestaurant">電池所在餐廳</label>
-        <select id="batteryRegisterRestaurant">
-          <option value="">請選擇店號</option>
-          <option>013</option><option>018</option><option>041</option><option>062</option><option>066</option>
-          <option>084</option><option>093</option><option>095</option><option>098</option><option>099</option><option>133</option>
-          <option>137</option><option>142</option><option>144</option><option>154</option><option>161</option><option>165</option>
-          <option>167</option><option>179</option><option>182</option><option>183</option><option>190</option>
-          <option>201</option><option>203</option><option>209</option><option>214</option><option>227</option><option>235</option>
-          <option>242</option><option>248</option><option>516</option><option>544</option><option>562</option>
-          <option>587</option><option>594</option>
-        </select>
+        <select id="batteryRegisterRestaurant"><option value="">請選擇店號</option></select>
       </section>
 
       <button id="batteryRegisterSaveBtn" class="save-btn" type="button">新增電池建檔</button>
@@ -1681,7 +1638,7 @@
 </div>
 
 
-<script src="config/995-business.js"></script><script src="center-ui.js?v=20261110-pickup"></script>
+<script src="config/995-business.js?v=20261114-v2w"></script><script src="center-ui.js?v=20261111-c4"></script>
 <script src="rider-rules.js"></script>
 <script src="rider-rpc-adapter.js"></script>
 <script>
@@ -1701,6 +1658,11 @@ const db =
     SUPABASE_URL,
     SUPABASE_KEY
   );
+
+// T998／T981 前台名單與指休（開放週、測試模式、送出）使用公開權限，避免沿用同一瀏覽器的後台登入。
+const rosterDb = ["998","981"].includes(window.CENTER_CONFIG.center) && window.CENTER_CONFIG.environment === "production"
+  ? window.CenterRuntime.createClient(SUPABASE_URL, SUPABASE_KEY, {anonymous:true})
+  : db;
 
 // Atomic RPCs remain opt-in until isolated database, RLS and concurrency validation.
 const atomicRiderEnabled = window.CENTER_CONFIG.features?.atomicRider === true;
@@ -1726,7 +1688,7 @@ function currentSurveyRound(date = new Date()){
   return trainingTaipeiParts(date).month >= 7 ? "M7" : "M1";
 }
 
-// 桃園 T995 安全月曆：與 index.html 同層的 pdf 資料夾
+// T995 安全月曆：與 index.html 同層的 pdf 資料夾
 const SAFETY_CALENDAR_PDFS = {
   1: "pdf/safety-calendar-01.pdf",
   2: "pdf/safety-calendar-02.pdf",
@@ -3194,7 +3156,7 @@ function resetClaimForm() {
 // These checks fail closed on lookup errors. Database RPC enforcement is also
 // required to prevent simultaneous submissions or direct API bypass.
 async function requireActiveRider(name){
-  const r=await db.from("employee_directory").select("id,full_name").eq("full_name",name).eq("is_active",true).maybeSingle();
+  const r=await rosterDb.from("employee_directory").select("id,full_name").eq("full_name",name).eq("is_active",true).maybeSingle();
   if(r.error)throw r.error;
   if(!r.data)throw new Error("姓名不在在職名單，請找店長確認。");
   return r.data;
@@ -3745,7 +3707,7 @@ function resetBatteryRegisterForm(){
    DRIVER SURVEY
    ===================================================== */
 
-// 桃園正式駕駛意向調查題目：第一部分 31 題、第二部分 16 題。
+// 正式駕駛意向調查題目：第一部分 31 題、第二部分 16 題。
 // 目前資料表未列獨立違規點數欄位，故與第一部分答案一併放在 part1_answers。
 const behaviorQuestions = [
   "未依規定任意變換車道",
@@ -3903,7 +3865,7 @@ async function saveSurvey() {
 
   try {
     const respondentName = surveyRespondentNameInput.value.trim();
-    const employeeCheck = await db.from("employee_directory").select("id").eq("full_name", respondentName).eq("is_active", true).maybeSingle();
+    const employeeCheck = await rosterDb.from("employee_directory").select("id").eq("full_name", respondentName).eq("is_active", true).maybeSingle();
     if(employeeCheck.error) throw employeeCheck.error;
     if(!employeeCheck.data){alert("目前查無在職名單或員工已停用，無法填寫意向調查，請找店長確認。");return;}
     const behaviorScore = Object.values(surveyAnswers.behavior).reduce((sum, value) => sum + value, 0);
@@ -3992,7 +3954,7 @@ async function loadTargetNames(){
   if(defensiveTargetNamesLoaded) return;
   if(nameListLoadPromise) return nameListLoadPromise;
   nameListLoadPromise = (async()=>{
-    const employeeResult = await db.from("employee_directory")
+    const employeeResult = await rosterDb.from("employee_directory")
       .select("id,full_name,area_code,is_active")
       .eq("is_active", true);
     if(employeeResult.error) throw employeeResult.error;
@@ -4102,7 +4064,7 @@ async function loadDefensiveLesson(){
   defensiveLoadBtn.textContent = "載入中…";
   defensiveStatus.style.display = "block";
   try{
-    const employeeCheck = await db.from("employee_directory").select("id").eq("full_name", name).eq("is_active", true).maybeSingle();
+    const employeeCheck = await rosterDb.from("employee_directory").select("id").eq("full_name", name).eq("is_active", true).maybeSingle();
     if(employeeCheck.error) throw employeeCheck.error;
     if(!employeeCheck.data){
       defensiveStatus.className = "training-message";
@@ -4269,14 +4231,14 @@ function showMode(mode) {
 
   if (mode === "claim") {
     document.getElementById("claimBackTop").style.display = "block";
-    pageTitle.textContent = "桃園-Rider Center";
+    pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
     introTitle.textContent = "開始上班";
     introText.textContent = "完成領車確認，準備安全出勤。";
     claimForm.style.display = "block";
     claimSuccess.classList.remove("show");
   } else if (mode === "inspection") {
     document.getElementById("inspectionBackTop").style.display = "block";
-    pageTitle.textContent = "桃園-Rider Center";
+    pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
     introTitle.textContent = "下班前完成安全檢查";
     introText.textContent = "";
     introText.style.display = "none";
@@ -4284,7 +4246,7 @@ function showMode(mode) {
     inspectionSuccess.classList.remove("show");
   } else if (mode === "battery") {
     document.getElementById("batteryBackTop").style.display = "block";
-    pageTitle.textContent = "桃園-Rider Center";
+    pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
     introTitle.textContent = "設備管理";
     introText.textContent = "查詢或新增設備小卡，再填寫異常原因。";
     batteryForm.style.display = "block";
@@ -4292,21 +4254,21 @@ function showMode(mode) {
     resetBatteryForm();
   } else if (mode === "batteryRegister") {
     document.getElementById("batteryRegisterBackTop").style.display = "block";
-    pageTitle.textContent = "桃園-Rider Center";
+    pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
     introTitle.textContent = "電池建檔";
     introText.textContent = "請先建立電池資料，之後才能正確統計正常與異常數量。";
     batteryRegisterPage.style.display = "block";
     resetBatteryRegisterForm();
   } else if (mode === "survey") {
     document.getElementById("surveyBackTop").style.display = "block";
-    pageTitle.textContent = "桃園-Rider Center";
+    pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
     introTitle.textContent = "完成駕駛安全調查";
     introText.textContent = "兩部分分開計算，請依實際情況作答。";
     surveyForm.style.display = "block";
     surveySuccess.classList.remove("show");
   } else if (mode === "defensive") {
     document.getElementById("defensiveBackTop").style.display = "block";
-    pageTitle.textContent = "桃園-Rider Center";
+    pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
     introTitle.textContent = "防禦駕駛";
     introText.textContent = "";
     introText.style.display = "none";
@@ -4336,7 +4298,7 @@ function showHome() {
   surveyForm.style.display = "block";
   surveySuccess.classList.remove("show");
 
-  pageTitle.textContent = "桃園-Rider Center";
+  pageTitle.textContent = window.CenterBusinessConfig.regionLabel + "-Rider Center";
   introTitle.textContent = "";
   introText.textContent = "";
   introSection.style.display = "none";
@@ -4532,7 +4494,7 @@ todayDate.textContent = new Date().toLocaleDateString(
 showHome();
 
 /* ===============================
-   桃園 T995 員工指休表單
+   T995 員工指休表單
 ================================ */
 const shiftPage = document.getElementById("shiftPage");
 const shiftForm = document.getElementById("shiftForm");
@@ -4575,8 +4537,8 @@ function getShiftSubmissionCycle(){
 }
 async function loadShiftSubmissionSettings(){
   const [weeksResult,testResult]=await Promise.all([
-    db.from("weekly_shift_open_weeks").select("week_start").eq("is_open",true).gte("week_start",shiftCurrentMonday()).order("week_start",{ascending:true}),
-    db.rpc("shift_test_mode_enabled")
+    rosterDb.from("weekly_shift_open_weeks").select("week_start").eq("is_open",true).gte("week_start",shiftCurrentMonday()).order("week_start",{ascending:true}),
+    rosterDb.rpc("shift_test_mode_enabled")
   ]);
   if(weeksResult.error)throw weeksResult.error;if(testResult.error)throw testResult.error;
   shiftOpenWeeks=[...new Set((weeksResult.data||[]).map(row=>row.week_start))].map(week_start=>({week_start}));
@@ -4693,9 +4655,9 @@ async function verifyShiftEmployee(){
   if(!name)return false;
   shiftEmployeeStatus.textContent="確認在職名單中…";
   try{
-    const r=await db.from("employee_directory").select("id,full_name,area_code,is_active").eq("full_name",name).eq("is_active",true).maybeSingle();
+    const r=await rosterDb.from("employee_directory").select("id,full_name,area_code,is_active").eq("full_name",name).eq("is_active",true).maybeSingle();
     if(serial!==shiftVerifySerial)return false;if(r.error)throw r.error;
-    if(!r.data){shiftEmployeeStatus.textContent="歡迎加入桃園外送中心，目前查無名單，請找店長確認！";shiftEmployeeStatus.className="shift-state bad";return false;}
+    if(!r.data){shiftEmployeeStatus.textContent="歡迎加入" + window.CenterBusinessConfig.centerName + "，目前查無名單，請找店長確認！";shiftEmployeeStatus.className="shift-state bad";return false;}
     if(!r.data.area_code){shiftEmployeeStatus.textContent="已在職名單中，但尚未設定區域；請找店長確認後再填寫。";shiftEmployeeStatus.className="shift-state bad";return false;}
     verifiedShiftEmployee=r.data;shiftEmployeeStatus.textContent=`✅ 已確認在職｜${r.data.area_code} 區`;shiftEmployeeStatus.className="shift-state ok";return true;
   }catch(e){if(serial===shiftVerifySerial){shiftEmployeeStatus.textContent=`名單查詢失敗，請稍後重試或找店長確認。`;shiftEmployeeStatus.className="shift-state bad";}return false;}
@@ -4755,7 +4717,7 @@ async function submitShiftAvailability(){
   const payload={employee_id:verifiedShiftEmployee.id,week_start:cycle.weekStart,...values,notes:notes||null};
   shiftSubmitBtn.disabled=true;shiftSubmitMessage.textContent="送出中…";
   try{
-    const r=await db.from("weekly_shift_availability").insert(payload);if(r.error)throw r.error;
+    const r=await rosterDb.from("weekly_shift_availability").insert(payload);if(r.error)throw r.error;
     shiftSuccessData.textContent=`${verifiedShiftEmployee.full_name}｜${verifiedShiftEmployee.area_code} 區｜${shiftRangeLabel(cycle.weekStart)}`;
     shiftForm.style.display="none";shiftSuccess.classList.add("show");shiftSubmitMessage.textContent="";
   }catch(e){shiftSubmitMessage.textContent=`送出失敗：${e.message||"請確認指休表仍為開放狀態並稍後重試。"}`;}
@@ -4779,7 +4741,7 @@ function renderShiftEmployeeSuggestions(matches,keyword){
 }
 async function searchShiftEmployeeSuggestions(keyword,serial){
   try{
-    const result=await db.from("employee_directory").select("id,full_name,area_code,is_active")
+    const result=await rosterDb.from("employee_directory").select("id,full_name,area_code,is_active")
       .eq("is_active",true).ilike("full_name",`%${keyword}%`).order("full_name",{ascending:true}).limit(8);
     if(serial!==shiftLookupSerial||keyword!==shiftNameInput.value.trim())return;
     if(result.error)throw result.error;
@@ -4832,7 +4794,7 @@ document.getElementById("shiftSuccessHomeBtn").addEventListener("click",showHome
 
 </script>
 
-<script src="front-shell.js?v=20261110-f1"></script>
+<script src="front-shell.js?v=20261111-c4"></script>
 </body>
 </html>
 

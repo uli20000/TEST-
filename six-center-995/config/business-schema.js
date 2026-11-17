@@ -17,6 +17,12 @@
     if(typeof config.regionLabel!=='string'||!config.regionLabel)throw new Error('缺少設定：regionLabel');
     if(!config.centerName||!config.weatherCityByArea||!config.weeklySalesNotes||!config.forecast)throw new Error('中心營運設定不完整');
     if(!Number.isFinite(config.forecast.growth)||!Number.isFinite(config.forecast.tplh)||config.forecast.tplh<=0)throw new Error('預估參數錯誤');
+    for(const key of ['sstg','d7','d25','faShareMax','tplh']){
+      const value=config.kpiTargets?.[key];
+      if(value===null)continue;
+      const bounds=key==='sstg'?value>=-1:key==='tplh'?value>0:value>=0&&value<=1;
+      if(!Number.isFinite(value)||!bounds)throw new Error('KPI 目標設定錯誤：'+key);
+    }
     return config;
   }
   const api={CENTERS,validate};

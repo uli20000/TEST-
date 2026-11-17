@@ -9,6 +9,12 @@
   if(!menu||document.body.classList.contains('front-v2'))return;
   document.body.classList.add('front-v2');
 
+  // 鎖定縮放：iOS Safari／LINE 內建瀏覽器不理會 user-scalable=no，另外擋雙指縮放與連點放大
+  ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+  document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+  let lastTouchEnd=0;
+  document.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTouchEnd<=300&&!e.target.closest('input,textarea,select'))e.preventDefault();lastTouchEnd=now;},{passive:false});
+
   // 首頁
   const hello=document.createElement('div');hello.className='fv-hello';hello.textContent='今天要做什麼？';
   menu.prepend(hello);
@@ -27,6 +33,24 @@
     const merge=(target,list)=>{for(const c of list){while(c.firstChild)target.appendChild(c.firstChild);c.remove();}target.classList.add('fv-merged');};
     if(cards.length>=6){merge(cards[0],cards.slice(1,3));merge(cards[3],cards.slice(4,6));}
   }
+  // 還車：領車人／車牌／里程合併成一張卡（巡檢卡不動）
+  const inspForm=E('inspectionForm');
+  if(inspForm){
+    const cards=[...inspForm.querySelectorAll(':scope > section.card')].filter(c=>!c.contains(E('checks')));
+    if(cards.length>=3){for(const c of cards.slice(1,3)){while(c.firstChild)cards[0].appendChild(c.firstChild);c.remove();}cards[0].classList.add('fv-merged');}
+  }
+
+  // 固定在底部的送出鈕不能蓋住正在輸入的欄位
+  document.addEventListener('focusin',e=>{
+    const el=e.target;if(!el.matches||!el.matches('input,select,textarea'))return;
+    setTimeout(()=>{
+      for(const id of ['claimSaveBtn','saveBtn']){
+        const b=E(id);if(!b||!b.offsetParent)continue;
+        const br=b.getBoundingClientRect(),r=el.getBoundingClientRect();
+        if(r.bottom>br.top-8&&r.top<br.bottom)window.scrollBy({top:r.bottom-br.top+16,behavior:'smooth'});
+      }
+    },350);
+  });
 
   // 巡檢計數
   const checks=E('checks');

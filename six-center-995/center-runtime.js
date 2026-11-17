@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  function showStatus(){
-  const c=root.CENTER_CONFIG;if(!c)return;
+  const c=root.CENTER_CONFIG;if(!c||c.environment==='production')return;
   const banner=document.createElement('div');banner.id='centerEnvironment';banner.setAttribute('role','status');
   banner.textContent='T'+c.center+' 共用程式測試版｜'+(c.environment==='preview'?'未連接資料庫，僅供檢視版面':'獨立測試資料，非正式紀錄');
   document.body.prepend(banner);
@@ -19,6 +19,10 @@
   const c=root.CENTER_CONFIG;
   if(!c)throw new Error('缺少中心設定');
   if(c.environment==='preview')return previewClient();
+  if(c.environment==='production'){
+   if(url!==c.supabaseUrl||key!==c.publishableKey||c.productionConfirmed!==true||c.schema!=='public')throw new Error('正式設定不一致，已停止連線。');
+   return root.supabase.createClient(url,key);
+  }
   if(url!==c.supabaseUrl||key!==c.publishableKey||!c.testDatabaseConfirmed)throw new Error('中心設定不一致，已停止連線。');
   if(!/^shared_test_[a-z0-9_]+$/.test(c.schema||''))throw new Error('禁止連接非隔離測試schema');
   if(new URL(url).hostname.split('.')[0]==='nurnboqwhctyswcufkyk'&&!c.sharedProjectIsolationVerified)throw new Error('995共用專案隔離尚未驗證');

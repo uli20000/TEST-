@@ -3,7 +3,7 @@ html[data-display-mode="light"],html[data-display-mode="light"] *{color-scheme:o
 html[data-display-mode="dark"],html[data-display-mode="dark"] *{color-scheme:dark!important}
 html[data-display-mode="dark"]{--red:#f06079;--black:#f1f1f1;--ink:#f1f1f1;--gray:#b8b4ad;--muted:#b8b4ad;--linen:#17191d;--bg:#17191d;--paper:#22262b;--line:#4b5058;--green:#8dd6a8;--green-bg:#21382b;--danger:#ffaaa3;--danger-bg:#402624;--yellow:#edce80;--yellow-bg:#3b3423}
 html[data-display-mode="dark"] body{background:#17191d;color:#f1f1f1}
-html[data-display-mode="dark"] :is(header,.toolbar,.periods,.week-tabs,.metric-tabs button,.back,.score-board,.analysis-panel,.metric-card,.summary-card,.admin-mode-btn,.action-btn,.ops-entry-date-toolbar,.ops-mini-tabs,.ops-tab,.ops-toggle,.ops-upload-block,.ops-history-fold,.ops-month-fold,.ops-ac-summary-card,.ops-ac-summary-row,.ops-rank-row,.ops-report-card,.ops-store-choices button,.ops-week-tab,.ops-score-heading button,.ops-global-date-toolbar button,.ops-global-date-toolbar a,input,select,textarea,output,table){background:#22262b;color:#f1f1f1;border-color:#4b5058}
+html[data-display-mode="dark"] :is(header,.toolbar,.periods,.week-tabs,.metric-tabs button,.back,.score-board,.analysis-panel,.metric-card,.summary-card,.admin-mode-btn,.action-btn,.ops-entry-date-toolbar,.ops-mini-tabs,.ops-tab,.ops-toggle,.ops-upload-block,.ops-history-fold,.ops-month-fold,.ops-ac-summary-card,.ops-ac-summary-row,.ops-rank-row,.ops-report-card,.ops-store-choices button,.ops-week-tab,.ops-score-heading button,.ops-global-date-toolbar button,.ops-global-date-toolbar a,.date-display,input,select,textarea,output,table){background:#22262b;color:#f1f1f1;border-color:#4b5058}
 html[data-display-mode="dark"] :is(th,thead,tfoot,.ops-help,.ops-labor-grid output,.ops-month-hours th:first-child,.period-picker,.notice,.weather-cell){background:#2c3138;color:#f1f1f1;border-color:#4b5058}
 html[data-display-mode="dark"] :is(.ops-ac-summary-row,.ops-rank-row,.ops-report-warnings){background:#2c3138;color:#f1f1f1}
 html[data-display-mode="dark"] :is(button.active,.ops-tab.active,.ops-toggle.selected,.ops-week-tab.active,.primary){background:#b51b35!important;color:#fff!important;border-color:#b51b35!important}
@@ -16,3 +16,28 @@ html[data-display-mode="dark"] :is(.ops-file-card,.ops-file-card.ready,.ops-kpi-
 html[data-display-mode="dark"] :is(.ops-kpi-card strong,.ops-summary-priority-rank,.ops-summary-priority-list b,.ops-ac-summary-grid b){color:#ff91a5!important}
 html[data-display-mode="dark"] :is(.ops-area-table tfoot th,.ops-area-table tfoot td,.ops-area-table tbody tr:nth-child(even)){background:#2c3138;color:#f1f1f1}
 
+/* 夜間補漏（2026-11-10）：舊區塊寫死白底，字又跟著變淺，造成看不到字 */
+html[data-display-mode="dark"] :is(.ops-score-file-button,.period-choices button,.period-picker button,.ops-delete-btn,.search-box,.vehicle-card,.survey-card,.device-admin-type-btn,.summary-refresh-btn,.employee-add-panel,.employee-area-tab,.employee-directory-card,.employee-area-save-btn,.shift-test-toggle,.shift-week-option,.shift-week-btn,.shift-status-btn,.shift-export-week,.forecast-formula,.staffing-day-tab,.forecast-day-panel,.forecast-day-total-wrap,.shift-admin-scroll,.shift-person-cell,.survey-status-card,.empty,.bi-upload-button,.staffing-file-picker,.admin-fixed-card){background:#22262b!important;color:#f1f1f1!important;border-color:#4b5058!important}
+html[data-display-mode="dark"] :is(.survey-item,.forecast-day-heading,.forecast-day-total-card,.staffing-panel,.oil-status,.status.status-none,.employee-badge){background:#2c3138!important;color:#f1f1f1!important;border-color:#4b5058!important}
+html[data-display-mode="dark"] :is(.vehicle-card,.survey-card,.survey-status-card,.employee-directory-card,.forecast-day-panel,.search-box) :is(div,span,small,strong,p,label):not(.status-fail):not(.status-pass):not(.survey-result-pass):not(.survey-result-fail){color:inherit}
+html[data-display-mode="dark"] :is(.status-meta,.survey-time,.survey-detail,.device-latest-claim,.vehicle-info,.vehicle-info div,.claim-info,.center,.survey-item,.employee-area-tab small){color:#c9c5be!important}
+html[data-display-mode="dark"] :is(.status-fail,.survey-result-fail){color:#ffaaa3!important}
+html[data-display-mode="dark"] :is(.status-pass,.survey-result-pass){color:#8dd6a8!important}
+html[data-display-mode="dark"] :is(.ops-line-stat strong,.ops-delete-btn,.period-choices button,.period-picker button,.bi-upload-button){color:#ff91a5!important}
+html[data-display-mode="dark"] #opsSummaryPanel b{color:#ff91a5}
+html[data-display-mode="dark"] :is(.period-choices button,.period-picker button) :is(span,strong,small){color:#f1f1f1!important}
+html[data-display-mode="dark"] :is(.period-choices button.active,.period-picker button.active,.period-choices button[aria-pressed=true]),html[data-display-mode="dark"] :is(.period-choices button.active,.period-picker button.active) *{background:#b51b35!important;color:#fff!important}
+html[data-display-mode="dark"] :is(.ops-empty,.tracking-note,.hint,.ui-drop-tip){color:#c9c5be!important}
+html[data-display-mode="dark"] .summary-card.clickable :is(.summary-label,.summary-value){color:inherit!important}
+html[data-display-mode="dark"] :is(.shift-week-btn.active,.shift-status-btn.active,.employee-area-tab.active,.staffing-day-tab.active,.device-admin-type-btn.active){background:#b51b35!important;color:#fff!important;border-color:#b51b35!important}
+html[data-display-mode="dark"] :is(.shift-week-btn.active,.employee-area-tab.active,.staffing-day-tab.active) *{color:#fff!important}
+html[data-display-mode="dark"] :is(.forecast-data-warning,.forecast-week-gap.is-warning,.is-warning){color:#edce80!important}
+/* 後台登入頁與登入狀態列：原本白底寫死，夜間模式文字變淺色後看不清楚 */
+html[data-display-mode="dark"] .auth-gate{background:#17191d}
+html[data-display-mode="dark"] .auth-gate::before{background:rgba(240,96,121,.10)}
+html[data-display-mode="dark"] .auth-gate::after{background:rgba(240,96,121,.07)}
+html[data-display-mode="dark"] .auth-card{background:#22262b;border-color:#4b5058;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+html[data-display-mode="dark"] .auth-brand-separator{color:#6b7078}
+html[data-display-mode="dark"] .auth-input{background:#17191d;border-color:#4b5058;color:#f1f1f1}
+html[data-display-mode="dark"] .auth-foot{border-top-color:#4b5058}
+html[data-display-mode="dark"] .admin-session-bar{background:#22262b;border-bottom-color:#4b5058}

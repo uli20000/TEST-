@@ -9,36 +9,45 @@
   const num=(v,d=0)=>v===null||v===undefined||Number.isNaN(v)?null:Number(v).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
   const pct=v=>v===null||v===undefined?null:num(v*100,1)+'%';
   // 目標與分析儀表板一致（analysis-dashboard.js）
+  const targets=window.CenterBusinessConfig.kpiTargets;
+  const goal=(key,fmt,compare)=>({
+    targetText:()=>targets[key]===null?'目標待核對':'目標 '+fmt(targets[key]),
+    ok:value=>targets[key]===null?null:compare(value,targets[key])
+  });
+  const min=(value,target)=>value>=target,max=(value,target)=>value<=target;
+  const percent=value=>num(value*100,Number.isInteger(value*100)?0:1)+'%';
   const KPI=[
     {key:'tc',label:'TC',fmt:v=>num(v),target:s=>s.forecast,targetText:s=>s.forecast==null?'預估資料不足':'預估 '+num(s.forecast),ok:(v,s)=>s.forecast==null?null:v>=s.forecast},
-    {key:'sstg',label:'SSTG',fmt:pct,targetText:()=>'目標 +4.2%',ok:v=>v>=0.042},
-    {key:'d7',label:'D7',fmt:pct,targetText:()=>'目標 25%',ok:v=>v>=0.25},
-    {key:'d25',label:'D25',fmt:pct,targetText:()=>'目標 70%',ok:v=>v>=0.70},
-    {key:'faShare',label:'FA 佔比',fmt:pct,targetText:()=>'目標 ≤25%',ok:v=>v<=0.25},
-    {key:'tplh',label:'TPLH',fmt:v=>num(v,2),targetText:()=>'目標 2.0',ok:v=>v>=2.0}
+    {key:'sstg',label:'SSTG',fmt:pct,...goal('sstg',v=>(v>0?'+':'')+percent(v),min)},
+    {key:'d7',label:'D7',scope:'全部餐廳',fmt:pct,...goal('d7',percent,min)},
+    {key:'d25',label:'D25',scope:'全部餐廳',fmt:pct,...goal('d25',percent,min)},
+    {key:'faShare',label:'FA 佔比',fmt:pct,...goal('faShareMax',v=>'≤'+percent(v),max)},
+    {key:'tplh',label:'TPLH',fmt:v=>num(v,2),...goal('tplh',v=>num(v,1),min)}
   ];
-  const yesterday=()=>{const d=new Date(opsToday()+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);};
   const shift=(d,n)=>{const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10);};
-  let date=yesterday(),req=0;
+  const sharedDate={key:'t995-shared-date-v1',get(){try{const x=JSON.parse(localStorage.getItem(this.key)||'null');if(x&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&['day','week','month'].includes(x.period)&&Date.now()-x.at<43200000)return x;}catch(e){}return null;},set(date,period){try{localStorage.setItem(this.key,JSON.stringify({date,period,at:Date.now()}));}catch(e){}}};
+  let date=opsToday(),req=0;
 
   const page=document.createElement('section');page.id='uiOverviewPage';page.className='ui-overview';
-  page.innerHTML='<div class="uo-head"><h1>今天有什麼要處理</h1><div class="uo-date"><button type="button" data-d="-1" aria-label="前一天">‹</button><b id="uoDate"></b><button type="button" data-d="1" aria-label="後一天">›</button><button type="button" data-d="0">昨天</button></div></div>'+
+  page.innerHTML='<div class="uo-head"><h1 id="uoTitle">營運成績</h1><div class="uo-date"><button type="button" data-d="-1" aria-label="前一天">‹</button><label class="date-display"><b id="uoDate"></b><input id="uoDatePick" type="date" aria-label="選擇日期"></label><button type="button" data-d="1" aria-label="後一天">›</button><button type="button" data-d="0">今日</button></div></div>'+
     '<div id="uoKpis" class="uo-kpis"></div>'+
     '<div class="uo-grid2"><article class="uo-card"><h2>等餐（依 AC）</h2><div id="uoWait"></div></article><article class="uo-card"><h2>劃線簽名（依 AC）</h2><div id="uoLine"></div></article></div>'+
-    '<div class="uo-grid3"><article class="uo-card"><h2>待處理：未結案巡檢</h2><div id="uoInspect"></div></article><article class="uo-card"><h2>待處理：設備異常</h2><div id="uoDevice"></div></article><article class="uo-card"><h2>作業進度</h2><div id="uoProgress"></div></article></div>'+
-    '<article class="uo-card uo-weather"><h2>天氣</h2><div id="uoWeather"></div></article><p id="uoStatus" class="uo-status" role="status"></p>';
+    '<p id="uoFoot" class="uo-foot"></p><p id="uoStatus" class="uo-status" role="status"></p>';
   content.prepend(page);
-  page.querySelector('.uo-date').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const d=+b.dataset.d;date=d===0?yesterday():shift(date,d);if(date>opsToday())date=opsToday();load();});
+  page.querySelector('.uo-date').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const d=+b.dataset.d;date=d===0?opsToday():shift(date,d);if(date>opsToday())date=opsToday();sharedDate.set(date,sharedDate.get()?.period||'day');if(window.OpsDateControl)window.OpsDateControl.set(date,window.OpsDateControl.period,false);load();});
 
+  const pick=page.querySelector('#uoDatePick');pick.onclick=e=>{try{e.target.showPicker?.();}catch(_){}};pick.onchange=()=>{if(!pick.value)return;date=pick.value>opsToday()?opsToday():pick.value;sharedDate.set(date,sharedDate.get()?.period||'day');if(window.OpsDateControl)window.OpsDateControl.set(date,window.OpsDateControl.period,false);load();};
   const bar=(label,value,max,text,cls='')=>'<div class="uo-bar-row"><span>'+esc(label)+'</span><div class="uo-bar"><div class="'+cls+'" style="width:'+(max?Math.max(2,Math.round(value/max*100)):0)+'%"></div></div><b>'+esc(text)+'</b></div>';
   const empty=t=>'<p class="uo-empty">'+esc(t)+'</p>';
   const top3=(rows,metric,sub)=>rows.length?'<ol class="uo-top">'+rows.map(x=>'<li><b>'+esc(x.store_code+' '+(x.restaurant_name||''))+'</b><small>'+esc(sub(x))+'</small><em>'+esc(metric(x))+'</em></li>').join('')+'</ol>':'';
 
+  // 單量類指標：尚未上傳 Power BI 的日期用 DMS 暫估
+  const TC_KPIS=new Set(['tc','sstg','tplh','faShare'])
   function renderKpis(o){
     E('uoKpis').innerHTML=KPI.map(k=>{
       const v=o.hasScores||k.key==='tc'&&o.summary.tc?o.summary[k.key]:null,shown=v==null?null:k.fmt(v),ok=shown==null?null:k.ok(v,o.summary);
       const cls=shown==null?'na':ok===null?'':ok?'ok':'bad';
-      return '<button type="button" class="uo-kpi '+cls+'" data-go="analysis"><span>'+k.label+'</span><b>'+(shown??'資料不足')+'</b><em>'+esc(k.targetText(o.summary))+'</em></button>';
+      return '<button type="button" class="uo-kpi '+cls+'" data-go="analysis"><span>'+k.label+(k.scope?'<small class="scope-note">'+k.scope+'</small>':'')+(shown!=null&&(o.provisionalDays||[]).length&&TC_KPIS.has(k.key)?'<small class="scope-note" title="尚未上傳 Power BI，先用 DMS 單量，上傳後自動更新">暫估</small>':'')+'</span><b>'+(shown??'資料不足')+'</b><em>'+esc(k.targetText(o.summary))+'</em></button>';
     }).join('');
   }
   function waitHtml(o){
@@ -54,43 +63,24 @@
   }
   function renderLine(o){E('uoLine').innerHTML=lineHtml(o);}
   window.UiOverview={waitHtml,lineHtml};
-  async function renderPending(){
-    const [ins,insN,bat,rec]=await Promise.all([
-      db.from('inspection_reports').select('id,reported_at,reporter_name,abnormal_items,vehicle_id,vehicles(plate4)').eq('resolution_status','pending').order('reported_at',{ascending:false}).limit(5),
-      db.from('inspection_reports').select('id',{count:'exact',head:true}).eq('resolution_status','pending'),
-      db.from('battery_issue_reports').select('id,battery_number,issue_description,reported_at').neq('resolution_status','resolved').order('reported_at',{ascending:false}).limit(5),
-      db.from('recorder_issue_reports').select('id,recorder_number,issue_description,reported_at').neq('resolution_status','resolved').order('reported_at',{ascending:false}).limit(5)
-    ]);
-    const list=(rows,fn)=>'<ul class="uo-list">'+rows.map(fn).join('')+'</ul>';
-    if(ins.error)E('uoInspect').innerHTML=empty('讀取失敗：'+ins.error.message);
-    else E('uoInspect').innerHTML='<div class="uo-count"><b>'+(insN.count??ins.data.length)+'</b> 筆</div>'+(ins.data.length?list(ins.data,x=>'<li><b>'+esc(x.vehicles?.plate4||'車輛')+'</b> '+esc((x.abnormal_items||[]).join('、'))+'<small>'+esc(x.reporter_name||'')+'｜'+esc(fmt(x.reported_at))+'</small></li>'):empty('沒有未結案巡檢'))+'<button type="button" class="uo-more" data-go="vehicle">到車輛／巡檢 ›</button>';
-    const dev=[...(bat.data||[]).map(x=>({n:'電池 '+x.battery_number,d:x.issue_description,t:x.reported_at})),...(rec.data||[]).map(x=>({n:'紀錄器 '+x.recorder_number,d:x.issue_description,t:x.reported_at}))].sort((a,b)=>String(b.t).localeCompare(String(a.t)));
-    E('uoDevice').innerHTML=(bat.error||rec.error)?empty('讀取失敗：'+(bat.error||rec.error).message):'<div class="uo-count"><b>'+dev.length+(dev.length>=5?'+':'')+'</b> 件</div>'+(dev.length?list(dev.slice(0,5),x=>'<li><b>'+esc(x.n)+'</b> '+esc(x.d||'')+'<small>'+esc(fmt(x.t))+'</small></li>'):empty('沒有待處理設備異常'))+'<button type="button" class="uo-more" data-go="battery">到電池／紀錄器 ›</button>';
-  }
-  async function renderProgress(o){
-    const monday=(()=>{const d=new Date(opsToday()+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);})();
-    const shiftN=await db.from('weekly_shift_availability').select('id',{count:'exact',head:true}).eq('week_start',monday).not('is_test','is',true);
-    const item=(label,done,text)=>'<li><span>'+esc(label)+'</span><i class="'+(done?'done':'todo')+'">'+esc(text)+'</i></li>';
-    E('uoProgress').innerHTML='<ul class="uo-progress">'+
-      item('成績 BY ORDER',o.types.ByOrder,o.types.ByOrder?'已匯入':'未匯入')+item('成績 BY DATE',o.types.ByDate,o.types.ByDate?'已匯入':'未匯入')+
-      item('劃線簽名登記',o.lineRegistered>=o.lineExpected,o.lineRegistered+' ／ '+o.lineExpected+' 店')+
-      item('指休本週提交',(shiftN.count||0)>0,shiftN.error?'讀取失敗':(shiftN.count??0)+' 人')+'</ul>';
-  }
   async function load(){
-    const id=++req;E('uoDate').textContent=date;E('uoStatus').textContent='讀取中…';
+    const id=++req,wd='日一二三四五六'[new Date(date+'T12:00:00Z').getUTCDay()];E('uoDate').textContent=date.replace(/-/g,'/')+'（'+wd+'）';E('uoDatePick').value=date;E('uoDatePick').max=opsToday();E('uoTitle').textContent='T'+((window.CENTER_CONFIG&&window.CENTER_CONFIG.center)||(window.CenterBusinessConfig||{}).center||'')+' '+((window.CenterBusinessConfig||{}).centerName||'外送中心')+'｜營運成績';E('uoStatus').textContent='讀取中…';E('uoFoot').textContent='';
     try{
+      if(window.KpiSettings&&typeof db!=='undefined'){try{await window.KpiSettings.load(db);}catch(e){}}
       const o=await window.OpsReport.overview(date,'day');if(id!==req)return;
       renderKpis(o);renderWait(o);renderLine(o);
-      E('uoWeather').innerHTML='<div class="uo-weather-row">'+o.weather.map(w=>'<div><b>'+esc(w.city)+'</b><span>'+esc(w.text)+'</span><small>'+esc(w.value)+'</small></div>').join('')+'</div>';
-      await Promise.all([renderPending(),renderProgress(o)]);if(id===req)E('uoStatus').textContent='';
+      const now=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+      E('uoFoot').textContent='成績 BY ORDER '+(o.types.ByOrder?'已匯入':'未匯入')+'｜BY DATE '+(o.types.ByDate?'已匯入':'未匯入')+'｜劃線登記 '+o.lineRegistered+'／'+o.lineExpected+' 店｜產生時間 '+now;
+      if(id===req)E('uoStatus').textContent='';
     }catch(e){if(id===req)E('uoStatus').textContent='讀取失敗：'+(e.message||e);}
   }
   page.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;if(b.dataset.go==='analysis')location.href='analysis.html';else window.UiShell?.go(b.dataset.go);});
 
-  // 只在總覽模式顯示；第一次顯示時載入
+  // 只在總覽模式顯示；每次切回總覽都重新載入
   let loaded=false;
   const original=window.showAdminMode;
-  window.showAdminMode=showAdminMode=function(mode){original(mode);page.style.display=mode==='home'?'block':'none';if(mode==='home'&&!loaded&&E('adminApp').style.display==='block'){loaded=true;load();}};
+  window.showAdminMode=showAdminMode=function(mode){original(mode);page.style.display=mode==='home'?'block':'none';// 每次回到總覽都重讀，等餐、劃線在其他頁新增或修改後才會連動
+    if(mode==='home'&&E('adminApp').style.display==='block'){loaded=true;date=sharedDate.get()?.date||date;load();}};
   page.style.display='block';
   new MutationObserver(()=>{if(!loaded&&E('adminApp').style.display==='block'&&page.style.display!=='none'){loaded=true;load();}}).observe(E('adminApp'),{attributes:true,attributeFilter:['style']});
   if(E('adminApp').style.display==='block'){loaded=true;load();}

@@ -5,7 +5,7 @@
   --ui-text:#1F2328;--ui-muted:#5B6470;--ui-faint:#8C959F;--ui-line:#E6E2DA;
   --ui-ok:#1A7F37;--ui-bad:#C8102E;--ui-warn:#9A6700;--ui-na:#8C959F;--ui-miss:#FDE7EA;
   --ui-r:12px;--ui-shadow:0 1px 2px rgb(0 0 0/6%),0 4px 12px rgb(0 0 0/4%);
-  --ui-side-w:240px;--ui-top-h:64px;
+  --ui-side-w:256px;--ui-top-h:64px;
 }
 html[data-display-mode=dark]{
   --ui-red:#E0344F;--ui-bg:#14171B;--ui-card:#1D2127;--ui-side:#181B20;--ui-side-hover:#232830;
@@ -30,12 +30,12 @@ body.ui-shell-body{background:var(--ui-bg);font-variant-numeric:tabular-nums}
 .ui-side{background:var(--ui-side);border-right:1px solid var(--ui-line);position:sticky;top:0;height:100vh;overflow-y:auto;padding:16px 12px 24px}
 .ui-brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
 .ui-brand .ui-logo{background:var(--ui-red);color:#fff;font-weight:900;border-radius:8px;padding:7px 8px;font-size:13px;letter-spacing:.5px}
-.ui-brand b{display:block;font-size:15px;color:var(--ui-text)}.ui-brand small{display:block;color:var(--ui-faint);font-weight:500;font-size:12px}
+.ui-brand b{display:block;font-size:16px;color:var(--ui-text)}.ui-brand small{display:block;color:var(--ui-faint);font-weight:500;font-size:13px}
 .ui-nav{display:flex;flex-direction:column;gap:2px}
-.ui-group{color:var(--ui-faint);font-size:12px;font-weight:600;padding:14px 12px 6px}
-.ui-item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:var(--ui-text);font:inherit;font-size:14px;font-weight:600!important;text-align:left!important;padding:9px 12px;border-radius:8px;cursor:pointer;text-decoration:none}
+.ui-group{color:var(--ui-faint);font-size:13.5px;font-weight:700;padding:16px 12px 6px}
+.ui-item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:var(--ui-text);font:inherit;font-size:16px;font-weight:600!important;text-align:left!important;padding:10px 12px;border-radius:8px;cursor:pointer;text-decoration:none}
 .ui-item .ui-ic{width:20px;text-align:center;flex:0 0 20px}
-.ui-item.ui-sub{padding-left:42px;font-size:13.5px;color:var(--ui-muted)}
+.ui-item.ui-sub{padding-left:40px;font-size:15.5px;color:var(--ui-text)}
 .ui-item:hover{background:var(--ui-side-hover)}
 .ui-item.active{background:var(--ui-red);color:#fff}
 .ui-item.active.ui-sub{background:var(--ui-side-hover);color:var(--ui-red);font-weight:800!important}
@@ -82,7 +82,7 @@ html[data-display-mode=dark] .ui-top .ui-env{background:#3A2F12;color:#D29922}
 /* 總覽頁（第 2 步） */
 .ui-overview{display:none;color:var(--ui-text);font-weight:600}
 .uo-head{text-align:center;margin-bottom:20px}.uo-head h1{font-size:24px;font-weight:800;margin:0 0 10px}
-.uo-date{display:inline-flex;align-items:center;gap:8px}.uo-date b{min-width:120px;font-size:16px}
+.uo-date{display:inline-flex;align-items:center;gap:8px}.uo-date b{min-width:120px;font-size:16px}.uo-date .date-display{position:relative;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.uo-date .date-display input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
 .uo-date button{border:1px solid var(--ui-line);background:var(--ui-card);color:var(--ui-text);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
 .uo-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-bottom:24px}
 .uo-kpi{background:var(--ui-card);border:0;border-top:4px solid var(--ui-na);border-radius:var(--ui-r);box-shadow:var(--ui-shadow);padding:16px 10px;text-align:center!important;cursor:pointer;color:var(--ui-text);font:inherit}
@@ -120,6 +120,13 @@ html[data-display-mode=dark] .uo-progress .done{background:#1B3A24}
 #adminApp.ui-shell .ui-dropzone.ui-drag{border-color:var(--ui-red);background:var(--ui-miss)}
 #adminApp.ui-shell .ui-drop-tip{color:var(--ui-faint);font-size:13px;margin:6px 0 0;text-align:center}
 #adminApp.ui-shell .ui-import-history{margin:16px 0 20px;color:var(--ui-text)}
+#adminApp.ui-shell .ui-import-history>summary{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;cursor:pointer;list-style:none;min-height:40px}
+#adminApp.ui-shell .ui-import-history>summary::-webkit-details-marker{display:none}
+#adminApp.ui-shell .ui-import-history>summary h2{margin:0}
+#adminApp.ui-shell .ui-import-history>summary::after{content:'＋';display:inline-grid;place-items:center;width:26px;height:26px;border:1px solid var(--ui-line);border-radius:50%;color:var(--ui-muted);font-size:14px}
+#adminApp.ui-shell .ui-import-history[open]>summary::after{content:'－'}
+#adminApp.ui-shell .ui-import-history[open]>summary{margin-bottom:12px}
+#adminApp.ui-shell .ui-hist-latest{color:var(--ui-muted);font-size:14px}
 #adminApp.ui-shell .ui-table{width:100%;border-collapse:collapse;font-size:14px}
 #adminApp.ui-shell .ui-table th{color:var(--ui-muted);font-weight:600;font-size:13px;text-align:left!important;padding:8px 10px;border-bottom:1px solid var(--ui-line)}
 #adminApp.ui-shell .ui-table td{padding:8px 10px;border-bottom:1px solid var(--ui-line);text-align:left!important}
@@ -150,3 +157,43 @@ html[data-display-mode=dark] .uo-progress .done{background:#1B3A24}
   #adminApp.ui-shell #rosterList > *{margin:0!important}
 }
 #adminApp.ui-shell .admin-mode-page .section-title{font-size:20px;font-weight:800}
+
+/* 11/10 截圖檢查（側欄字型改在上方基本規則）：指休／在職名單小字放大；頂部登出鈕各頁一致 */
+.ui-top #authLogoutBtn{border:1px solid #e2aaa4;background:var(--danger-bg,#FDECEA);color:var(--danger,#B42318);border-radius:9px;padding:8px 14px;font:inherit;font-size:14px;font-weight:800;min-height:38px;cursor:pointer}
+.ui-top #adminSessionBar{font-size:14px}
+@media (min-width:700px){
+  #adminApp.ui-shell #shiftModePage .shift-week-option{height:70px!important;grid-template-rows:42px 28px}
+  #adminApp.ui-shell #shiftModePage .shift-week-option .shift-week-btn{height:42px!important;min-height:42px!important;font-size:14px!important;letter-spacing:0}
+  #adminApp.ui-shell #shiftModePage .shift-week-open-toggle{height:28px!important;min-height:28px!important;font-size:13px!important}
+  #adminApp.ui-shell #shiftModePage .shift-status-btn,#adminApp.ui-shell #shiftModePage .shift-toolbar-search-row>button,#adminApp.ui-shell #shiftModePage .shift-export-week{font-size:14px!important;letter-spacing:0}
+  #adminApp.ui-shell #shiftModePage .shift-purge-old-btn{font-size:13px!important;letter-spacing:0}
+  #adminApp.ui-shell .shift-test-control,#adminApp.ui-shell .shift-test-toggle{font-size:13.5px!important}
+  #adminApp.ui-shell .employee-directory-card .employee-badge{font-size:12.5px;padding:4px 7px}
+}
+#adminApp.ui-shell .employee-area-tab{font-size:14px}#adminApp.ui-shell .employee-area-tab small{font-size:12.5px}
+/* A1：D7／D25 標明計算範圍（後台＝全部餐廳；儀表板＝非獨立店），兩邊都排除第三方 FA 單 */
+.scope-note{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#FFF4D6;color:#7A5200;font-size:11.5px;font-weight:700;vertical-align:middle}
+html[data-display-mode=dark] .scope-note{background:#3A2F14;color:#E3B341}
+/* 總覽＝打烊截圖給主管：只放成績、等餐、劃線，一個畫面拍得完 */
+.uo-head h1{font-size:22px}
+.uo-foot{text-align:center;color:var(--ui-faint);font-size:12.5px;margin:4px 0 0}
+#uiOverviewPage .uo-grid2{margin-bottom:12px}
+@media (max-width:760px){#uiOverviewPage .uo-kpis{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}#uiOverviewPage .uo-kpi{padding:10px 4px}#uiOverviewPage .uo-kpi b{font-size:20px;margin:4px 0 2px}#uiOverviewPage .uo-kpi.na b{font-size:14px;line-height:24px}#uiOverviewPage .uo-kpi em{font-size:11px}#uiOverviewPage .uo-kpi .scope-note{display:block;margin:2px auto 0;width:max-content}#uiOverviewPage .uo-card{padding:14px}}
+
+/* 儀表板 v2｜E1 手機版：底部分頁列（總覽／排名／週報／更多），「更多」展開完整選單 */
+.ui-tabbar{display:none}
+@media (max-width:760px){
+  body.ui-shell-body{padding-bottom:calc(62px + env(safe-area-inset-bottom))}
+  .ui-tabbar{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--ui-card);border-top:1px solid var(--ui-line);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 10px rgb(0 0 0/6%)}
+  .ui-tabbar a,.ui-tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:58px;border:0;background:none;color:var(--ui-muted);font:inherit;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer}
+  .ui-tabbar span{font-size:20px;line-height:1.2}
+  .ui-tabbar .active,.ui-tabbar [aria-expanded="true"]{color:var(--ui-red)}
+  .ui-frame:not(.ui-more-open) .ui-side{display:none}
+  .ui-more-open .ui-side{display:block;position:fixed;inset:0 0 calc(58px + env(safe-area-inset-bottom)) 0;z-index:55;height:auto;overflow-y:auto;padding:16px 14px 24px;border:0}
+  .ui-more-open .ui-brand{padding:4px 6px 14px}.ui-more-open .ui-brand b,.ui-more-open .ui-brand small{display:block}
+  .ui-more-open .ui-nav{flex-direction:column;gap:2px}.ui-more-open .ui-group{display:block}
+  .ui-more-open .ui-item,.ui-more-open .ui-item.ui-sub{justify-content:flex-start;padding:11px 12px;font-size:16px}
+  .ui-top{position:sticky;top:0;z-index:40}
+}
+@media (max-width:480px){#uiOverviewPage .uo-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{.ui-tabbar{display:none!important}body.ui-shell-body{padding-bottom:0}}

@@ -1,11 +1,27 @@
-/* 依中心設定產生前台／後台的餐廳、店號、區域、領車點選單。
- * 995 設定沒有 restaurants 清單，維持 HTML 內原本已驗收的選項，不做任何變更。
- * 其他中心一律由 config/<中心>-business.js 產生，避免出現 995 的餐廳。
- * 必須在使用這些選單的程式之前載入（放在第一個 body script 前）。 */
 (function(){
   'use strict';
   const B=window.CenterBusinessConfig;
-  if(!B||!Array.isArray(B.restaurants))return;
+  if(!B)return;
+  for(const id of ['pageTitle','adminTitle']){
+    const title=document.getElementById(id);
+    if(title)title.textContent=B.regionLabel+'-Rider Center';
+  }
+  for(const el of document.querySelectorAll('[data-center-weather-title]')){
+    el.textContent=B.weatherCities.length?B.weatherCities.join('／')+'天氣':'天氣（待核對）';
+  }
+  for(const el of document.querySelectorAll('[data-center-number]'))el.textContent=B.center;
+  for(const el of document.querySelectorAll('[data-staffing-goals]')){
+    el.textContent='TPLH '+B.forecast.tplh+'｜第三方 ≤'+new Intl.NumberFormat('zh-TW',{style:'percent'}).format(B.forecast.thirdParty);
+  }
+  for(const el of document.querySelectorAll('[data-center-forecast-formula]'))el.textContent=B.forecastFormula;
+  if(B.legacySelectOptions){
+    for(const [id,options] of Object.entries(B.legacySelectOptions)){
+      const select=document.getElementById(id);
+      if(select)for(const [value,label] of options)select.add(new Option(label,value));
+    }
+    return;
+  }
+  if(!Array.isArray(B.restaurants))return;
   const active=B.restaurants.filter(r=>r.enabled!==false).slice().sort((a,b)=>String(a.store_code).localeCompare(String(b.store_code)));
   const opt=(value,text)=>{const o=document.createElement('option');o.value=value;o.textContent=text;return o;};
   function fill(id,placeholder,items){const el=document.getElementById(id);if(el)el.replaceChildren(opt('',placeholder),...items);}

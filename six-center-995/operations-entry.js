@@ -1,33 +1,19 @@
 (function(){
   'use strict';
   const E=id=>document.getElementById(id),S=window.OpsSummary,R=window.OpsReport,escape=opsEscape;
-  const dateControl=window.OpsDateControl={date:opsToday(),period:'day',set(date,period=this.period,refresh=true){this.date=date||opsToday();this.period=period;paintToolbar();if(state.active==='line'&&E('opsLineStore').value)R.fillLineState(E('opsLineStore').value,this.date);if(refresh)refreshActive();}};
-  const state={delay:[],line:[],stores:[],delayRequest:0,lineRequest:0,active:'delay',lineFilter:'all',choicesOpen:false};
+  const sharedDate={key:'t995-shared-date-v1',get(){try{const x=JSON.parse(localStorage.getItem(this.key)||'null');if(x&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&['day','week','month'].includes(x.period)&&Date.now()-x.at<43200000)return x;}catch(e){}return null;},set(date,period){try{localStorage.setItem(this.key,JSON.stringify({date,period,at:Date.now()}));}catch(e){}}};
+  const sharedStart=sharedDate.get();
+  const dateControl=window.OpsDateControl={date:opsToday(),period:sharedStart?.period||'day',set(date,period=this.period,refresh=true){this.date=date||opsToday();this.period=period;sharedDate.set(this.date,this.period);paintToolbar();if(state.active==='line'&&E('opsLineStore').value)R.fillLineState(E('opsLineStore').value,this.date);if(refresh)refreshActive();}};
+  sharedDate.set(dateControl.date,dateControl.period);
+  const state={delay:[],line:[],stores:[],delayRequest:0,lineRequest:0,active:'delay',lineFilter:'all'};
   const periodRange=()=>S.range(dateControl.date,dateControl.period);
   const periodLabel=()=>{const r=periodRange(),p=dateControl.period;return p==='day'?r.start:p==='week'?S.weekLabel(r.start)+'　'+r.start+' ～ '+r.end:r.start.slice(0,7);};
-  const shiftDate=(date,days)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);};
-  const shiftMonth=(date,months)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+months);return d.toISOString().slice(0,10);};
-  const dateText=date=>{const d=new Date(date+'T12:00:00Z'),weekday=['日','一','二','三','四','五','六'][d.getUTCDay()];return '星期'+weekday;};
-  const monthText=date=>new Intl.DateTimeFormat('zh-TW',{timeZone:'UTC',year:'numeric',month:'long'}).format(new Date(date+'T12:00:00Z'));
-  function renderPeriodChoices(){
-    const box=E('opsGlobalPeriodChoices'),period=dateControl.period;
-    box.hidden=!state.choicesOpen;
-    if(!state.choicesOpen){box.innerHTML='';return;}
-    if(period==='day'){
-      box.innerHTML='<div class="ops-choice-list" role="group" aria-label="選擇日期">'+Array.from({length:7},(_,i)=>{const date=shiftDate(dateControl.date,i-3);return '<button type="button" class="ops-choice-button '+(date===dateControl.date?'active':'')+'" data-choice-date="'+date+'" aria-pressed="'+(date===dateControl.date)+'"><span>'+dateText(date)+'</span><strong>'+date.slice(5).replace('-','/')+'</strong></button>';}).join('')+'</div>';
-    }else if(period==='week'){
-      const start=S.range(dateControl.date,'week').start;
-      box.innerHTML='<div class="ops-choice-list" role="group" aria-label="選擇週次">'+Array.from({length:5},(_,i)=>{const weekStart=shiftDate(start,(i-2)*7),range=S.range(weekStart,'week');return '<button type="button" class="ops-choice-button '+(range.start===S.range(dateControl.date,'week').start?'active':'')+'" data-choice-date="'+weekStart+'" aria-pressed="'+(range.start===S.range(dateControl.date,'week').start)+'"><strong>'+S.weekLabel(weekStart)+'</strong><span>'+range.start.slice(5).replace('-','/')+'–'+range.end.slice(5).replace('-','/')+'</span></button>';}).join('')+'</div>';
-    }else{
-      const prev=shiftMonth(dateControl.date,-1),current=shiftMonth(dateControl.date,0),next=shiftMonth(dateControl.date,1);
-      box.innerHTML='<div class="ops-month-choices" role="group" aria-label="選擇月份"><button type="button" class="ops-choice-button" data-choice-date="'+prev+'"><span>‹</span><strong>'+monthText(prev)+'</strong></button><button type="button" class="ops-choice-button active" data-choice-date="'+current+'" aria-pressed="true"><strong>'+monthText(current)+'</strong></button><button type="button" class="ops-choice-button" data-choice-date="'+next+'"><strong>'+monthText(next)+'</strong><span>›</span></button></div>';
-    }
-  }
+  const displayLabel=()=>{const d=dateControl.date,p=dateControl.period;if(p==='week')return S.weekLabel(S.range(d,'week').start);if(p==='month')return d.slice(0,4)+'年'+(+d.slice(5,7))+'月';return d.replace(/-/g,'/')+'（'+['日','一','二','三','四','五','六'][new Date(d+'T12:00:00Z').getUTCDay()]+'）';};
   function paintToolbar(){
     E('opsGlobalDate').value=dateControl.date;
+    E('opsGlobalDateText').textContent=displayLabel();
     E('opsGlobalPeriodTabs').querySelectorAll('[data-period]').forEach(b=>b.classList.toggle('active',b.dataset.period===dateControl.period));
     E('opsGlobalPeriodTabs').querySelectorAll('[data-period]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.period===dateControl.period)));
-    renderPeriodChoices();
   }
   function shiftPeriod(direction){
     const d=new Date(dateControl.date+'T12:00:00Z'),period=dateControl.period;
@@ -119,13 +105,16 @@
   };
   paintToolbar();
   E('opsGlobalDate').onchange=()=>dateControl.set(E('opsGlobalDate').value||opsToday());
-  E('opsGlobalPeriodTabs').querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{state.choicesOpen=true;dateControl.set(dateControl.date,b.dataset.period);});
-  E('opsGlobalPeriodChoices').onclick=e=>{const b=e.target.closest('[data-choice-date]');if(!b)return;dateControl.set(b.dataset.choiceDate);};
-  E('opsGlobalPrev').onclick=()=>shiftPeriod(-1);E('opsGlobalNext').onclick=()=>shiftPeriod(1);
+  E('opsGlobalPeriodTabs').querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>dateControl.set(dateControl.date,b.dataset.period));
+  E('opsGlobalDate').onclick=e=>{try{e.target.showPicker?.();}catch(_){}};
+  E('opsGlobalPrev').onclick=()=>shiftPeriod(-1);E('opsGlobalNext').onclick=()=>shiftPeriod(1);E('opsGlobalToday').onclick=()=>dateControl.set(opsToday());
   E('opsGlobalRefresh').onclick=()=>refreshActive(true);
   E('opsDelaySearch').oninput=renderDelay;E('opsLineSearch').oninput=renderLine;
   E('opsLineStats').onclick=e=>{const b=e.target.closest('[data-line-filter]');if(!b)return;state.lineFilter=state.lineFilter===b.dataset.lineFilter?'all':b.dataset.lineFilter;renderLine();};
-  function monthReplyLinkEnabled(){return window.CENTER_CONFIG?.schema==='shared_test_995'&&window.CENTER_CONFIG?.features?.monthReplyGatewayReady===true;}
+  function monthReplyGatewayLink(){const c=window.CENTER_CONFIG;return (c?.schema==='shared_test_995'||(c?.environment==='production'&&c?.schema==='public'))&&c?.features?.monthReplyGatewayReady===true;}
+  // 新版月回覆未啟用的正式中心（996／998）沿用舊制發連結函式（打包時 t995_ 換成該中心前綴）
+  function monthReplyLegacyLink(){const c=window.CENTER_CONFIG;return c?.environment==='production'&&c?.schema==='public'&&c?.features?.monthReplyGatewayReady!==true;}
+  function monthReplyLinkEnabled(){return monthReplyGatewayLink()||monthReplyLegacyLink();}
   const linkMonth=E('opsLinkMonth');
   const monthLabel=value=>value.slice(0,4)+'年'+value.slice(5)+'月';
   linkMonth.value=opsToday().slice(0,7);
@@ -142,10 +131,10 @@
     if(!monthReplyLinkEnabled()){msg.textContent='隔離月回覆入口尚未啟用，沒有建立連結。';return;}
     if(button.disabled)return;
     if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)){msg.textContent='請選擇有效的回覆月份';return;}
-    if(!confirm('建立 '+monthLabel(month)+' 的固定月份連結？同月重新產生會撤銷該月前一個隔離測試連結；連結沒有固定到期日，其他月份及正式舊連結不受影響。'))return;
+    if(!confirm('建立 '+monthLabel(month)+' 的固定月份連結？同月重新產生會撤銷該月前一個連結；連結沒有固定到期日，其他月份不受影響。'))return;
     clearMonthLink();button.disabled=true;linkMonth.disabled=true;msg.textContent='正在建立 '+monthLabel(month)+' 連結…';
     try{
-      const r=await db.rpc('issue_month_reply_link',{p_month:month+'-01'});if(r.error)throw r.error;
+      const r=await db.rpc(monthReplyGatewayLink()?'issue_month_reply_link':'t995_issue_month_reply_link',{p_month:month+'-01'});if(r.error)throw r.error;
       if(r.data?.month!==month||!/^[0-9a-f]{64}$/.test(r.data?.token||''))throw new Error('月份連結回應不完整，請重新確認');
       const url=new URL('reply.html',location.href);url.searchParams.set('kind','month');url.searchParams.set('token',r.data.token);
       E('opsLinkUrl').value=url.href;E('opsLinkMonthLabel').textContent='固定回覆月份：'+monthLabel(month);E('opsLinkResult').hidden=false;

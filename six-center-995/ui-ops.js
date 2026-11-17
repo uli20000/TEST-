@@ -63,14 +63,17 @@
       if(fileInput.disabled||!e.dataTransfer?.files?.length)return;
       fileInput.files=e.dataTransfer.files;fileInput.dispatchEvent(new Event('change',{bubbles:true}));
     });
-    const hist=document.createElement('section');hist.className='uo-card ui-import-history';
-    hist.innerHTML='<h2>最近匯入紀錄</h2><div class="ui-hist-body"><p class="uo-empty">讀取中…</p></div>';
+    // 預設收起，標題列只顯示最新一筆；點開看最近 10 筆
+    const hist=document.createElement('details');hist.className='uo-card ui-import-history';
+    hist.innerHTML='<summary><h2>最近匯入紀錄</h2><span class="ui-hist-latest">讀取中…</span></summary><div class="ui-hist-body"><p class="uo-empty">讀取中…</p></div>';
     upload.after(hist);
     const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     async function loadHistory(){
       const r=await db.from('t995_score_import_batches').select('report_date,report_type,source_file,row_count,imported_at').order('imported_at',{ascending:false}).limit(10);
       const body=hist.querySelector('.ui-hist-body');
-      if(r.error){body.innerHTML='<p class="uo-empty">讀取失敗：'+esc(r.error.message)+'</p>';return;}
+      const latest=hist.querySelector('.ui-hist-latest');
+      if(r.error){latest.textContent='讀取失敗';body.innerHTML='<p class="uo-empty">讀取失敗：'+esc(r.error.message)+'</p>';return;}
+      const top=r.data[0];latest.textContent=top?'最新：'+top.report_date+' '+top.report_type+'（'+(top.imported_at?fmt(top.imported_at):'—')+' 匯入）':'尚無匯入紀錄';
       body.innerHTML=r.data.length?'<table class="ui-table"><thead><tr><th>成績日</th><th>類型</th><th class="num">筆數</th><th>檔名</th><th>匯入時間</th></tr></thead><tbody>'+r.data.map(x=>'<tr><td>'+esc(x.report_date)+'</td><td>'+esc(x.report_type)+'</td><td class="num">'+esc(x.row_count)+'</td><td>'+esc(x.source_file)+'</td><td>'+esc(x.imported_at?fmt(x.imported_at):'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="uo-empty">尚無匯入紀錄</p>';
     }
     document.querySelector('.ops-tab[data-ops-tab="scores"]')?.addEventListener('click',()=>setTimeout(loadHistory,0));
@@ -83,6 +86,7 @@
   document.body.appendChild(drawer);
   const dEsc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const dTime=v=>v?fmt(v):'—';
+  const revisionsEnabled=window.CENTER_CONFIG?.features?.adminReturnReplies===true;
   drawer.querySelector('.ui-drawer-close').onclick=()=>{drawer.hidden=true;};
   document.addEventListener('keydown',e=>{if(e.key==='Escape')drawer.hidden=true;});
   E('opsDelayList')?.addEventListener('click',async e=>{
@@ -90,11 +94,12 @@
     const tr=e.target.closest('tbody tr'),id=tr?.querySelector('[data-delete-delay]')?.dataset.deleteDelay;if(!id)return;
     const body=drawer.querySelector('.ui-drawer-body');drawer.hidden=false;body.innerHTML='<p class="uo-empty">讀取中…</p>';
     const [o,h]=await Promise.all([db.from('t995_delay_orders').select('record_date,store_code,restaurant_name,order_number,status,reason,created_at,responded_at').eq('id',id).maybeSingle(),
-      db.from('delay_reply_revisions').select('revision_no,prior_reason,prior_responded_at,return_reason,returned_at').eq('delay_order_id',id).order('revision_no',{ascending:false})]);
+      // 退回歷史只在「回覆退回」功能啟用的中心才有資料表；未啟用就不讀也不顯示
+      revisionsEnabled?db.from('delay_reply_revisions').select('revision_no,prior_reason,prior_responded_at,return_reason,returned_at').eq('delay_order_id',id).order('revision_no',{ascending:false}):Promise.resolve(null)]);
     if(o.error||!o.data){body.innerHTML='<p class="uo-empty">讀取失敗：'+dEsc(o.error?.message||'查無資料')+'</p>';return;}
     const x=o.data,row=(k,v)=>'<div class="ui-kv"><span>'+k+'</span><b>'+dEsc(v)+'</b></div>';
     body.innerHTML=row('日期',x.record_date)+row('餐廳',x.store_code+' '+x.restaurant_name)+row('訂單編號',x.order_number)+row('狀態',x.status==='completed'?'已回覆':'待回覆')+row('登記時間',dTime(x.created_at))+row('回覆時間',dTime(x.responded_at))+
-      '<h3>目前回覆</h3><p class="ui-reason">'+dEsc(x.reason||'尚未回覆')+'</p><h3>退回歷史</h3>'+
-      (h.error?'<p class="uo-empty">無法讀取歷史：'+dEsc(h.error.message)+'</p>':h.data?.length?h.data.map(r=>'<div class="ui-rev"><b>第 '+r.revision_no+' 版（'+dTime(r.returned_at)+' 退回）</b><p>原回覆：'+dEsc(r.prior_reason)+'</p><p>退回原因：'+dEsc(r.return_reason)+'</p></div>').join(''):'<p class="uo-empty">沒有退回紀錄</p>');
+      '<h3>目前回覆</h3><p class="ui-reason">'+dEsc(x.reason||'尚未回覆')+'</p>'+(h===null?'':'<h3>退回歷史</h3>'+
+      (h.error?'<p class="uo-empty">無法讀取歷史：'+dEsc(h.error.message)+'</p>':h.data?.length?h.data.map(r=>'<div class="ui-rev"><b>第 '+r.revision_no+' 版（'+dTime(r.returned_at)+' 退回）</b><p>原回覆：'+dEsc(r.prior_reason)+'</p><p>退回原因：'+dEsc(r.return_reason)+'</p></div>').join(''):'<p class="uo-empty">沒有退回紀錄</p>'));
   });
 })();

@@ -7,7 +7,7 @@
   const newId=options.requestIdFactory||(()=>globalThis.crypto.randomUUID());
   async function call(name,args){
    if(!enabled)throw new Error('月回覆入口尚未啟用；未送出任何資料。');
-   if(options.boundSchema!=='shared_test_995')throw new Error('回覆入口必須綁定隔離測試 schema。');
+   if(!(options.boundSchema==='shared_test_995'||(options.boundSchema==='public'&&options.production===true)))throw new Error('回覆入口的 schema 設定不正確。');
    if(typeof options.token!=='string'||!/^[A-Za-z0-9_-]{43,128}$/.test(options.token))throw new Error('月回覆連結無效。');
    const r=await client.rpc(name,{p_token:options.token,...args});if(r.error)throw r.error;return r.data;
   }
