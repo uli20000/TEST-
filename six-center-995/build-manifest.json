@@ -1,7 +1,7 @@
 {
   "center": "995",
   "environment": "test",
-  "sourceCommit": "a36bb8477e05bea396401f695377304e9bb7010f",
+  "sourceCommit": "6e66e93f7c365815a66a43dedc482b102d5bfe00",
   "sourceDirty": true,
   "dryRun": false,
   "features": {
@@ -12,7 +12,7 @@
     "monthReplyGatewayReady": true,
     "archiveDedup": false
   },
-  "generatedAt": "2026-11-17T14:09:35.631Z",
+  "generatedAt": "2026-11-17T14:14:29.628Z",
   "files": [
     "admin.html",
     "analysis-dashboard.js",
