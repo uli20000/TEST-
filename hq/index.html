@@ -163,6 +163,7 @@ details.card>summary::after{content:' ▾';color:var(--faint)}details.card[open]
 .loading{text-align:center;color:var(--muted);padding:30px}
 .rc.err{border-top-color:var(--bad)}.rc.err .errmsg{color:var(--bad);text-align:center;padding:30px 0}
 .note2{font-size:12px;color:var(--faint);text-align:center;margin-top:6px}
+.prov{display:block;font-size:11px;font-weight:700;color:var(--warn);margin-top:2px;line-height:1.1}.cell:has(.prov){flex-direction:column;gap:2px}.mrow .v .prov{font-size:10px}.provnote{font-size:12px;color:var(--warn);font-weight:600;margin:8px 0 0;text-align:left}
 
 h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
 .mx{display:grid;gap:4px;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:10px}
@@ -215,6 +216,7 @@ h2.sec{font-size:18px;font-weight:800;text-align:center;margin:22px 0 12px}
       <div class="pane on" id="p-ov">
         <h2 class="sec">四區成績</h2>
         <div class="mxwrap"><div class="mx" id="mx"><div class="loading">讀取四區資料中…</div></div></div>
+        <div class="provnote" id="provNote"></div>
         <div class="why" id="why"></div>
         <h2 class="sec">本期最需要處理</h2>
         <div class="toolbar dimbar" id="dimbar"></div>
@@ -284,6 +286,14 @@ const LOCAL_PREVIEW=/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&new UR
 async function summary(id,start,end){
  if(LOCAL_PREVIEW){const r=await fetch(`/hq-rpc?id=${id}&start=${start}&end=${end}`);const j=await r.json();if(j.error)throw new Error(j.error);return j.data;} // 本機預覽：由本機伺服器以測試帳號身分呼叫，不經登入
  const r=await clients[id].rpc('hq_summary',{p_start:start,p_end:end});if(r.error)throw r.error;return r.data;}
+// 單量來源（C01）：TC／FA 有 Power BI 用 Power BI；缺 Power BI 的日期或缺店用 DMS 暫估。受影響指標：TC、SSTG、FA 佔比、TPLH。
+const PROV_K=new Set(['tc','sstg','fa','tplh']);
+const provOn=r=>!!r?.src&&!r.err&&(r.src.legacy||r.src.prov.length>0);
+function provTxt(r){if(!provOn(r))return'';if(r.src.legacy)return'TC／FA 全期用 DMS（總覽函式尚未更新）';
+ const mixed=new Map();for(const x of r.src.miss){if(!mixed.has(x.d))mixed.set(x.d,{f:[],n:[]});mixed.get(x.d)[x.filled?'f':'n'].push(x.code||x.name);}
+ const dms=r.src.prov.filter(d=>!mixed.has(d));
+ return[dms.length?dms.map(md).join('、')+' 尚未上傳 Power BI，先用 DMS':'',...[...mixed].map(([d,x])=>md(d)+' Power BI 缺 '+[...x.f,...x.n].join('、')+' 店'+(x.f.length?'，'+x.f.join('、')+' 用 DMS 補':'')+(x.n.length?'，'+x.n.join('、')+' 也沒有 DMS、未計入':''))].filter(Boolean).join('；');}
+const provTag=(r,k)=>PROV_K.has(k)&&provOn(r)?'<small class="prov">暫估</small>':'';
 function metrics(s){if(!s)return null;const tc=s.tc,ok=tc!==null&&tc!==undefined;const r=(y,n)=>y!=null&&n!=null&&y+n>0?y/(y+n):null;
  return{tc:ok?tc:null,sstg:s.sstg??null,d7:r(s.d7_y,s.d7_n),d25:r(s.d25_y,s.d25_n),fa:ok&&tc>0&&s.fa!=null?s.fa/tc:null,tplh:s.nonfa!=null&&s.actual_hours>0?s.nonfa/s.actual_hours:null,
   sameTc:s.same_store_tc??null,samePrior:s.same_store_prior_tc??null,newTc:s.new_store_tc??0,nonfa:s.nonfa,sssg:s.sssg??null,y7:s.d7_y,v7:s.d7_y!=null?s.d7_y+s.d7_n:null,y25:s.d25_y,v25:s.d25_y!=null?s.d25_y+s.d25_n:null,faN:s.fa};}
@@ -306,7 +316,8 @@ async function load(){
      const t={...DEFAULT_T};for(const[k,v] of Object.entries(s.targets||{}))if(v!=null){const kk=k==='faShareMax'?'fa':k;t[kk]=Number(v);}
      const v=metrics(s),cov=s.coverage||{};
      return{...c,s,v,t,prev:metrics(prev),upd:s.last_score_date&&s.last_score_date>useEnd?useEnd:s.last_score_date,b:{ano:s.b_layer?.anomaly_days,wait:s.b_layer?.waiting_count,sig:s.b_layer?.line_signature_missing_count,gap:(cov.scores?.missing_dates||[]).length},
-       subs:[...(s.prior_substitutions||[]),...(s.store_substitutions||[])],newStores:s.new_stores||[],cov,actions:s.actions||{}};}
+       subs:[...(s.prior_substitutions||[]),...(s.store_substitutions||[])],newStores:s.new_stores||[],cov,actions:s.actions||{},
+       src:'tc_source' in s?{kind:s.tc_source,prov:s.provisional_dates||[],miss:s.pbi_missing_stores||[],dms:s.dms_tc??null}:{kind:'dms',legacy:true,prov:[],miss:[],dms:null}};}
    catch(e){return{...c,err:e.message||String(e)}}}));
  if(seq!==loadSeq)return;
  R=loaded;loading=false;exportEnabled();
@@ -315,7 +326,10 @@ async function load(){
  window.__period={...p,useEnd};render();}
 // ===== 共用 =====
 const ok=()=>R.filter(r=>!r.err&&r.v);
-function rank(k){const m=MK[k];if(m.noRank)return{};if(new Set(ok().map(r=>r.upd)).size>1)return{};const rs=ok().filter(r=>r.v[k]!=null);if(rs.length<2)return{};const vals=rs.map(r=>r.v[k]);const b=m.hi?Math.max(...vals):Math.min(...vals),w=m.hi?Math.min(...vals):Math.max(...vals);const o={};rs.forEach(r=>{if(r.v[k]===b)o[r.id]='best';else if(r.v[k]===w)o[r.id]='worst';});return o;}
+// 可排名條件：截止日相同，且期間內成績缺日也相同（採計日期一致才比較）
+const scopeKey=r=>r.upd+'|'+(r.cov?.scores?.missing_dates||[]).slice().sort().join(',');
+const sameScope=list=>new Set(list.map(scopeKey)).size<=1;
+function rank(k){const m=MK[k];if(m.noRank)return{};if(!sameScope(ok()))return{};const rs=ok().filter(r=>r.v[k]!=null);if(rs.length<2)return{};const vals=rs.map(r=>r.v[k]);const b=m.hi?Math.max(...vals):Math.min(...vals),w=m.hi?Math.min(...vals):Math.max(...vals);const o={};rs.forEach(r=>{if(r.v[k]===b)o[r.id]='best';else if(r.v[k]===w)o[r.id]='worst';});return o;}
 const status=(k,r,x=r.v?.[k])=>{const m=MK[k];if(x==null)return'na';if(m.noTarget)return'';const t=r.t[k];return(m.cap?x<=t:x>=t)?'ok':'bad';};
 const tgtTxt=(k,r)=>{const m=MK[k];return m.noTarget?'':(m.cap?'上限 ':'目標 ')+m.f(r.t[k]);};
 const rn=r=>`${r.id} ${r.name}`;
@@ -333,7 +347,7 @@ function gapOf(k,r){const v=r.v,t=r.t;if(k==='d7'||k==='d25'){const n=needOf(k,r
  if(k==='tplh'&&v.nonfa!=null&&v.tplh){const h=Math.round(v.nonfa/v.tplh-v.nonfa/t.tplh);return h>0?'多 '+h+' 工時':null;}
  if(k==='sstg'&&v.samePrior){const n=Math.ceil(v.samePrior*(1+t.sstg)-v.sameTc);return n>0?'差 '+n+' 單':null;}
  if(k==='fa'&&v.tc){const n=needOf(k,r);return n>0?'需轉自送 '+n+' 單':null;}return null;}
-function events(){const E=[];for(const r of ok()){for(const m of M.filter(m=>!m.noTarget)){const s=status(m.k,r);if(s==='bad')E.push({sev:(m.k==='sstg'||Math.abs(ach(m.k,r)-1)<.04)?'serious':'critical',r,k:m.l,what:`本期 ${m.f(r.v[m.k])}（${tgtTxt(m.k,r)}）`,gap:gapOf(m.k,r)});}
+function events(){const E=[];for(const r of ok()){for(const m of M.filter(m=>!m.noTarget)){const s=status(m.k,r);if(s==='bad')E.push({sev:(m.k==='sstg'||Math.abs(ach(m.k,r)-1)<.04)?'serious':'critical',r,k:m.l,what:`本期 ${m.f(r.v[m.k])}（${tgtTxt(m.k,r)}）${PROV_K.has(m.k)&&provOn(r)?'（暫估）':''}`,gap:gapOf(m.k,r)});}
   if(r.b.gap)E.push({sev:'serious',r,k:'資料',what:`成績缺 ${r.b.gap} 天：${(r.cov.scores?.missing_dates||[]).map(md).join('、')}`,gap:null});
   if(r.v.sstg==null&&r.v.tc!=null)E.push({sev:'warning',r,k:'SSTG',what:'去年同期資料不足，無法計算',gap:null});}
  for(const r of R.filter(r=>r.err))E.push({sev:'critical',r,k:'連線',what:'讀取失敗：'+r.err,gap:null});
@@ -341,7 +355,7 @@ function events(){const E=[];for(const r of ok()){for(const m of M.filter(m=>!m.
 // ===== 總覽 =====
 function hero(){const rs=ok(),tot=rs.reduce((s,r)=>s+(r.v.tc||0),0),sameT=rs.reduce((s,r)=>s+(r.v.sameTc||0),0),allPrior=rs.every(r=>r.v.samePrior!=null),prior=rs.reduce((s,r)=>s+(r.v.samePrior||0),0),miss=rs.filter(r=>r.v.samePrior==null).map(r=>r.id);
  const ss=allPrior&&prior>0&&rs.length===CENTERS.length?sameT/prior-1:null,E=events(),gaps=rs.reduce((n,r)=>n+(r.b.gap||0),0);
- $('hero').innerHTML=`<div class="kpi"><span>總 TC</span><b>${tot.toLocaleString('en-US')}</b><em>${rs.length}／${CENTERS.length} 區合計</em></div>
+ $('hero').innerHTML=`<div class="kpi"><span>總 TC</span><b>${tot.toLocaleString('en-US')}</b><em>${rs.length}／${CENTERS.length} 區合計${rs.some(provOn)?'，含暫估':''}</em></div>
  <div class="kpi ${ss==null?'na':ss>=DEFAULT_T.sstg?'ok':'bad'}"><span>總 SSTG</span><b>${ss==null?'資料不足':MK.sstg.f(ss)}</b><em>${ss==null?'缺 '+(miss.join('、')||'—')+' 去年 TC':'同店比較'}</em></div>
  <div class="kpi ${E.length?'bad':'ok'}" style="cursor:pointer" onclick="switchTab('alert')"><span>待處理預警</span><b>${E.length} 項</b><em>${['critical','serious','warning'].map(v=>{const n=E.filter(e=>e.sev===v).length;return n?{critical:'嚴重',serious:'注意',warning:'觀察'}[v]+' '+n:''}).filter(Boolean).join('、')||'無'}</em></div>
  <div class="kpi ${gaps?'warn':'ok'}" style="cursor:pointer" onclick="document.getElementById('dqCard').scrollIntoView({behavior:'smooth',block:'center'})"><span>成績缺日</span><b>${gaps} 天</b><em>${rs.filter(r=>!r.b.gap).length}／${rs.length} 區完整</em></div>`;}
@@ -353,15 +367,15 @@ function lights(){const ks=M.filter(m=>!m.noTarget);
  $('lights').querySelectorAll('.lg[data-id]').forEach(t=>t.onclick=()=>{deepId=t.dataset.id;switchTab('deep');});}
 function cards(){$('rcs').innerHTML=R.map(r=>{if(r.err)return`<div class="rc err" style="--rc:var(--bad)"><h3>${rn(r)}</h3><div class="errmsg">讀取失敗：${r.err}</div></div>`;
  const B=[['異常日',r.b.ano,'天',r.b.ano>=2],['等餐',r.b.wait,'筆',r.b.wait>=50],['劃線缺漏',r.b.sig,'筆',r.b.sig>=5],['成績缺日',r.b.gap,'天',r.b.gap>0]];
- return`<div class="rc" style="--rc:var(${r.c})" data-deep="${r.id}"><h3>${rn(r)}<small>資料到 ${md(r.upd)}</small></h3>
+ return`<div class="rc" style="--rc:var(${r.c})" data-deep="${r.id}"><h3>${rn(r)}<small>資料到 ${md(r.upd)}${provOn(r)?'・暫估':''}</small></h3>
  <div class="mhead"><span></span><span>本期</span><span>目標</span><span>vs ${basis==='ly'?'去年同期':'上期'}</span></div>
- ${M.map(m=>{const x=r.v[m.k],s=status(m.k,r),f=RK[m.k][r.id];return`<div class="mrow"><span class="l">${m.l}</span><span class="v ${x==null?'na':s}">${x==null?'資料不足':m.f(x)}${f==='best'?'<i class="fb">▲</i>':f==='worst'?'<i class="fw">▼</i>':''}</span><span class="tg">${m.noTarget?'—':m.f(r.t[m.k])}</span><span class="dl">${delta(m.k,r)}</span></div>`}).join('')}
- <div class="bstat">${B.map(([l,v,u,bad])=>`<div class="${bad?'bad':''}"><span>${l}</span><b>${v==null?'—':v}${v!=null?'<small> '+u+'</small>':''}</b></div>`).join('')}</div></div>`}).join('');
+ ${M.map(m=>{const x=r.v[m.k],s=status(m.k,r),f=RK[m.k][r.id];return`<div class="mrow"><span class="l">${m.l}</span><span class="v ${x==null?'na':s}">${x==null?'資料不足':m.f(x)}${f==='best'?'<i class="fb">▲</i>':f==='worst'?'<i class="fw">▼</i>':''}${x==null?'':provTag(r,m.k)}</span><span class="tg">${m.noTarget?'—':m.f(r.t[m.k])}</span><span class="dl">${delta(m.k,r)}</span></div>`}).join('')}
+ <div class="bstat">${B.map(([l,v,u,bad])=>`<div class="${bad?'bad':''}"><span>${l}</span><b>${v==null?'—':v}${v!=null?'<small> '+u+'</small>':''}</b></div>`).join('')}</div>${provOn(r)?`<div class="provnote">暫估：${esc(provTxt(r))}</div>`:''}</div>`}).join('');
  $('rcs').querySelectorAll('[data-deep]').forEach(a=>a.onclick=()=>{deepId=a.dataset.deep;switchTab('deep');});}
 function insight(){const E=events().slice(0,4),best=R.filter(r=>RK.sstg?.[r.id]==='best');
  $('insight').innerHTML=(E.map(e=>`<li><span>${e.sev==='critical'?'⚠':'📉'}</span><div><b>${rn(e.r)} ${e.k}</b>：${e.what}${e.gap?'，'+e.gap:''}</div></li>`).join('')+(best.length?`<li><span>📈</span><div><b>${best.map(rn).join('、')} SSTG ${best.length>1?'並列':''}最好</b>：${MK.sstg.f(best[0].v.sstg)}</div></li>`:''))||'<li><span>✅</span><div>本期各區指標都達標。</div></li>';
  const cell=(arr,extra)=>arr&&arr.length?`<td class="n">缺 ${arr.length} 天</td>`:`<td class="y">✓${extra||''}</td>`;
- $('dq').innerHTML=`<thead><tr><th>區域</th><th>成績</th><th>工時</th><th>今年 TC</th><th>去年 TC</th></tr></thead><tbody>${OFF.map(o=>`<tr><td class="off">${o.id} ${o.name}</td><td class="off" colspan="4">尚未接上</td></tr>`).join('')}${R.map(r=>r.err?`<tr><td>${rn(r)}</td><td class="n" colspan="4">讀取失敗</td></tr>`:`<tr><td><span class="dot" style="background:var(${r.c})"></span>${rn(r)}</td>${cell(r.cov.scores?.missing_dates)}${r.v.tc!=null&&r.s.actual_hours==null?'<td class="n">未輸入</td>':cell(r.cov.hours?.missing_dates)}${cell(r.cov.current_tc?.missing_dates)}${r.cov.prior_tc?.required_missing_date_count?`<td class="n">缺 ${r.cov.prior_tc.required_missing_date_count} 天</td>`:'<td class="y">✓</td>'}</tr>`).join('')}</tbody>`;}
+ $('dq').innerHTML=`<thead><tr><th>區域</th><th>成績</th><th>工時</th><th>今年 TC</th><th>去年 TC</th><th>單量來源</th></tr></thead><tbody>${OFF.map(o=>`<tr><td class="off">${o.id} ${o.name}</td><td class="off" colspan="5">尚未接上</td></tr>`).join('')}${R.map(r=>r.err?`<tr><td>${rn(r)}</td><td class="n" colspan="5">讀取失敗</td></tr>`:`<tr><td><span class="dot" style="background:var(${r.c})"></span>${rn(r)}</td>${cell(r.cov.scores?.missing_dates)}${r.v.tc!=null&&r.s.actual_hours==null?'<td class="n">未輸入</td>':cell(r.cov.hours?.missing_dates)}${cell(r.cov.current_tc?.missing_dates)}${r.cov.prior_tc?.required_missing_date_count?`<td class="n">缺 ${r.cov.prior_tc.required_missing_date_count} 天</td>`:'<td class="y">✓</td>'}${provOn(r)?`<td class="n" title="${esc(provTxt(r))}">暫估 ${r.src.legacy?'全期':r.src.prov.length+' 天'}</td>`:r.v.tc!=null?'<td class="y">✓ Power BI</td>':'<td class="n">—</td>'}</tr>`).join('')}</tbody>`;}
 
 const COLS=[{k:'sssg',l:'SSSG'},{k:'sstg',l:'SSTG'},{k:'d7',l:'D7'},{k:'d25',l:'D25'},{k:'tplh',l:'TPLH'},{k:'fa',l:'FA 佔比'}];
 let sel=null;
@@ -410,10 +424,10 @@ function problemCard(r){if(r.err)return{r,k:null,value:'讀取失敗',gap:'',row
  const k=cand?.k||['sstg','tplh'].find(k=>status(k,r)==='bad');if(k)return{r,k,value:MK[k].f(r.v[k]),gap:gapOf(k,r)||'',rows:driverRows(k,r),dimension:DIMS[dimOf(k)]};
  return{r,k:null,value:M.some(m=>r.v[m.k]==null)?'資料不足':'✓',gap:'',rows:[]};}
 const cardTitle=c=>rn(c.r)+(c.k?'｜'+MK[c.k].l+'｜'+c.dimension:'');
-function renderMx(){const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));const mx=$('mx');mx.style.gridTemplateColumns=`110px repeat(${cols.length},minmax(0,1fr))`;
- const same=new Set(R.filter(r=>!r.err).map(r=>r.upd)).size<=1,rk={};if(same)for(const c of cols){const vals=R.map(r=>mcell(r,c.k).n).filter(x=>x!=null);if(vals.length>1&&c.k!=='sssg')rk[c.k]={b:Math.max(...vals),w:Math.min(...vals)};}
+function renderMx(){const pv=R.filter(provOn);$('provNote').textContent=pv.length?'暫估（TC、SSTG、FA 佔比、TPLH）：'+pv.map(r=>rn(r)+' '+provTxt(r)).join('；'):'';const cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));const mx=$('mx');mx.style.gridTemplateColumns=`110px repeat(${cols.length},minmax(0,1fr))`;
+ const same=sameScope(R.filter(r=>!r.err)),rk={};if(same)for(const c of cols){const vals=R.map(r=>mcell(r,c.k).n).filter(x=>x!=null);if(vals.length>1&&c.k!=='sssg')rk[c.k]={b:Math.max(...vals),w:Math.min(...vals)};}
  mx.innerHTML='<div></div>'+cols.map(c=>`<div class="hd">${c.l}</div>`).join('')+R.map(r=>`<div class="rg" style="--rc:var(${r.err?'--bad':r.c})">${rn(r)}</div>`+(r.err?`<div class="cell bad" style="grid-column:span ${cols.length}"><b style="font-size:14px">讀取失敗</b></div>`:cols.map(c=>{const x=mcell(r,c.k),q=rk[c.k],f=q&&x.n!=null?(x.n===q.b?'<i style="color:var(--ok)">▲</i>':x.n===q.w?'<i style="color:var(--bad)">▼</i>':''):'';
-  return`<div class="cell ${x.st} ${sel===r.id+'|'+c.k?'sel':''}" data-k="${r.id}|${c.k}"><b>${x.val}${f}</b></div>`}).join(''))).join('');
+  return`<div class="cell ${x.st} ${sel===r.id+'|'+c.k?'sel':''}" data-k="${r.id}|${c.k}"><b>${x.val}${f}</b>${x.n==null?'':provTag(r,c.k)}</div>`}).join(''))).join('');
  mx.querySelectorAll('.cell').forEach(el=>el.onclick=()=>{sel=sel===el.dataset.k?null:el.dataset.k;renderMx();renderWhy();});}
 function renderWhy(){const w=$('why');if(!sel){w.classList.remove('on');return;}const [id,k]=sel.split('|'),r=R.find(x=>x.id===id);if(!r||r.err){w.classList.remove('on');return;}
  const c=COLS.find(x=>x.k===k),g=gapOf(k,r),list=drvHtml(k,r);w.classList.add('on');
@@ -422,7 +436,7 @@ function renderCards(){$('pcards').innerHTML=R.map(problemCard).map(c=>`<div cla
  document.querySelectorAll('.pc[data-k]').forEach(a=>a.onclick=()=>{sel=a.dataset.k;renderMx();renderWhy();$('why').scrollIntoView({behavior:'smooth',block:'center'});});}
 // ===== 指標比較 =====
 function cmpView(){const m=MK[cmpK];$('cmpMetric').innerHTML=M.map(x=>`<button data-k="${x.k}" class="${x.k===cmpK?'on':''}">${x.l}</button>`).join('');
- const rows=ok().map(r=>({r,x:r.v[cmpK]})),valid=rows.filter(o=>o.x!=null).sort((a,b)=>new Set(ok().map(r=>r.upd)).size>1?0:m.hi?b.x-a.x:a.x-b.x),all=valid.map(o=>o.x).concat(m.noTarget?[]:rows.map(o=>o.r.t[cmpK])),max=Math.max(...all,0.0001)*1.12;
+ const rows=ok().map(r=>({r,x:r.v[cmpK]})),valid=rows.filter(o=>o.x!=null).sort((a,b)=>!sameScope(ok())?0:m.hi?b.x-a.x:a.x-b.x),all=valid.map(o=>o.x).concat(m.noTarget?[]:rows.map(o=>o.r.t[cmpK])),max=Math.max(...all,0.0001)*1.12;
  $('hbTitle').textContent=m.l+'　四區數值';
  $('hbars').innerHTML=valid.concat(rows.filter(o=>o.x==null)).map(({r,x})=>{const pc=v=>Math.max(0,v/max*100);return`<div class="hb"><span><span class="dot" style="background:var(${r.c})"></span>${rn(r)}</span><div class="track">${x==null?'':`<div class="fill" style="width:${pc(x)}%;background:var(${r.c})"></div>`}${m.noTarget?'':`<div class="tick" style="left:${pc(r.t[cmpK])}%"></div>`}</div><span class="val">${x==null?'<span style="color:var(--na);font-size:13px">資料不足</span>':m.f(x)+(RK[cmpK][r.id]==='best'?' ▲':RK[cmpK][r.id]==='worst'?' ▼':'')}</span></div>`}).join('');
  $('matrix').innerHTML=`<thead><tr><th>指標</th>${ok().map(r=>`<th><span class="dot" style="background:var(${r.c})"></span>${r.id}</th>`).join('')}</tr></thead><tbody>${M.filter(x=>!x.noTarget).map(x=>`<tr><td>${x.l}</td>${ok().map(r=>{const v=r.v[x.k];if(v==null)return`<td style="color:var(--na)">資料不足</td>`;let main,bg,fg;if(x.k==='sstg'){const g=gapPt(r);main=x.f(v);bg=dvGap(g);fg=g>=1||g<=-1?'#fff':'var(--text)';}else{const a=ach(x.k,r);main=(a*100).toFixed(0)+'%';bg=dv(a);fg=ink(a);}return`<td style="background:${bg};color:${fg}" title="${x.f(v)}（${tgtTxt(x.k,r)}）">${main}</td>`}).join('')}</tr>`).join('')}</tbody>`;
@@ -452,7 +466,8 @@ function deep(){const r=R.find(x=>x.id===deepId)||R[0];if(!r)return;deepId=r.id;
   ...(r.cov.prior_tc?.required_missing_date_count?[['去年同期資料不足',`缺 ${r.cov.prior_tc.required_missing_date_count} 天`,(r.cov.prior_tc.missing_dates||[]).map(md).join('、')+'（有店缺去年資料）']]:[]),
   ...((r.cov.current_tc?.missing_dates||[]).length?[['今年 TC 缺日',(r.cov.current_tc.missing_dates).map(md).join('、'),'']]:[]),
   ...((r.cov.scores?.missing_dates||[]).length?[['成績缺日',(r.cov.scores.missing_dates).map(md).join('、'),'']]:[]),
-  ...(r.s.actual_hours==null&&r.v.tc!=null?[['工時未輸入','TPLH 資料不足','']]:[])];
+  ...(r.s.actual_hours==null&&r.v.tc!=null?[['工時未輸入','TPLH 資料不足','']]:[]),
+  ...(provOn(r)?[['TC／FA 暫估',provTxt(r),'影響 TC、SSTG、FA 佔比、TPLH；上傳 Power BI 後自動改用 Power BI']]:[])];
  $('watch').innerHTML=W2.map(([a,b,c])=>`<li><span>${a}</span><b class="down">${b}</b>${c?`<small>${c}</small>`:''}</li>`).join('')||'<li><span>沒有替代比較日或資料缺漏</span></li>';}
  $('links').innerHTML=`<a class="golink" href="https://uli20000.github.io/T${r.id}/analysis.html" target="_blank" rel="noopener" style="--rc:var(${r.c})">開啟 ${rn(r)} 分析儀表板 →</a>`;}
 // ===== 預警 =====
@@ -464,7 +479,7 @@ function alertsView(){const E=events(),SI={critical:'⛔',serious:'⚠',warning:
 一、總 TC ${tot.toLocaleString('en-US')}（${rs.length} 區合計）。
 二、需處理：
 ${E.filter(e=>e.sev!=='warning').map((e,i)=>`　${i+1}. ${rn(e.r)} ${e.k}：${e.what}${e.gap?'（'+e.gap+'）':''}`).join('\n')||'　無'}
-三、資料：${rs.filter(r=>r.b.gap).map(r=>rn(r)+' 成績缺 '+r.b.gap+' 天').join('；')||'各區成績完整'}；994、997 尚未接上。
+三、資料：${rs.filter(r=>r.b.gap).map(r=>rn(r)+' 成績缺 '+r.b.gap+' 天').join('；')||'各區成績完整'}；994、997 尚未接上。${rs.some(provOn)?'\n　單量暫估：'+rs.filter(provOn).map(r=>rn(r)+' '+provTxt(r)).join('；'):''}
 （原因與責任需再核對訂單與排班紀錄。）`;}
 // ===== 切換與登入 =====
 function render(){$('dimbar').innerHTML=dimSeg(null);renderMx();renderWhy();renderCards();if($('p-cmp').classList.contains('on'))cmpView();if($('p-deep').classList.contains('on'))deep();alertsView();}
@@ -485,15 +500,16 @@ function exportEnabled(){for(const id of ['exPng','exXlsx'])$(id).disabled=loadi
 const fname=(view,ext)=>`全區總覽_${view.start}_${view.end}.${ext}`;
 function overviewData(){if(loading||R.length!==CENTERS.length)throw new Error('資料讀取中');const p=window.__period,cols=COLS.filter(c=>!(c.k==='sssg'&&unit==='day'));
  return{start:p.start,end:p.useEnd||p.end,label:period().label,basis:basis==='prev'?'前期變化':'目標差距',dimension:DIMS[dim],cols,
-  matrix:R.map(r=>({name:rn(r),date:r.upd||'資料不足',error:!!r.err,cells:cols.map(c=>mcell(r,c.k))})),cards:R.map(problemCard),regions:R};}
+  matrix:R.map(r=>({name:rn(r),date:r.upd||'資料不足',error:!!r.err,prov:provTxt(r),cells:cols.map(c=>{const x=mcell(r,c.k);return{...x,prov:x.n!=null&&PROV_K.has(c.k)&&provOn(r)};})})),cards:R.map(problemCard),regions:R};}
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
 async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='匯出中…';try{await fn(overviewData());}catch(e){alert('匯出失敗：'+(e.message||e));}finally{btn.textContent=t;exportEnabled();}}
 function pngCanvas(view){const cv=document.createElement('canvas'),W=1600,pad=32,gap=20,cardW=(W-2*pad-3*gap)/4;
- const style=getComputedStyle(document.documentElement),color=n=>style.getPropertyValue(n).trim(),bg=color('--bg')||'#f6f5f2',card=color('--card')||'#ffffff',text=color('--text')||'#252525',bad=color('--bad')||'#c92c2c',good=color('--ok')||'#228541',line=color('--line')||'#dedbd5';
+ const style=getComputedStyle(document.documentElement),color=n=>style.getPropertyValue(n).trim(),warn=color('--warn')||'#9a6b00',bg=color('--bg')||'#f6f5f2',card=color('--card')||'#ffffff',text=color('--text')||'#252525',bad=color('--bad')||'#c92c2c',good=color('--ok')||'#228541',line=color('--line')||'#dedbd5';
  const ctx=cv.getContext('2d');ctx.font='800 17px "Microsoft JhengHei",sans-serif';
  const wrap=(value,width)=>{const out=[];let row='';for(const ch of String(value)){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}if(row)out.push(row);return out;};
  const linesFor=row=>[row.name,row.eff,row.txt,row.detail].filter(Boolean).flatMap(x=>wrap(x,cardW-32));
- const heights=view.cards.map(c=>125+c.rows.reduce((n,row)=>n+linesFor(row).length*25+20,0)),cardH=Math.max(180,...heights),matrixY=115,matrixH=60+view.matrix.length*70,cardsY=matrixY+matrixH+75,H=cardsY+cardH+pad;
+ const heights=view.cards.map(c=>125+c.rows.reduce((n,row)=>n+linesFor(row).length*25+20,0)),cardH=Math.max(180,...heights),matrixY=115,matrixH=60+view.matrix.length*70,cardsY=matrixY+matrixH+75;
+ ctx.font='800 16px "Microsoft JhengHei",sans-serif';const notes=view.matrix.filter(m=>m.prov).flatMap(m=>wrap('暫估｜'+m.name+'：'+m.prov,W-2*pad)),H=cardsY+cardH+pad+(notes.length?notes.length*26+20:0);
  cv.width=W*2;cv.height=H*2;ctx.scale(2,2);ctx.textAlign='center';ctx.textBaseline='middle';
  const rect=(x,y,w,h,fill)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);};
  const txt=(value,x,y,size=19,fill=text)=>{ctx.font=`800 ${size}px "Microsoft JhengHei",sans-serif`;ctx.fillStyle=fill;ctx.fillText(value,x,y);};
@@ -501,14 +517,15 @@ function pngCanvas(view){const cv=document.createElement('canvas'),W=1600,pad=32
  rect(pad,matrixY,W-2*pad,matrixH,card);const first=180,cw=(W-2*pad-first)/view.cols.length;
  view.cols.forEach((c,i)=>txt(c.l,pad+first+(i+.5)*cw,matrixY+30,19));
  view.matrix.forEach((row,j)=>{const y=matrixY+60+j*70;rect(pad,y,W-2*pad,1,line);txt(row.name,pad+first/2,y+28,20);if(row.date)txt('資料到 '+row.date,pad+first/2,y+52,14,text);
-  row.cells.forEach((cell,i)=>txt(row.error?'讀取失敗':cell.val,pad+first+(i+.5)*cw,y+35,row.error||cell.st==='na'?17:24,cell.st==='bad'?bad:cell.st==='ok'?good:text));});
+  row.cells.forEach((cell,i)=>{txt(row.error?'讀取失敗':cell.val,pad+first+(i+.5)*cw,y+33,row.error||cell.st==='na'?17:24,cell.st==='bad'?bad:cell.st==='ok'?good:text);if(!row.error&&cell.prov)txt('暫估',pad+first+(i+.5)*cw,y+58,13,warn);});});
  txt('本期最需要處理',W/2,cardsY-35,23);
  view.cards.forEach((c,i)=>{const x=pad+i*(cardW+gap),cx=x+cardW/2;rect(x,cardsY,cardW,cardH,card);rect(x,cardsY,cardW,4,color(c.r.c)||bad);txt(cardTitle(c),cx,cardsY+30,17);txt(c.value,cx,cardsY+70,28,c.k?bad:text);txt(c.gap,cx,cardsY+105,17,bad);let y=cardsY+135;
   for(const row of c.rows){rect(x+16,y-10,cardW-32,1,line);ctx.font='800 17px "Microsoft JhengHei",sans-serif';for(const value of linesFor(row)){txt(value,cx,y,17,row.missing?text:row.eff===value?good:text);y+=25;}y+=20;}});
+ notes.forEach((value,i)=>{ctx.textAlign='left';txt(value,pad,cardsY+cardH+pad+i*26,16,warn);});ctx.textAlign='center';
  return cv;}
 $('exPng').onclick=()=>busy($('exPng'),async view=>{await document.fonts?.ready;const cv=pngCanvas(view);const blob=await new Promise((resolve,reject)=>cv.toBlob(x=>x?resolve(x):reject(new Error('PNG 產生失敗')),'image/png'));download(blob,fname(view,'png'));});
-function excelSheets(view){const A=[['期間',view.label,'起日',view.start,'截止',view.end,'比較',view.basis],[],['區域','資料到',...view.cols.map(c=>c.l)]];
- for(const row of view.matrix)A.push([row.name,row.date,...row.cells.map(x=>row.error?'讀取失敗':x.val)]);
+function excelSheets(view){const A=[['期間',view.label,'起日',view.start,'截止',view.end,'比較',view.basis],[],['區域','資料到',...view.cols.map(c=>c.l),'單量來源']];
+ for(const row of view.matrix)A.push([row.name,row.date,...row.cells.map(x=>row.error?'讀取失敗':x.val+(x.prov?'（暫估）':'')),row.error?'':row.prov?'暫估：'+row.prov:'Power BI']);
  const B=[['期間',view.start,view.end,'比較',view.basis],[],['區域','資料到','指標','分組','本期','缺口','項目','影響','單數／工時','改善單數／工時']];
  for(const c of view.cards){const prefix=[rn(c.r),c.r.upd||'資料不足',c.k?MK[c.k].l:'',c.dimension||'',c.value,c.gap];if(!c.rows.length)B.push(prefix);else for(const row of c.rows)B.push([...prefix,row.name,row.eff,row.txt,row.detail]);}
  const C=[['區域','資料到','指標','分組','項目','影響','單數／工時','改善單數／工時']];
