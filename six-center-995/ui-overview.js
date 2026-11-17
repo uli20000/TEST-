@@ -96,15 +96,27 @@
   }
   async function loadPendingVehicles(){
     const vr=await db.from('vehicles').select('id,plate4').eq('active',true);if(vr.error)throw vr.error;
-    const plate=new Map((vr.data||[]).map(v=>[v.id,v.plate4]));if(!plate.size)return [];
+    const plate=new Map((vr.data||[]).map(v=>[v.id,v.plate4]));if(!plate.size)return {abnormal:[],claimed:[]};
     const rr=await db.from('inspection_reports').select('vehicle_id,reported_at,abnormal_items,resolution_status').eq('overall_status','abnormal').in('vehicle_id',[...plate.keys()]).order('reported_at',{ascending:true});if(rr.error)throw rr.error;
     const by=new Map();for(const x of rr.data||[]){if(x.resolution_status==='resolved')continue;const v=by.get(x.vehicle_id)||{plate:plate.get(x.vehicle_id),first:x.reported_at,items:new Set(),n:0};v.n++;for(const it of Array.isArray(x.abnormal_items)?x.abnormal_items:String(x.abnormal_items||'').split(/[、,，]/))if(String(it).trim())v.items.add(String(it).trim());by.set(x.vehicle_id,v);}
     const today=new Date(opsToday()+'T12:00:00Z');
-    return [...by.values()].map(v=>({...v,days:Math.max(0,Math.round((today-new Date(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei'}).format(new Date(v.first))+'T12:00:00Z'))/86400000))})).sort((a,b)=>b.days-a.days||String(a.plate).localeCompare(String(b.plate)));
+    // 已領未還：與車輛頁同規則——今天最新一次領車之後還沒有巡檢回報
+    const dayStart=new Date(opsToday()+'T00:00:00+08:00').toISOString();
+    const cr=await db.from('claim_records').select('vehicle_id,claimed_at,claimant_name').in('vehicle_id',[...plate.keys()]).gte('claimed_at',dayStart).order('claimed_at',{ascending:false});if(cr.error)throw cr.error;
+    const latest=new Map();for(const c of cr.data||[])if(!latest.has(c.vehicle_id))latest.set(c.vehicle_id,c);
+    let claimed=[];
+    if(latest.size){const ir=await db.from('inspection_reports').select('vehicle_id,reported_at').in('vehicle_id',[...latest.keys()]).gte('reported_at',dayStart);if(ir.error)throw ir.error;
+      const lastReport=new Map();for(const x of ir.data||[]){const t=new Date(x.reported_at).getTime();if(t>(lastReport.get(x.vehicle_id)||0))lastReport.set(x.vehicle_id,t);}
+      claimed=[...latest.values()].filter(c=>!((lastReport.get(c.vehicle_id)||0)>new Date(c.claimed_at).getTime())).map(c=>({plate:plate.get(c.vehicle_id),who:c.claimant_name||'',at:c.claimed_at,hours:(Date.now()-new Date(c.claimed_at).getTime())/3600000})).sort((a,b)=>b.hours-a.hours);}
+    const abnormal=[...by.values()].map(v=>({...v,days:Math.max(0,Math.round((today-new Date(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei'}).format(new Date(v.first))+'T12:00:00Z'))/86400000))})).sort((a,b)=>b.days-a.days||String(a.plate).localeCompare(String(b.plate)));
+    return {abnormal,claimed};
   }
-  function vehicleHtml(list){
-    if(!list.length)return okBox('沒有待處理的車輛');
-    return bigNum(list.length,'台','待處理異常｜最久 '+list[0].days+' 天')+'<ol class="uo-top">'+list.slice(0,3).map(v=>'<li><b>'+esc(v.plate||'—')+'</b><small>'+esc([...v.items].join('、')||'異常')+(v.n>1?'（'+v.n+' 筆回報）':'')+'</small><em class="'+(v.days>3?'uo-old':'')+'">'+v.days+' 天</em></li>').join('')+'</ol>'+(list.length>3?'<p class="uo-note">另有 '+(list.length-3)+' 台</p>':'')+link('vehicle','到車輛／巡檢處理');
+  const hm=t=>new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(t));
+  function vehicleHtml({abnormal:list,claimed}){
+    if(!list.length&&!claimed.length)return okBox('沒有待處理的車輛');
+    const abHtml='<h3>巡檢異常未處理'+(list.length?' '+list.length+' 台':'')+'</h3>'+(list.length?'<ol class="uo-top">'+list.slice(0,3).map(v=>'<li><b>'+esc(v.plate||'—')+'</b><small>'+esc([...v.items].join('、')||'異常')+(v.n>1?'（'+v.n+' 筆回報）':'')+'</small><em class="'+(v.days>3?'uo-old':'')+'">'+v.days+' 天</em></li>').join('')+'</ol>'+(list.length>3?'<p class="uo-note">另有 '+(list.length-3)+' 台</p>':''):'<p class="uo-empty">沒有異常未處理的車</p>');
+    const clHtml='<h3>已領未還（今天）'+(claimed.length?' '+claimed.length+' 台':'')+'</h3>'+(claimed.length?'<ol class="uo-top">'+claimed.slice(0,3).map(c=>'<li><b>'+esc(c.plate||'—')+'</b><small>'+esc((c.who?c.who+'｜':'')+hm(c.at)+' 領車')+'</small><em>'+(c.hours<1?Math.max(1,Math.round(c.hours*60))+' 分':Math.floor(c.hours)+' 小時')+'</em></li>').join('')+'</ol>'+(claimed.length>3?'<p class="uo-note">另有 '+(claimed.length-3)+' 台</p>':''):'<p class="uo-empty">沒有已領未還的車</p>');
+    return bigNum(new Set([...list,...claimed].map(x=>x.plate)).size,'台','待處理｜異常 '+list.length+'、已領未還 '+claimed.length)+abHtml+clHtml+link('vehicle','到車輛／巡檢處理');
   }
   let pendReq=0;
   async function loadPending(){
@@ -112,7 +124,7 @@
     E('uoPendNote').textContent='等餐、A 項：'+label+'（所選日期的當月）｜車輛：目前狀態';
     const set=(el,html)=>{if(id===pendReq)E(el).innerHTML=html;},fail=(el,e)=>set(el,'<p class="uo-empty">讀取失敗：'+esc(e.message||e)+'</p>');
     for(const el of ['uoPendVehicle','uoPendDelay','uoPendA'])E(el).innerHTML='<p class="uo-empty">讀取中…</p>';
-    loadPendingVehicles().then(l=>set('uoPendVehicle',vehicleHtml(l)),e=>fail('uoPendVehicle',e));
+    loadPendingVehicles().then(v=>set('uoPendVehicle',vehicleHtml(v)),e=>fail('uoPendVehicle',e));
     window.OpsReport.readRows('t995_delay_orders','store_code,restaurant_name,record_date,status',q=>q.gte('record_date',m.start).lte('record_date',m.end).eq('status','pending'))
       .then(rows=>{rows=window.OpsMetrics.scopeData({delay:rows}).delay.filter(x=>!window.OpsMetrics.NON_DELIVERY_STORES.has(String(x.store_code)));
         set('uoPendDelay',pendCard(rows,m.start,{zero:'餐廳都已回覆等餐原因',unit:'餐廳還沒回覆等餐原因',go:'ops:delay',goText:'到等餐紀錄',sub:x=>(x.ac?x.ac+'｜':'')+'最早 '+md(x.rows.map(r=>r.record_date).sort()[0])}));},e=>fail('uoPendDelay',e));
