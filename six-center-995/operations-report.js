@@ -241,9 +241,9 @@
       const weather=S.dates(r.start,r.end).flatMap(date=>M.BUSINESS.weatherCities.map(city=>{const x=weatherRow(date,city);return {日期:date,城市:city,測站:x?.station_name||'',測站代碼:x?.station_id||'',平均氣溫:x?.temperature??null,降雨毫米:x?.precipitation??null,微量降雨:x?.trace?'是':'否',觀測狀態:x?.status||'unavailable',來源:'https://codis.cwa.gov.tw/StationData',查詢時間:state.weather.get(date.slice(0,7))?.fetched_at||''};}));
       // 0800 A 項回覆（配餐人員／根源／行動）；回覆表未建立或讀取失敗時，分頁內寫明原因，不影響其他分頁
       {const H=['日期','店號','餐廳','項目','品項','顧客回饋內容','工作單號','發票號碼','回覆狀態','配餐人員','根源','行動','回覆時間'];let aRows;try{aRows=window.OpsAReplyAdmin?await window.OpsAReplyAdmin.exportRows(r):null;}catch(e){aRows=[{日期:'讀取失敗：'+(e.message||e)}];}
-        appendTable(wb,'0800 A項回覆',aRows===null?[{日期:'此版本沒有 A 項回覆功能'}]:aRows.length?aRows:[{日期:'這段期間沒有 0800 A 項客訴（或尚未匯入 0800 檔）'}],H);}
+        appendTable(wb,'A 項回饋',aRows===null?[{日期:'此版本沒有 A 項回覆功能'}]:aRows.length?aRows:[{日期:'這段期間沒有 0800 A 項客訴（或尚未匯入 0800 檔）'}],H);}
       appendTable(wb,'天氣觀測',weather,['日期','城市','測站','測站代碼','平均氣溫','降雨毫米','微量降雨','觀測狀態','來源','查詢時間']);
-      XLSX.writeFile(wb,'營運'+({day:'日報',week:'週報',month:'月報'}[p])+'_'+r.start+(r.end===r.start?'':'_'+r.end)+'.xlsx');notify('已匯出成績、劃線簽名、等餐紀錄與 0800 A項回覆','summary');
+      XLSX.writeFile(wb,'營運'+({day:'日報',week:'週報',month:'月報'}[p])+'_'+r.start+(r.end===r.start?'':'_'+r.end)+'.xlsx');notify('已匯出成績、劃線簽名、等餐紀錄與 A 項回饋','summary');
     }catch(e){notify('匯出失敗：'+e.message,'summary');}finally{buttons.forEach(b=>b.disabled=false);}
   }
   async function findRestaurant(inputId,chooseUnique=true){

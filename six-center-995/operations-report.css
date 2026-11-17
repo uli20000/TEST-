@@ -430,3 +430,16 @@ body:has(#opsModePage[style*="block"] #opsSummaryPanel:not([hidden])) .header .t
 }
 #opsSummaryPanel #opsDelayRank,#opsSummaryPanel #opsLineRank{margin-top:0;min-height:112px}
 
+
+/* A 項回饋表：電腦版短欄不換行、文字欄靠左；手機卡片的文字欄占整列並靠左 */
+@media(min-width:601px){
+ #opsAList .ops-a-table .a-nw{white-space:nowrap}
+ #opsAList .ops-a-table .a-txt{text-align:left;min-width:6em;line-height:1.5}
+ #opsAList .ops-a-table th,#opsAList .ops-a-table td{padding-left:6px;padding-right:6px}
+}
+@media(max-width:600px){
+ #opsAList .ops-a-table td.a-txt{grid-column:1/-1;align-items:flex-start;text-align:left}
+}
+#opsAList .ops-a-table .ops-row-btn{white-space:nowrap}
+@media(min-width:601px){#opsAList .ops-a-table .ops-row-btn{padding:6px 8px;min-width:0;width:auto;font-size:14px!important}}
+#opsAPanel .ops-help{text-align:center}
