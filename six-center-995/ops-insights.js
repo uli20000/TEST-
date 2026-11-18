@@ -163,7 +163,7 @@
       const worst=flags.slice().sort((a,b)=>Math.abs(b.kind==='tc'?b.diff/3:b.diff)-Math.abs(a.kind==='tc'?a.diff/3:a.diff))[0];
       const icon=ctx.rainMm>=5?'🌧️':ctx.campaigns?.length?'🎟️':closed.length||flags.some(f=>f.kind==='tc')?'📦':'📉';
       out.push({context:ctx,main:worst||null,others:flags.filter(f=>f!==worst),date:d,
-        label:`${md(d)}（${weekday(d)}）`,icon,flags,closed,reasons,baseDates:base,
+        label:`${md(d)}（${weekday(d)}）`,icon,flags,closed,reasons,context:ctx,baseDates:base,
         title:`${md(d)}（${weekday(d)}）`+(worst?worst.text:'有餐廳 0 單'),
         bad:flags.some(f=>(f.kind==='tc'&&f.diff<0)||(f.kind==='rate'&&!['FA 佔比','等餐'].includes(f.metric)&&f.diff<0)||
           (['FA 佔比','等餐'].includes(f.metric)&&f.diff>0))||closed.length>0});
@@ -331,9 +331,11 @@
       for(const name of ctx.campaigns||[])eventRows.push({date:a.date,name,kind:'優惠券',metrics:kinds});
       if(ctx.rainMm>0)eventRows.push({date:a.date,name:'降雨',kind:'天氣',metrics:kinds});
       if(ctx.note)eventRows.push({date:a.date,name:ctx.note,kind:/停班|颱風|天氣/.test(ctx.note)?'停班':'事項',metrics:kinds});
+      if(!(ctx.campaigns||[]).length&&!(ctx.rainMm>0)&&!ctx.note&&kinds.length)eventRows.push({date:a.date,name:'未記錄原因',kind:'異常日',metrics:kinds});
     }
     const merged=mergeEvents(eventRows.filter(e=>e.date>=week.start&&e.date<=week.end));
-    const eventText=e=>`${e.kind}「${e.name}」（${md(e.start)}${e.end!==e.start?'–'+md(e.end):''}）`;
+    const eventText=e=>{const span=md(e.start)+(e.end!==e.start?'–'+md(e.end):'');
+      return e.kind==='異常日'?`異常日（${span}，未記錄天氣、優惠券或特殊事項）`:`${e.kind}「${e.name}」（${span}）`;};
     const ranked=(key,start)=>{
       const list=storeAt(start);
       if(['d7','d25','fa'].includes(key))return impact(list,key,{targets,independent,acOf}).stores.slice(0,3);
