@@ -84,7 +84,8 @@
   function renderScores(date,v){
     const p=period(),day=v.days.get(date),isDay=p==='day',s=v.summary;
     E('opsPeriodLabel').textContent='區域成績　'+periodTitle(date,p);
-    E('opsFileStatus').innerHTML=['ByDate','ByOrder'].map(type=>{const b=state.cache.batches.find(x=>x.report_date===date&&x.report_type===type);return '<div class="ops-file-card '+(b?'ready':'')+'"><b>'+type+'</b><span>'+date+'</span><strong>'+(b?'已匯入 '+fmt(b.row_count)+' 筆':'尚未匯入')+'</strong></div>';}).join('');
+    // 只顯示所選這天 ByDate／ByOrder 有沒有匯入（上傳統一在左下角「檔案上傳」）
+    E('opsFileStatus').innerHTML='<div class="ops-import-line"><b>'+date+' 匯入</b>'+['ByDate','ByOrder'].map(type=>{const b=state.cache.batches.some(x=>x.report_date===date&&x.report_type===type);return '<span class="ops-import-chip '+(b?'ok':'no')+'">'+type+' '+(b?'✓ 已匯入':'尚未匯入')+'</span>';}).join('')+'</div>';
     const areaRows=[...M.areasForDate(S.range(date,p).start),...(v.areas.has('?')?[['?','未分類']]:[])];
     const hasScores=[...v.days.values()].some(d=>d.tcSource);
     const cells=x=>'<td data-label="TC">'+(hasScores?fmt(x.tc):'—')+'</td><td data-label="FA">'+(hasScores?fmt(x.fa):'—')+'</td><td data-label="第三方佔比">'+pct(x.faShare)+'</td><td data-label="D7">'+pct(x.d7)+'</td><td data-label="D25">'+pct(x.d25)+'</td>';
@@ -241,7 +242,7 @@
       const weather=S.dates(r.start,r.end).flatMap(date=>M.BUSINESS.weatherCities.map(city=>{const x=weatherRow(date,city);return {日期:date,城市:city,測站:x?.station_name||'',測站代碼:x?.station_id||'',平均氣溫:x?.temperature??null,降雨毫米:x?.precipitation??null,微量降雨:x?.trace?'是':'否',觀測狀態:x?.status||'unavailable',來源:'https://codis.cwa.gov.tw/StationData',查詢時間:state.weather.get(date.slice(0,7))?.fetched_at||''};}));
       // 0800 A 項回覆（配餐人員／根源／行動）；回覆表未建立或讀取失敗時，分頁內寫明原因，不影響其他分頁
       {const H=['日期','店號','餐廳','項目','品項','顧客回饋內容','工作單號','發票號碼','回覆狀態','配餐人員','根源','行動','回覆時間'];let aRows;try{aRows=window.OpsAReplyAdmin?await window.OpsAReplyAdmin.exportRows(r):null;}catch(e){aRows=[{日期:'讀取失敗：'+(e.message||e)}];}
-        appendTable(wb,'A 項回饋',aRows===null?[{日期:'此版本沒有 A 項回覆功能'}]:aRows.length?aRows:[{日期:'這段期間沒有 0800 A 項客訴（或尚未匯入 0800 檔）'}],H);}
+        appendTable(wb,'A 項回饋',aRows===null?[{日期:'此中心尚未開通 A 項回饋'}]:aRows.length?aRows:[{日期:'這段期間沒有 0800 A 項客訴（或尚未匯入 0800 檔）'}],H);}
       appendTable(wb,'天氣觀測',weather,['日期','城市','測站','測站代碼','平均氣溫','降雨毫米','微量降雨','觀測狀態','來源','查詢時間']);
       XLSX.writeFile(wb,'營運'+({day:'日報',week:'週報',month:'月報'}[p])+'_'+r.start+(r.end===r.start?'':'_'+r.end)+'.xlsx');notify('已匯出成績、劃線簽名、等餐紀錄與 A 項回饋','summary');
     }catch(e){notify('匯出失敗：'+e.message,'summary');}finally{buttons.forEach(b=>b.disabled=false);}

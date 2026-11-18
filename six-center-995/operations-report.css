@@ -456,3 +456,13 @@ html[data-display-mode="dark"] #opsAList .ops-a-table .a-full{color:#c9c4bc}
 #opsAList .ops-a-table .a-reply b{display:block;min-width:0;margin:0;text-align:left}
 #opsAList .ops-a-table .a-reply div{grid-template-columns:4.2em minmax(0,1fr);align-items:baseline}
 @media(min-width:601px){#opsAList .ops-a-table .a-complaint{min-width:11em}#opsAList .ops-a-table .a-reply{min-width:13em}}
+/* 每日工時：上傳區移到左下角「檔案上傳」，這頁只留當天匯入狀態一列 */
+#opsScoresPanel .ops-upload-block,#opsScoresPanel .ui-import-history{display:none!important}
+#opsScoresPanel .ops-file-status{display:block;margin:8px 0 14px}
+.ops-import-line{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:14px}
+.ops-import-line b{font-weight:800}
+.ops-import-chip{display:inline-flex;align-items:center;padding:3px 12px;border-radius:99px;border:1px solid var(--line);font-size:13px;font-weight:700;white-space:nowrap}
+.ops-import-chip.ok{border-color:#94b9a4;background:#f3faf5;color:#356b4b}
+.ops-import-chip.no{border-color:#f0c6c0;background:#fff4f2;color:#b42318}
+html[data-display-mode="dark"] .ops-import-chip.ok{background:#1f3327;color:#8dd6a8;border-color:#3d6b4f}
+html[data-display-mode="dark"] .ops-import-chip.no{background:#3a2023;color:#f0a0a8;border-color:#6b3a40}
