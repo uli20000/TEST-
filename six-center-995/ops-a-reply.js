@@ -2,6 +2,12 @@
 (function(){
   'use strict';
   const E=id=>document.getElementById(id),escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // A 項回饋需要新版月份回覆連結（monthReplyGatewayReady）與 feedback_a_replies 表；未開通的中心不顯示入口
+  if(window.CENTER_CONFIG?.features?.monthReplyGatewayReady!==true){
+    const hide=()=>{document.querySelector('.ops-tab[data-ops-tab="a0800"]')?.remove();E('opsAPanel')?.remove();const h=document.querySelector('.ops-month-link-controls h3');if(h)h.textContent='等餐回覆連結';};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hide);else hide();
+    return;
+  }
   const isA=t=>window.FeedbackAReply?FeedbackAReply.isAItem(t):/^A(\s|$)/.test(String(t||'').trim());
   const state={rows:[],request:0,label:''};const returning=new Set();
   function enabled(){const f=window.CENTER_CONFIG?.features;return f?.monthReplyGatewayReady===true;}

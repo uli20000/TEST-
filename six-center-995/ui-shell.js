@@ -31,7 +31,7 @@
     {key:'survey',label:'意向調查',ic:'📋',btn:'surveyModeBtn',sub:true},
     {group:'設定'},
     {key:'analysis:targets',label:'目標值',ic:'⚙️',href:'analysis.html#tab=targets',sub:true}
-  ];
+  ].filter(n=>n.key!=='ops:a0800'||window.CENTER_CONFIG?.features?.monthReplyGatewayReady===true);
   const TITLES=Object.fromEntries(NAV.filter(n=>n.key).map(n=>[n.key,n.label]));
 
   // 版面：容器 > .ui-frame > [aside.ui-side, div.ui-main > (div.ui-top, div.ui-content > 原本內容)]

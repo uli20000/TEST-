@@ -153,3 +153,26 @@ html[data-display-mode=dark] .sf-tag.warn{background:transparent;color:#d29922}h
 }
 /* 計算口徑等說明小字不顯示（使用者 2026-11-18：自己要的功能不用另外說明用途） */
 .ins-explain{display:none!important}
+/* 週報 v3：單一閱讀順序、結論與收合附錄。 */
+.wk-doc h2,.wk-sec h3,.wk-conclusion>h3{text-align:center}
+.wk-conclusion{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.wk-field{display:block}.wk-field>b{justify-content:center}
+.wk-field textarea{display:block;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;
+  padding:10px;font:inherit;line-height:1.7;resize:vertical;background:var(--paper);color:var(--ink)}
+.wk-kpi{font-weight:700;text-align:center}
+.wk-promises{margin:12px 0 0;line-height:1.7;overflow-wrap:anywhere}
+.wk-control{display:flex;gap:10px;justify-content:center;align-items:center;margin:10px 0}
+.wk-control select{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+.wk-evidence{padding-left:22px;line-height:1.75;overflow-wrap:anywhere}
+.wk-action-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.wk-action-fields[hidden]{display:none}.wk-action-fields .wk-cands,.wk-action-fields .wk-prev{grid-column:1/-1}
+.wk-appendix{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
+.wk-appendix summary{font-weight:700;cursor:pointer;text-align:center}
+.wk-doc p{line-height:1.75;overflow-wrap:anywhere}
+html[data-display-mode="dark"] .wk-conclusion{border-color:var(--line);background:var(--bg)}
+@media(max-width:600px){
+  .wk-doc{padding:16px 12px}.wk-doc h2{font-size:19px}.wk-conclusion{padding:12px}
+  .wk-action-fields{grid-template-columns:minmax(0,1fr)}.wk-tools{justify-content:center}
+  .wk-tools .ins-link{flex:1 1 auto}.wk-status{flex-basis:100%;text-align:center}
+  .wk-kpi{font-size:14px}.wk-field textarea{min-width:0;font-size:16px}
+}
