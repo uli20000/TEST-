@@ -1290,7 +1290,7 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
 .ops-section{font-size:16px;line-height:1.65}.ops-section button,.ops-section input,.ops-section select,.ops-section textarea{font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",sans-serif!important;font-size:16px!important}.ops-section button{font-weight:800!important}.ops-section .ops-table{font-size:15px}.ops-section .ops-message,.ops-section .ops-empty{color:#49443e;font-size:14px;font-weight:600}
 @media(max-width:600px){.ops-section .ops-table{font-size:14px}.ops-section .ops-table th,.ops-section .ops-table td{padding:9px 7px}}
 </style>
-<link rel="stylesheet" href="operations-report.css?v=20261118-b7">
+<link rel="stylesheet" href="operations-report.css?v=20261118-b9">
 <link rel="stylesheet" href="display-mode.css?v=20261117-v3w">
 <link rel="stylesheet" href="ui-shell.css?v=20261118-b5">
 <link rel="stylesheet" href="upload-sidebar.css?v=20261117-v3w">
@@ -1403,10 +1403,10 @@ button,[role="button"],input[type="button"],input[type="submit"],input[type="res
       <div class="ops-upload-block"><h3>匯入當日成績</h3><div class="ops-score-upload"><label class="ops-score-file-button">選擇兩個 Excel<input id="opsScoreFiles" type="file" accept=".xlsx,.xls,.xlsm" multiple></label></div><div id="opsScorePreview" class="ops-table-wrap"></div><button id="opsScoreImport" type="button" class="action-btn primary" disabled>匯入當日成績</button><div id="opsRevisionReview" hidden><pre id="opsRevisionSummary" style="white-space:pre-wrap" role="status"></pre><button id="opsRevisionConfirm" type="button" class="action-btn primary">確認成對提交新版本</button><button id="opsRevisionCancel" type="button" class="action-btn">取消核對</button><p class="hint">舊版與原始檔保留。網路結果不明時請保持本頁，重試沿用原請求；不要重新整理。</p></div><div id="opsScoreMessage" class="ops-message" role="status"></div></div>
       <div id="opsFileStatus" class="ops-file-status"></div><h3 id="opsPeriodLabel">區域成績</h3>
       <div id="opsReportWarnings" class="ops-report-warnings" hidden></div>
-      <div id="opsAnalysisSummary"></div>
       <section class="ops-report-card"><h3>區域成績與工時</h3><div id="opsAnalysisTable"></div><div id="opsLaborAdjustments"></div></section><section class="ops-report-card"><h3 data-center-weather-title>天氣</h3><div id="opsWeather" aria-live="polite"></div></section><section class="ops-report-card"><h3>每日成績</h3><div id="opsDayList" class="ops-table-wrap"></div></section>
       <div id="opsReportStatus" class="ops-report-status" role="status"></div>
       <details class="ops-month-fold"><summary>各區每日／整月工時</summary><div id="opsMonthHours"></div></details>
+      <div id="opsAnalysisSummary"></div>
     </div>
     <div id="opsSummaryPanel" class="ops-panel" hidden>
       <div id="opsSummaryWarnings" class="ops-report-warnings" hidden></div>
@@ -6349,7 +6349,7 @@ async function opsArchiveScoreSourceFiles(pair){
 <script src="operations-forecast.js?v=20261114-v2w"></script>
 <script src="operations-metrics.js?v=20261117-v3u"></script>
 <script src="operations-summary.js?v=20261113-v2q"></script>
-<script src="operations-report.js?v=20261118-b7"></script>
+<script src="operations-report.js?v=20261118-b8"></script>
 <script src="ops-a-reply.js?v=20261118-b6"></script><script src="operations-entry.js?v=20261117-a1"></script>
 <script src="ui-shell.js?v=20261118-b6"></script>
 <script src="kpi-settings.js?v=20261113-v2q"></script>
