@@ -63,7 +63,7 @@
   function waitHtml(o){
     const max=Math.max(0,...o.acWait.map(x=>x.count));
     return (o.acWait.length?o.acWait.map(x=>bar(x.name,x.count,max,x.count+' 筆'+(x.pending?'（待回覆 '+x.pending+'）':''),'red')).join(''):empty('沒有 AC 設定'))+
-      '<h3>等餐最多的餐廳</h3>'+(top3(o.delayTop,x=>x.count+' 筆',x=>(x.ac?x.ac+'｜':'')+'待回覆 '+x.pending)||empty(period==='day'?'這天沒有等餐紀錄':'這段期間沒有等餐紀錄'))+(o.delayTiedOthers?'<p class="uo-note">另有 '+o.delayTiedOthers+' 家同筆數並列</p>':'');
+      '<h3>等餐最多的餐廳'+(o.delayTiedOthers?'<small class="uo-tie">（另有 '+o.delayTiedOthers+' 家同筆數並列）</small>':'')+'</h3>'+(top3(o.delayTop,x=>x.count+' 筆',x=>(x.ac?x.ac+'｜':'')+'待回覆 '+x.pending)||empty(period==='day'?'這天沒有等餐紀錄':'這段期間沒有等餐紀錄'));
   }
   function renderWait(o){E('uoWait').innerHTML=waitHtml(o);}
   function lineHtml(o){
@@ -92,8 +92,8 @@
   function pendCard(rows,monthStart,o){
     if(!rows.length)return okBox(o.zero);
     const r=rankByAc(rows,monthStart);
-    return bigNum(rows.length,'筆',o.unit)+acBars(r.acs)+(r.other?'<p class="uo-note">另有 '+r.other+' 筆不在 AC 負責範圍（店號未對到）</p>':'')+
-      '<h3>待回饋最多的餐廳</h3>'+top3(r.top,x=>x.rows.length+' 筆',o.sub)+(r.tied?'<p class="uo-note">另有 '+r.tied+' 家同筆數並列</p>':'')+link(o.go,o.goText);
+    return '<div class="uo-split"><div>'+bigNum(rows.length,'筆',o.unit)+acBars(r.acs)+(r.other?'<p class="uo-note">另有 '+r.other+' 筆不在 AC 負責範圍（店號未對到）</p>':'')+'</div>'+
+      '<div><h3>待回饋最多的餐廳</h3>'+top3(r.top,x=>x.rows.length+' 筆',o.sub)+(r.tied?'<p class="uo-note">另有 '+r.tied+' 家同筆數並列</p>':'')+link(o.go,o.goText)+'</div></div>';
   }
   async function loadPendingVehicles(){
     const vr=await db.from('vehicles').select('id,plate4').eq('active',true);if(vr.error)throw vr.error;

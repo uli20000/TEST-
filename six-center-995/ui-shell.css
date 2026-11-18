@@ -216,3 +216,29 @@ html[data-display-mode=dark] .scope-note{background:#3A2F14;color:#E3B341}
 @media (min-width:1101px){#uiOverviewPage .uo-grid3.uo-day{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}}
 #uiOverviewPage .uo-day .uo-bar-row{grid-template-columns:64px 1fr auto;gap:8px;font-size:13px}
 #uiOverviewPage .uo-day .uo-card{padding:16px}
+/* 總覽一頁截圖：電腦版 6 個成績＋5 張卡片放在同一畫面；卡片固定高度，車輛卡片內容可上下滑 */
+@media (min-width:1101px){
+ #uiOverviewPage .uo-head{margin-bottom:8px}#uiOverviewPage .uo-head h1{font-size:20px;margin:0 0 6px}
+ #uiOverviewPage .uo-kpis{gap:10px;margin-bottom:10px}
+ #uiOverviewPage .uo-kpi{padding:8px 6px}#uiOverviewPage .uo-kpi b{font-size:24px;margin:2px 0}#uiOverviewPage .uo-kpi em{font-size:11px}#uiOverviewPage .uo-kpi.na b{line-height:30px;font-size:16px}
+ #uiOverviewPage .uo-pend-head{margin:2px 0 6px}#uiOverviewPage .uo-pend-head h2{font-size:15px}#uiOverviewPage .uo-pend-head small{font-size:12px}
+ #uiOverviewPage .uo-grid3.uo-day,#uiOverviewPage .uo-grid2.uo-pend{gap:12px;margin-bottom:10px;align-items:stretch}
+ #uiOverviewPage .uo-pend .uo-card{height:248px;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column}
+ #uiOverviewPage .uo-pend .uo-card>h2{font-size:15px;margin:0 0 6px;flex:none}
+ #uiOverviewPage .uo-pend .uo-card>div{flex:1;min-height:0;overflow:hidden}
+ #uiOverviewPage .uo-pend #uoPendVehicle{overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+ #uiOverviewPage .uo-pend .uo-bar-row{padding:1px 0;font-size:12px;gap:6px}
+ #uiOverviewPage .uo-pend .uo-bar{height:8px}
+ #uiOverviewPage .uo-pend .uo-card h3{margin:6px 0 2px;font-size:12px}
+ #uiOverviewPage .uo-pend .uo-top li{padding:3px 0;gap:0 8px}#uiOverviewPage .uo-pend .uo-top b{font-size:13px;font-weight:700}#uiOverviewPage .uo-pend .uo-top small{font-size:11px}#uiOverviewPage .uo-pend .uo-top em{font-size:13px}
+ #uiOverviewPage .uo-pend .uo-note,#uiOverviewPage .uo-pend .uo-empty{margin:2px 0;font-size:11px}
+ #uiOverviewPage .uo-pend .uo-pend-big{margin:0 0 4px}#uiOverviewPage .uo-pend .uo-pend-big b{font-size:22px}#uiOverviewPage .uo-pend .uo-pend-big span{font-size:12px}
+ #uiOverviewPage .uo-pend .uo-pend-go{margin:4px auto 0;font-size:13px}
+ #uiOverviewPage .uo-pend .uo-pend-zero{margin:8px 0}
+ #uiOverviewPage .uo-foot{margin:4px 0 0;font-size:11px}
+}
+@media (min-width:1101px){#uiOverviewPage .uo-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;height:100%}#uiOverviewPage .uo-split h3:first-child{margin-top:0}}
+@media (min-width:1101px){#uiOverviewPage .uo-day .uo-card{height:274px}#uiOverviewPage .uo-grid2.uo-pend .uo-card{height:222px}}
+@media (min-width:1101px){#uiOverviewPage .uo-day .uo-card{height:288px}#uiOverviewPage .uo-grid2.uo-pend .uo-card{height:212px}#uiOverviewPage .uo-pend .uo-pend-go{margin-top:2px}}
+.uo-tie{font-weight:500;color:var(--ui-faint);margin-left:4px}
+@media (min-width:1101px){#uiOverviewPage .uo-pend .uo-card{position:relative}#uiOverviewPage .uo-pend .uo-pend-go{position:absolute;top:11px;right:14px;margin:0;font-size:12px}}
