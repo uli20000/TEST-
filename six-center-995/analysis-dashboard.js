@@ -490,31 +490,28 @@
       '</div></div>';
   }
   // 週報草稿：照每週提交格式（KPI 四項＋當週發現與行動＋GES／080／4128）。
-  // 編輯模式：發現問題、證據自動；根源（附候選）、行動自己填；整份一次儲存。存過的週直接顯示檢視模式（只有「複製全部」「編輯」）。
+  // 系統產生結論和證據，使用者填根源與行動。存過的週顯示儲存快照。
   const BIG_ORDER_MIN=3000;
   function weeklyInputs(ctx,week){
     const prevStart=M.addDays(week.start,-7),prev={start:prevStart,end:M.addDays(prevStart,6)};
-    const inScope=o=>M.storeInScope(o.code,o.date,o.name);
-    let orders=[],prevOrders=[];try{orders=analysisOrders(ctx.data,week).filter(inScope);prevOrders=analysisOrders(ctx.data,prev).filter(inScope);}catch(e){}
-    // 熱圖最差時段（外送時段內）
-    const dh=M.BUSINESS.deliveryHours||{start:'10:30',end:'22:30'},toMin=t=>{const [a,b]=String(t).split(':').map(Number);return a*60+(b||0);},s0=toMin(dh.start),s1=toMin(dh.end);
-    const minuteOf=ms=>ms===null||ms===undefined||!Number.isFinite(ms)?null:Math.floor((ms+8*3600000)/60000)%1440;
-    const inHours=orders.filter(o=>{const m=minuteOf(o.moment);return m!==null&&m>=s0&&m<=s1;}).map(o=>({date:o.date,hour:hourOf(o.moment),code:o.code,fa:o.fa,d7:o.d7,d25:o.d25,wait:o.wait}));
-    const hourList=[];for(let h=Math.floor(s0/60);h<=Math.floor(s1/60);h++)hourList.push(h);
-    const slots={};for(const k of ['d7','d25','fa']){try{const hm=I.heatmap(inHours,k,{independent:ctx.independent,hourList}),w=hm.worst[0];if(w)slots[k]={weekday:w.weekday,hour:w.hour,value:w.value,overall:hm.overall};}catch(e){}}
-    // D7 未達成的集中單（同店 30 分鐘內 6 張以上）
-    const cl=new Map();for(const o of orders)if(o.cluster&&!o.fa&&o.d7==='N'&&!ctx.independent.has(o.code))cl.set(o.name,(cl.get(o.name)||0)+1);
-    const clusters=[...cl].map(([name,n])=>({name,n}));
+    const span=ctx.span||{start:prevStart,end:week.end};
+    const inScope=o=>M.storeInScope(o.code,o.date,o.name),forWeek=w=>o=>o.date>=w.start&&o.date<=w.end;
+    let allOrders=[];
+    try{allOrders=analysisOrders(ctx.data,span).filter(inScope).map(o=>({...o,hour:hourOf(o.moment)}));}catch(e){}
+    const orders=allOrders.filter(forWeek(week)),prevOrders=allOrders.filter(forWeek(prev));
     // 大單：餐點金額門檻以上，本週對上週
     const amt=o=>Number(String((o.raw||{})['餐點金額']??'').replace(/,/g,''));
     const big=list=>{const by=new Map();let n=0,amount=0;for(const o of list){const a=amt(o);if(!Number.isFinite(a)||a<BIG_ORDER_MIN)continue;n++;amount+=a;by.set(o.name,(by.get(o.name)||0)+1);}return {n,amount,by};};
     const bn=big(orders),bp=big(prevOrders),names=new Set([...bn.by.keys(),...bp.by.keys()]);
     const bigOrders=orders.length||prevOrders.length?{min:BIG_ORDER_MIN,now:{n:bn.n,amount:bn.amount},prev:{n:bp.n,amount:bp.amount},stores:[...names].map(name=>({name,now:bn.by.get(name)||0,prev:bp.by.get(name)||0}))}:null;
-    // 每日 TC 對去年同期
+    // 附錄沿用成績共用口徑。
     const daily=S.dates(week.start,week.end).map(date=>{
-      try{const summary=model(ctx.data,{start:date,end:date}).summary;
-        return {date,sstg:summary.sstg??null,tc:summary.tc??null,d25:summary.d25??null,fa:summary.faShare??null};
-      }catch(e){return {date,sstg:null,tc:null,d25:null,fa:null};}
+      const missing={date,tc:null,d25:null,fa:null};
+      try{
+        const {summary,days}=model(ctx.data,{start:date,end:date}),day=days.get(date);
+        if(!day?.tcSource||day.scoreExcluded)return missing;
+        return {date,tc:summary.tc??null,d25:summary.d25??null,fa:summary.faShare??null};
+      }catch(e){return missing;}
     });
     // GES／080／4128
     const fbAll=ctx.data.feedback||[];
@@ -527,9 +524,21 @@
       return {c0800,c4128,ges:g,aItems,stores:[...st].map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n)};};
     const fn=fbOf(week),fp=fbOf(prev),hasFb=x=>Object.keys(x.c0800).length||Object.keys(x.c4128).length||x.ges;
     const feedback=hasFb(fn)||hasFb(fp)?{now:fn,prev:hasFb(fp)?fp:{}}:null;
-    const span=ctx.span||{start:prevStart,end:week.end};
-    let allOrders=[];try{allOrders=analysisOrders(ctx.data,span).filter(inScope).map(o=>({...o,hour:hourOf(o.moment)}));}catch(e){}
     const scoreDates=[...model(ctx.data,span).days.values()].filter(d=>d.tcSource&&!d.scoreExcluded).map(d=>d.date);
+    const weekStores=storeAnalytics(ctx.data,week),hasPrior=weekStores.some(s=>s.priorN>0);
+    const newStores=new Set(weekStores.filter(s=>s.tc>0&&(
+      window.OpsForecast.isNewStore(s.code,week.end,s.name)||(hasPrior&&s.activeDays>0&&s.priorN===0)
+    )).map(s=>s.code||s.name));
+    const sstgStores=w=>(w.start===week.start?weekStores:storeAnalytics(ctx.data,w)).map(s=>({code:s.code,name:s.name,value:s.sstg}));
+    const storeDays=new Map(dailyStoreAnalytics(ctx.data,week).map(s=>[s.key,s]));
+    const storeSstgDay=c=>{
+      const s=storeDays.get(c.date+'|'+(c.code||M.clean(c.name)));
+      return s?.prior>0&&!window.OpsForecast.isNewStore(c.code,c.date,c.name)?s.tc/s.prior-1:null;
+    };
+    const storeContext=c=>{
+      const weather=weatherRow(c.date,cityForStore(c.code,c.area));
+      return {rainMm:Number(weather?.precipitation),trace:weather?.trace,campaigns:ctx.context(c.date).campaigns};
+    };
     const events=[];
     for(const date of S.dates(week.start,week.end)){
       const c=ctx.context(date);
@@ -537,7 +546,8 @@
       if(c.rainMm>0)events.push({date,name:'降雨',kind:'天氣'});
       if(c.note)events.push({date,name:c.note,kind:/停班|颱風|天氣/.test(c.note)?'停班':'事項'});
     }
-    return {slots,clusters,bigOrders,daily,feedback,delays:ctx.data.delays,orders:allOrders,scoreDates,events};
+    return {bigOrders,daily,feedback,feedbackRows:fbAll,newStores,delays:ctx.data.delays,orders:allOrders,
+      scoreDates,events,sstgStores,storeSstgDay,storeContext};
   }
   function weeklyTitle(week){return M.BUSINESS.centerName?('T'+M.BUSINESS.center+' 營運週報｜'+week.label+'（'+week.start.slice(5).replace('-','/')+'–'+week.end.slice(5).replace('-','/')+'）'):'營運週報｜'+week.label;}
   // 存過的週：發現問題、證據用當時存下的文字，複製內容和儲存時一致
@@ -553,7 +563,7 @@
     else{
       fills.conclusion={issue:draft.conclusion.text};
       for(const s of draft.sections){const n=s.note||{};
-        fills[s.key]={root_cause:n.root_cause||'',action_plan:n.action_plan||'',control:s.legacy?undefined:s.control,reason:s.reason};
+        fills[s.key]={root_cause:n.root_cause||'',action_plan:n.action_plan||''};
       }
     }
     return fills;
@@ -564,10 +574,11 @@
     const week={...S.range(r.start,'week'),label:S.weekLabel(r.start)},weeks=ctx.weeks;
     const sssg=weeks.map(w=>{const x=weeklySales.find(y=>y.start===w.start);return x?{value:x.value,stores:x.stores||[]}:null;});
     const anomalyList=I.anomalies({cells:ctx.cells,dates:S.dates(r.start,r.end),excluded:ctx.excluded,
-      independent:ctx.independent,context:ctx.context,tcThreshold:rules().anomalyTc,rateThreshold:rules().anomalyRate,inScope:M.storeInScope});
+      independent:ctx.independent,context:ctx.context,tcThreshold:rules().anomalyTc,rateThreshold:rules().anomalyRate,
+      inScope:M.storeInScope,minOrders:I.WEEKLY_MIN_ORDERS});
     const sum=ctx.weekSummary(week),hoursDays=sum?7-(sum.missingHourDays||[]).filter(d=>d>=r.start&&d<=r.end).length:null;
     const raw=I.weeklyDraft({week,weeks,cells:ctx.cells,targets,independent:ctx.independent,excluded:ctx.excluded,
-      acOf:ctx.acOf,weekSummary:ctx.weekSummary,anomalyList,notes:ctx.data.weeklyNotes||[],dataDays:{hours:hoursDays},
+      weekSummary:ctx.weekSummary,anomalyList,notes:ctx.data.weeklyNotes||[],dataDays:{hours:hoursDays},
       inScope:M.storeInScope,sssg,actions:ctx.weeklyActions,...weeklyInputs(ctx,week)});
     const draft=state.weeklyRegenerate===r.start?raw:weeklyView(raw);state.weeklyDraft=draft;
     const title=weeklyTitle(week),editing=state.weeklyEdit===week.start||!weeklySaved(draft);
@@ -589,30 +600,38 @@
       '<br><b>本週數字：</b>'+escape(sec.followup.compare.join('；'))+'</div>':'';
     const sections=draft.sections.map((sec,i)=>{
       const n=sec.note||{},heading=(I.CN[i]||i+1)+'、'+sec.label;
+      const savedField=(label,value)=>'<p class="wk-pre">'+label+'：'+escape(value||'（待填）')+'</p>';
+      const savedFields=showEmpty=>(showEmpty||n.root_cause?savedField('根源',n.root_cause):'')+
+        (showEmpty||n.action_plan?savedField('行動（負責人／完成日）',n.action_plan):'');
+      if(sec.compact)return '<section class="wk-sec wk-compact"><h3>'+escape(heading+'　'+sec.issue.replace(/\n/g,'｜'))+
+        '</h3>'+savedFields(false)+'</section>';
       const header='<h3>'+escape(heading)+'</h3><p class="wk-pre wk-kpi">'+escape(sec.issue)+'</p>'+
         (sec.key==='feedback'&&sec.diff?'<p class="wk-pre">'+escape(sec.diff)+'</p>':'');
-      const evidence=sec.evidence.length?'<ul class="wk-evidence">'+sec.evidence.map(e=>'<li>'+escape(e.text)+'</li>').join('')+'</ul>':'';
-      const control=sec.control?'<label class="wk-control">狀態<select name="control" data-key="'+sec.key+'" data-wk-control="'+sec.key+'">'+
-        '<option value="controllable"'+(sec.control==='controllable'?' selected':'')+'>可控</option>'+
-        '<option value="uncontrollable"'+(sec.control==='uncontrollable'?' selected':'')+'>不可控</option></select></label>':'';
-      const reason=sec.reason?editing?field(sec.key,'reason','原因',sec.reason,2):
-        '<p class="wk-pre">原因：'+escape(sec.reason)+'</p>':'';
-      const candidates=(sec.candidates||[]).map(c=>'<button type="button" class="wk-cand" data-wk-cand="'+escape(c)+
-        '" data-key="'+sec.key+'">'+escape(c)+'</button>').join('');
-      const actionable=I.weeklyNeedsAction(sec)&&!(sec.key==='findings'&&sec.issue==='無'&&!n.root_cause&&!n.action_plan),noAction=sec.control==='uncontrollable'&&sec.met;
-      const form=editing?'<div class="wk-action-fields" data-wk-fields="'+sec.key+'"'+(actionable?'':' hidden')+'>'+
-        follow(sec)+(candidates?'<div class="wk-cands">'+candidates+'</div>':'')+field(sec.key,'root_cause','根源',n.root_cause)+
-        field(sec.key,'action_plan','行動（負責人／完成日）',n.action_plan)+'</div>':
-        actionable?'<p class="wk-pre">根源：'+escape(n.root_cause||'（待填）')+'</p><p class="wk-pre">行動（負責人／完成日）：'+
-          escape(n.action_plan||'（待填）')+'</p>'+follow(sec):'';
-      const stateHtml=editing?control:sec.control?'<p>'+(sec.control==='uncontrollable'?'不可控':'可控')+'</p>':'';
-      return '<section class="wk-sec">'+header+stateHtml+reason+evidence+
-        '<p data-wk-no-action="'+sec.key+'"'+(noAction?'':' hidden')+'>無需行動</p>'+form+'</section>';
+      const actionable=I.weeklyNeedsAction(sec);
+      const systemReason=text=>editing&&actionable?'<button type="button" class="wk-reason" data-wk-reason="'+escape(text)+
+        '" data-key="'+sec.key+'">'+escape(text)+'</button>':escape(text);
+      const evidenceItem=e=>{
+        const details=e.details?.length?'<ul aria-label="可能原因">'+
+          e.details.map(text=>'<li>'+systemReason(text)+'</li>').join('')+'</ul>':'';
+        return /^[①②③] /.test(e.text)||details?'<li class="wk-store"><b>'+escape(e.text)+'</b>'+details+'</li>':
+          '<li>'+escape(e.text)+'</li>';
+      };
+      const evidence=sec.evidence.length?'<ul class="wk-evidence">'+sec.evidence.map(evidenceItem).join('')+'</ul>':'';
+      const reason=sec.reason?'<p class="wk-pre">原因：'+
+        (sec.reason===I.WEEKLY_NO_REASON?escape(sec.reason):systemReason(sec.reason))+'</p>':'';
+      const suggestion=sec.suggestion?'<p>可能原因：'+systemReason(sec.suggestion)+'</p>':'';
+      const form=editing&&actionable?'<div class="wk-action-fields">'+follow(sec)+field(sec.key,'root_cause','根源',n.root_cause,2)+
+        field(sec.key,'action_plan','行動（負責人／完成日）',n.action_plan,2)+'</div>':
+        savedFields(actionable)+(actionable?follow(sec):'');
+      return '<section class="wk-sec">'+header+reason+suggestion+evidence+form+'</section>';
     }).join('');
     const conclusion=editing?field('conclusion','issue','【結論】',draft.conclusion.text,6):
       '<h3>【結論】</h3><p class="wk-pre">'+escape(draft.conclusion.text)+'</p>';
-    const article='<article class="wk-doc"><h2>'+escape(title)+'</h2>'+missingHtml+'<section class="wk-conclusion">'+conclusion+
-      '<p class="wk-promises">'+escape(draft.commitments.text)+'</p></section>'+sections+appendix+'</article>';
+    const urgent=draft.urgent.length?'<section class="wk-urgent"><h3>⚠ 需立即處理</h3><ul>'+
+      draft.urgent.map(line=>'<li>'+escape(line)+'</li>').join('')+'</ul></section>':'';
+    const article='<article class="wk-doc"><h2>'+escape(title)+'</h2><section class="wk-conclusion">'+conclusion+urgent+
+      '<p class="wk-promises">'+escape(draft.commitments.text)+'</p></section>'+missingHtml+
+      '<div class="wk-sections">'+sections+'</div>'+appendix+'</article>';
     return tools+(editing?'<form id="wkForm">'+article+'</form><div class="wk-tools wk-bottom">'+save+'</div>':article);
   }
   async function saveWeekly(box,r){
@@ -620,13 +639,15 @@
     if(user.error)throw user.error;
     const base={week_start:r.start,updated_by:user.data.user?.id||null,updated_at:now};
     const rows=draft.sections.map(s=>{
-      const n=s.note||{},f=fills[s.key]||{},oldMeta=I.weeklyMeta(n),meta={v:3,reason:f.reason??s.reason,control:f.control||s.control,
-        problem:s.problem,met:s.met,judged:s.judged,followup:s.followup,diff:s.diff,legacy:oldMeta?oldMeta.legacy||'':n.last_week_followup||''};
-      return {...base,metric_key:s.key,issue:s.issue,evidence:s.evidence.map(e=>e.text).join('\n'),
-        root_cause:f.root_cause||'',action_plan:f.action_plan||'',last_week_followup:JSON.stringify(meta)};
+      const n=s.note||{},f=fills[s.key]||{},oldMeta=I.weeklyMeta(n),meta={v:3,reason:s.reason,control:s.control,
+        problem:s.problem,met:s.met,judged:s.judged,compact:s.compact,suggestion:s.suggestion,followup:s.followup,diff:s.diff,
+        legacy:oldMeta?oldMeta.legacy||'':n.last_week_followup||''};
+      return {...base,metric_key:s.key,issue:s.issue,evidence:I.weeklyEvidenceLines(s.evidence).join('\n'),
+        root_cause:f.root_cause??n.root_cause??'',action_plan:f.action_plan??n.action_plan??'',last_week_followup:JSON.stringify(meta)};
     });
-    rows.push({...base,metric_key:'conclusion',issue:fills.conclusion?.issue??draft.conclusion.text,evidence:'',root_cause:'',action_plan:'',
-      last_week_followup:JSON.stringify({v:3,appendix:draft.appendix,commitments:{text:draft.commitments.text}})});
+    rows.push({...base,metric_key:'conclusion',issue:fills.conclusion?.issue??draft.conclusion.text,
+      evidence:draft.urgent.join('\n'),root_cause:'',action_plan:'',
+      last_week_followup:JSON.stringify({v:3,urgentSaved:true,appendix:draft.appendix,commitments:{text:draft.commitments.text}})});
     for(const row of rows)for(const key of ['issue','evidence','root_cause','action_plan','last_week_followup']){
       if(row[key].length>4000)throw new Error('週報內容超過儲存長度，請精簡後再儲存');
     }
@@ -642,11 +663,15 @@
     const ex=await db.from('t995_action_items').select('id,metric_key,action').eq('week_start',next)
       .is('store_code',null).eq('owner','週報').eq('archived',false);
     if(ex.error)throw ex.error;
-    for(const old of (ex.data||[]).filter(x=>x.metric_key==='tplh')){
-      const u=await db.from('t995_action_items').update({archived:true}).eq('id',old.id);if(u.error)throw u.error;
-    }
+    let preserveLegacyTplh=false;
     for(const s of kpi){
-      const f=fills[s.key]||{},action=I.weeklyNeedsAction(s,f)?String(f.action_plan||'').trim().slice(0,500):'';
+      const f=fills[s.key]||{};
+      const actionable=I.weeklyNeedsAction(s);
+      if(!actionable&&s.note?.action_plan){
+        if(s.key==='fa')preserveLegacyTplh=true;
+        continue;
+      }
+      const action=actionable?String(f.action_plan??s.note?.action_plan??'').trim().slice(0,500):'';
       const old=(ex.data||[]).find(x=>x.metric_key===s.key);
       if(!action){
         if(old){const u=await db.from('t995_action_items').update({archived:true}).eq('id',old.id);if(u.error)throw u.error;}
@@ -659,6 +684,9 @@
           target_label:'中心（週報 '+S.weekLabel(r.start)+'）',action,metric_key:s.key,owner:'週報'});
         if(ins.error)throw ins.error;
       }
+    }
+    if(!preserveLegacyTplh)for(const old of (ex.data||[]).filter(x=>x.metric_key==='tplh')){
+      const u=await db.from('t995_action_items').update({archived:true}).eq('id',old.id);if(u.error)throw u.error;
     }
     state.actions=null;
   }
@@ -675,7 +703,18 @@
       if(t.dataset.wk==='regen'){state.weeklyEdit=r.start;state.weeklyRegenerate=r.start;loadReport(true);return;}
       if(t.dataset.wk==='print'){window.print();return;}
       if(t.dataset.addAction){state.actionPrefill={metric:t.dataset.addAction,store:t.dataset.store||''};state.metric='actions';syncMetricTab();renderMetric(state.data,state.previous,range());window.scrollTo({top:0,behavior:'smooth'});return;}
-      if(t.dataset.wkCand!==undefined){const ta=box.querySelector('#wkForm textarea[name="root_cause"][data-key="'+t.dataset.key+'"]');if(ta){const v=t.dataset.wkCand;if(!ta.value.includes(v))ta.value=(ta.value.trim()?ta.value.replace(/\s+$/,'')+'\n':'')+v;ta.dispatchEvent(new Event('input',{bubbles:true}));ta.focus();}return;}
+      if(t.dataset.wkReason!==undefined){
+        const ta=box.querySelector('#wkForm textarea[name="root_cause"][data-key="'+t.dataset.key+'"]');
+        if(ta){
+          const reason=t.dataset.wkReason,lines=ta.value.trimEnd().split('\n').filter(Boolean);
+          if(!lines.includes(reason)){
+            ta.value=[...lines,reason].join('\n');
+            ta.dispatchEvent(new Event('input',{bubbles:true}));
+          }
+          ta.focus();
+        }
+        return;
+      }
       if(t.dataset.wk==='edit'){state.weeklyEdit=r.start;renderMetric(state.data,state.previous,range());return;}
       if(t.dataset.wk==='cancel'){state.weeklyEdit=null;state.weeklyRegenerate=null;renderMetric(state.data,state.previous,range());return;}
       if(t.dataset.wk==='copy'){
@@ -685,12 +724,6 @@
       }
     };
     const wkForm=box.querySelector('#wkForm');
-    if(wkForm)wkForm.onchange=event=>{
-      const t=event.target;if(!t.matches('[data-wk-control]'))return;
-      const sec=state.weeklyDraft.sections.find(s=>s.key===t.dataset.key);if(!sec)return;
-      box.querySelector('[data-wk-fields="'+sec.key+'"]').hidden=!I.weeklyNeedsAction(sec,{control:t.value});
-      box.querySelector('[data-wk-no-action="'+sec.key+'"]').hidden=!(t.value==='uncontrollable'&&sec.met);
-    };
     if(wkForm)wkForm.onsubmit=async event=>{
       event.preventDefault();const status=$('wkToolStatus'),buttons=[...box.querySelectorAll('button[form="wkForm"]')];
       buttons.forEach(b=>b.disabled=true);status.textContent='儲存中…';
