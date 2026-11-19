@@ -1,6 +1,5 @@
 /* 儀表板 v2｜B 組（預警、影響度排名、週報草稿）。顏色沿用 analysis.html 的變數，夜間模式跟著切換。 */
-.metric-upload-row{grid-template-columns:repeat(8,minmax(0,1fr))}
-@media(max-width:1100px){.metric-upload-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.metric-upload-row{grid-template-columns:repeat(5,minmax(0,1fr))}
 .ins-lead{margin:0;color:var(--muted);text-align:left;font-size:15px}
 .ins-foot{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.7;text-align:left;font-weight:500}
 .ins-panel h3,.ins-grid2 h3,.ins-quote h3{text-align:left;display:flex;align-items:center;gap:8px}
@@ -17,6 +16,10 @@
 .ins-mtabs{display:flex;gap:8px;flex-wrap:wrap}
 .ins-mtabs button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 18px;font-weight:800;cursor:pointer}
 .ins-mtabs button.active{background:var(--red);border-color:var(--red);color:#fff}
+.ins-impact{display:grid;grid-template-columns:minmax(0,1fr);gap:inherit;scroll-margin-top:calc(var(--ui-top-h,0px) + 16px)}
+.ins-impact>h3{margin:0;text-align:center}
+.ins-impact .ins-mtabs{justify-content:center}
+.ins-impact .ins-mtabs button{min-width:72px}
 .ins-head{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .ins-head:has(> :nth-child(3):last-child){grid-template-columns:repeat(3,minmax(0,1fr))}
 .ins-m{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left}
@@ -116,9 +119,6 @@ tr.ins-after td{color:var(--muted);font-weight:500}
 .dr-heat td{text-align:center;font-variant-numeric:tabular-nums;font-size:13px;padding:6px 2px;border:1px solid var(--paper)}
 .dr-heat th{font-size:12.5px;text-align:center}
 @media print{.dr-metrics,.dr-crumbs button{display:none!important}}
-/* 11 個分頁：上排 5 個成績頁、下排 6 個分析頁 */
-@media(min-width:1101px){.metric-upload-row{grid-template-columns:repeat(35,minmax(0,1fr))}.metric-upload-row .metric-tabs button:nth-child(-n+5){grid-column:span 7}.metric-upload-row .metric-tabs button:nth-child(n+6){grid-column:span 5}}
-@media(max-width:1100px){.metric-upload-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
 /* 儀表板 v2｜C5 排班與成績對照、C6 派單時間 */
 .sf-table td,.sf-table th{white-space:nowrap}
@@ -190,4 +190,11 @@ html[data-display-mode="dark"] .wk-reason{color:#9cc2ff}
   .wk-action-fields{grid-template-columns:minmax(0,1fr)}.wk-tools{justify-content:center}
   .wk-tools .ins-link{flex:1 1 auto}.wk-status{flex-basis:100%;text-align:center}
   .wk-kpi{font-size:14px}.wk-field textarea{min-width:0;font-size:16px}
+}
+
+/* 手機：分析分頁改成一行左右滑，不再佔滿整個畫面 */
+@media (max-width:600px){
+  .metric-upload-row{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .metric-upload-row::-webkit-scrollbar{display:none}
+  .metric-upload-row .metric-tabs button,.metric-upload-row .bi-upload-button{flex:0 0 auto;width:auto;min-height:40px;padding:6px 12px;font-size:14px;white-space:nowrap;scroll-snap-align:start}
 }
