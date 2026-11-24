@@ -552,6 +552,10 @@
         return '<line x1="75" y1="'+at+'" x2="875" y2="'+at+'" stroke="#dedede"/>'+
           '<text x="65" y="'+(at+4)+'" text-anchor="end" fill="#666">'+escape(value)+'</text>';
       }).join('');
+      // GES 三條線：每一期依點的高低排，最高的數字標上方，其餘依序標在下方並錯開，不互相重疊
+      const labelY=new Map();
+      if(gesChart)computed.forEach((_,i)=>{const pts=series.map((items,j)=>({j,v:items.values[i]?.[1]})).filter(p=>Number.isFinite(p.v)).map(p=>({...p,py:y(p.v)})).sort((a,b)=>a.py-b.py);
+        let last=-Infinity;pts.forEach((p,k)=>{let ly=k===0?p.py-9:Math.max(p.py+17,last+14);if(k>0&&k===pts.length-1&&ly>200)ly=200;labelY.set(p.j+'|'+i,ly);last=k===0?p.py:ly;});});
       const lines=series.map((items,j)=>{
         let prev=null,parts='';
         for(const [i,item] of items.values.entries()){
@@ -560,7 +564,7 @@
           const py=y(value);
           if(prev)parts+='<line x1="'+prev.x+'" y1="'+prev.y+'" x2="'+x+'" y2="'+py+'" stroke="'+colors[j]+'" stroke-width="2.5"/>';
           parts+='<circle cx="'+x+'" cy="'+py+'" r="4" fill="'+colors[j]+'"/>'+
-            '<text x="'+x+'" y="'+(gesChart?(j?py+17:py-9):py-9-j*13)+'" text-anchor="middle" fill="#555">'+escape(compareValue(value,null,item[2]))+'</text>';
+            '<text x="'+x+'" y="'+(gesChart?labelY.get(j+'|'+i):py-9-j*13)+'" text-anchor="middle" fill="#555"'+(gesChart?' style="paint-order:stroke;stroke:#fff;stroke-width:4px"':'')+'>'+escape(compareValue(value,null,item[2]))+'</text>';
           prev={x,y:py};
         }
         return parts;
