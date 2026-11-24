@@ -310,14 +310,14 @@
   // 成績或 TC 匯入後清掉總覽的月／日快取，回總覽時重讀
   function invalidate(){state.gen=(state.gen||0)+1;state.monthCache.clear();state.dayCache.clear();state.monthLoads.clear();}
   // 總覽頁用：與匯總資料同一套計算，只回傳資料不渲染（UI 改版第 2 步）
-  async function overview(date,p='day'){
+  async function overview(date,p='day',retry=0){
     const gen=state.gen||0;
     if(!state.catalog.size)await loadDirectory();
     const r=S.range(date,p),useDay=p==='day'&&(window.ScoreReadSource.enabled()||!state.monthCache.has(date.slice(0,7)));
     const [data,records]=await Promise.all([useDay?loadDay(date).then(x=>scopeParts([x])):loadRange(r),loadRecords(r)]);
-    // 讀取途中有匯入（快取已清），這份是舊資料：直接重讀一次再回傳
-    if((state.gen||0)!==gen)return overview(date,p);
     await loadWeatherRange(r).catch(()=>{});
+    // 讀取途中有匯入（快取已清），這份是舊資料：重讀再回傳（最多重讀 3 次）
+    if((state.gen||0)!==gen&&retry<3)return overview(date,p,retry+1);
     const v=M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});
     const acStoreCodes=new Set(M.acAssignmentsForDate(r.start).flatMap(ac=>ac.stores).filter(code=>!M.NON_DELIVERY_STORES.has(code)));
     const acOf=new Map();for(const ac of M.acAssignmentsForDate(r.start))for(const code of ac.stores)acOf.set(code,ac.name);
