@@ -526,17 +526,26 @@
         escape(compareValue(item?.[1],null,item?.[2]))+'</strong></article>';
     }).join('')+'</div></section>';
   }
+  // GES 週／月彙總依回應數加權；該欄空白的餐廳不計入該指標
+  const GES_TREND=['GES OSAT','好吃度','服務速度'],GES_FIELD={'GES OSAT':'osat_survey','好吃度':'score_food','服務速度':'score_speed'};
+  function gesTrendStat(x,name){
+    if(!x.data)return null;
+    const field=GES_FIELD[name],rows=gesForRange(x.data.feedback,x.range).filter(row=>Number.isFinite(Number(row[field]))&&row[field]!==null&&row[field]!==''&&Number(row.response_count)>0);
+    const n=rows.reduce((sum,row)=>sum+Number(row.response_count),0);
+    return n?[name,rows.reduce((sum,row)=>sum+Number(row[field])*Number(row.response_count),0)/n,'rate']:null;
+  }
   function trackingCharts(computed){
     const spec={sstg:['SSSG','SSTG'],d7:['D7','D25'],fa:['TPLH','FA佔比'],waiting:['等餐登記','等餐／TC'],feedback:['0800','4128']}[state.metric];
-    const groups=['sstg','d7','feedback'].includes(state.metric)?[spec]:spec.map(x=>[x]);
+    // 0800 分頁多一張 GES 曲線（和 0800／4128 同尺寸、上下排列）
+    const groups=state.metric==='feedback'?[spec,GES_TREND]:['sstg','d7'].includes(state.metric)?[spec]:spec.map(x=>[x]);
     return groups.map(names=>{
-      const series=names.map(name=>({name,values:computed.map(x=>x.stats&&statMap(x.stats).get(name))}));
+      const series=names.map(name=>({name,values:computed.map(x=>GES_TREND.includes(name)?gesTrendStat(x,name):x.stats&&statMap(x.stats).get(name))}));
       const numbers=series.flatMap(x=>x.values.map(y=>y?.[1])).filter(Number.isFinite);
       if(!numbers.length){
         const status=names.includes('SSSG')?'—':'資料不足，暫無趨勢圖。';
         return '<p class="tracking-note">'+names.join('／')+'：'+status+'</p>';
       }
-      const lo=Math.min(0,...numbers),hi=Math.max(...numbers),span=hi-lo||1,y=v=>155-(v-lo)/span*110,colors=['#bd1622','#287bb9'];
+      const lo=Math.min(0,...numbers),hi=Math.max(...numbers),span=hi-lo||1,y=v=>155-(v-lo)/span*110,colors=['#bd1622','#287bb9','#d99a00'];
       const grid=[0,1,2,3,4].map(i=>{
         const at=45+i*27.5,value=compareValue(hi-i*span/4,null,series[0].values.find(Boolean)?.[2]);
         return '<line x1="75" y1="'+at+'" x2="875" y2="'+at+'" stroke="#dedede"/>'+
