@@ -283,8 +283,8 @@
   function gesCommentPanels(all){
     const G=window.GesComments,rows=all.filter(x=>x.source_type==='GES_COMMENT').sort((a,b)=>String(b.raw_fields?.時間||b.record_date).localeCompare(String(a.raw_fields?.時間||a.record_date)));
     if(!G)return '';
-    const tags=x=>G.classify(x.content).join('、');
-    // 分類固定 11 類＋總數＝12 格，格子大小一致（桌面 6×2、平板 4×3、手機 2×6）；有意見時 0 則就是 0
+    const tags=x=>G.tagText(x.content);
+    // 五大項＋總數＝6 格，格子大小一致（桌面 6×1、平板 3×2、手機 2×3）；有意見時 0 則就是 0
     const tile=(label,value)=>'<div class="kpi"><div class="kpi-label">'+escape(label)+'</div><div class="kpi-value">'+value+'</div></div>';
     const countTiles=rows.length?'<div class="kpis ges-kpis">'+G.summarize(rows).map(x=>tile(x.label,fmt(x.count))).join('')+tile('意見總數',fmt(rows.length))+'</div>':'<div class="empty">此期間沒有 GES 意見</div>';
     const detail=table(['日期','餐廳','評級','分類','意見'],rows.map(x=>[x.record_date.slice(5).replace('-','/'),x.restaurant_name||'—',x.feedback_kind||'—',tags(x),String(x.content||'').replace(/\s+/g,' ')]));
@@ -411,7 +411,7 @@
       餐廳:x.restaurant_name||'',區域:x.area_name||'',來源渠道:x.source_channel||'',抱怨型態:x.complaint_type||'',重點:x.main_topic||'',項目1:x.item_1||'',項目2:x.item_2||'',回饋內容:x.content||'',
       發票:x.invoice_number||'',訂單:x.order_number||'',工作單:x.work_order||'',回覆狀態:x.followup_status||'',A項回覆:x.a_reply_status||'',配餐人員:x.a_reply?.packer||'',
       A項根源:x.a_reply?.root_cause||'',A項行動:x.a_reply?.action_plan||'',回應數:x.response_count??'',問卷OSAT:x.osat_survey??'','1SAT':x.score_1sat??'',外送平台OSAT:x.osat_delivery??'',
-      餐點正確性:x.score_accuracy??'',服務:x.score_service??'',服務速度:x.score_speed??'',餐點好吃度:x.score_food??'',評級:x.source_type==='GES_COMMENT'?x.feedback_kind||'':'',意見分類:x.source_type==='GES_COMMENT'&&window.GesComments?GesComments.classify(x.content).join('、'):''});
+      餐點正確性:x.score_accuracy??'',服務:x.score_service??'',服務速度:x.score_speed??'',餐點好吃度:x.score_food??'',評級:x.source_type==='GES_COMMENT'?x.feedback_kind||'':'',意見分類:x.source_type==='GES_COMMENT'&&window.GesComments?GesComments.tagText(x.content):''});
     XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(feedbackRows.map(exportFeedback)),'0800_4128_GES資料');}
   function appendRestaurantScores(wb,data,rows,r){
     const sales=storeSalesRows(data,r,salesFor(data,r));
