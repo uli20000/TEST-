@@ -1,7 +1,7 @@
 {
   "center": "995",
   "environment": "test",
-  "sourceCommit": "82a7c3c222f08fba7a03136daa4af0c2de07c75a",
+  "sourceCommit": "a6b2116a4b3a72727ac515add34ccafaaaf68be0",
   "sourceDirty": true,
   "dryRun": false,
   "features": {
@@ -12,7 +12,7 @@
     "monthReplyGatewayReady": true,
     "archiveDedup": false
   },
-  "generatedAt": "2026-11-24T15:12:17.094Z",
+  "generatedAt": "2026-11-24T15:48:22.464Z",
   "files": [
     "admin.html",
     "analysis-dashboard.js",
@@ -25,6 +25,7 @@
     "feedback-a-reply.js",
     "front-shell.css",
     "front-shell.js",
+    "ges-comments.js",
     "index.html",
     "kpi-settings.js",
     "operations-calendar.js",
