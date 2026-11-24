@@ -1497,22 +1497,22 @@
     if(state.metric==='drill'){const id0=state.request;box.innerHTML='<div class="empty">整理明細中…</div>';try{const html=await drillPage(r);if(id0!==state.request||state.metric!=='drill')return;box.innerHTML=html;bindInsights(null,r);}catch(error){box.innerHTML='<div class="empty">讀取失敗：'+escape(error.message||error)+'</div>';}return;}
     if(state.metric==='staff'){const id0=state.request;box.innerHTML='<div class="empty">整理排班與派單中…</div>';try{const html=await staffPage(r);if(id0!==state.request||state.metric!=='staff')return;box.innerHTML=html;bindInsights(null,r);}catch(error){box.innerHTML='<div class="empty">讀取失敗：'+escape(error.message||error)+'</div>';}return;}
     if(state.metric==='targets'){const id0=state.request;box.innerHTML='<div class="empty">讀取目標值中…</div>';const html=await targetsPage();if(id0!==state.request||state.metric!=='targets')return;box.innerHTML=html;bindInsights(null,r);bindV2(r);return;}
-    const id=state.request,metric=state.metric;box.innerHTML='<div class="empty">讀取前幾週成績中…</div>';
+    const id=state.request,metric=state.metric,seq=state.insightSeq=(state.insightSeq||0)+1,live=()=>id===state.request&&metric===state.metric&&seq===state.insightSeq;box.innerHTML='<div class="empty">讀取前幾週成績中…</div>';
     try{
       const ctx=await insightContext(r);
       if(metric==='weekly'){
-        try{await readWeeklySales(ctx.weeks.map(w=>({range:w,data:ctx.data})),()=>id===state.request&&metric===state.metric);}catch(e){}
+        try{await readWeeklySales(ctx.weeks.map(w=>({range:w,data:ctx.data})),live);}catch(e){}
         try{ctx.weeklyActions=await paged('t995_action_items','*',q=>q.eq('week_start',r.start)
           .eq('owner','週報').eq('archived',false),'id');}
         catch(e){ctx.weeklyActions=null;ctx.weeklyActionsError=true;}
       }
-      if(id!==state.request||metric!==state.metric)return;
+      if(!live())return;
       const html=metric==='weekly'?weeklyPage(ctx,r):
         metric==='store'?await storePage(ctx,r):await actionsPage(ctx,r);
-      if(id!==state.request||metric!==state.metric)return;
+      if(!live())return;
       box.innerHTML=html;bindInsights(ctx,r);bindV2(r);
     }
-    catch(error){if(id===state.request&&metric===state.metric)box.innerHTML='<div class="empty">讀取失敗：'+escape(error.message||error)+'</div>';}
+    catch(error){if(live())box.innerHTML='<div class="empty">讀取失敗：'+escape(error.message||error)+'</div>';}
   }
   if(typeof window.addEventListener==='function')window.addEventListener('hashchange',()=>{
     const tab=hashMetric();
