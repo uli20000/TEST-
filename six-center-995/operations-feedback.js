@@ -107,7 +107,7 @@
     else throw new Error('無法辨識檔案類型；請選 0800、4128、GES 或 GES 意見格式。');
     const uniq=new Map(rows.map(r=>[r.source_type+'|'+r.source_key,r]));rows=[...uniq.values()];
     const start=rows.map(r=>r.record_date||r.period_start).filter(Boolean).sort()[0],end=rows.map(r=>r.record_date||r.period_end).filter(Boolean).sort().at(-1);
-    return {file,type,rows,start,end,manualRange,unmapped:rows.filter(r=>['4128','0800'].includes(r.source_type)&&String(r.restaurant_name).startsWith('未配對店號')).length};
+    return {file,type,rows,start,end,manualRange,unmapped:rows.filter(r=>(['4128','0800'].includes(r.source_type)&&String(r.restaurant_name).startsWith('未配對店號'))||(window.GesComments&&r.source_type===GesComments.SOURCE_TYPE&&!r.store_code)).length};
   }
   function render(errors=[]){
     const rows=[...prepared.map(x=>({file:x.file.name,type:x.type,period:(x.start===x.end?x.start:`${x.start}～${x.end}`)+(x.manualRange?'（手動選週）':''),count:x.rows.length,unmapped:x.unmapped,status:'待匯入'})),...errors.map(x=>({file:x.file,type:'—',period:'—',count:'—',unmapped:'—',status:x.error}))];
