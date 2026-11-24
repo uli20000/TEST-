@@ -466,9 +466,13 @@
     const fb=data.feedback||[],count=source=>fb.filter(x=>x.source_type===source).length,tc=summary.tc;
     const delays=M.centerDelayRows(data.delays);
     const sales=salesFor(data,r),salesComparison=M.compareSales(sales,dailySalesFor(data,previousRange(r,data)));
-    const centerComplaints=fb.filter(x=>x.source_type==='0800'&&M.inCenterTotal(x.store_code,x.restaurant_name)).length;
-    const complaintsComplete=r.start>='2026-10-01'&&r.end<='2026-10-31'&&
-      !data.reports.some(d=>d.score_excluded&&fb.some(x=>x.source_type==='0800'&&x.record_date===d.record_date));
+    // 0800／千單：只算已匯入 0800 的日期（期間起日～最後一筆 0800 日期），TC 取同一批日期；不計成績日兩邊都排除
+    const c0800=fb.filter(x=>x.source_type==='0800'&&M.inCenterTotal(x.store_code,x.restaurant_name)),
+      coverEnd=c0800.map(x=>String(x.record_date).slice(0,10)).sort().at(-1)||null,cut=coverEnd&&coverEnd<r.end?coverEnd:r.end;
+    const skip=new Set(data.reports.filter(d=>d.score_excluded).map(d=>d.record_date));
+    let complaintTc=null,centerComplaints=0;
+    if(coverEnd){try{complaintTc=cut===r.end?tc:model(data,{start:r.start,end:cut}).summary.tc;}catch(e){complaintTc=null;}
+      centerComplaints=c0800.filter(x=>{const d=String(x.record_date).slice(0,10);return d<=cut&&!skip.has(d);}).length;}
     return {summary,orders,delays,scoreDates,provisionalDays,sales,values:[
       ['SSSG',sales.value,'rate'],['SSTG',summary.sstg,'rate'],['TC',tc,'count'],['去年TC',summary.priorN?summary.prior:null,'count'],
       ['營業額',sales.sales,'decimal'],['去年營業額',sales.priorYearSales,'decimal'],['客單價',sales.averageTicket,'decimal'],
@@ -479,7 +483,7 @@
       ['TPLH',summary.tplh,'decimal'],['自送TC',tc===null?null:summary.nonfa,'count'],['FA佔比',tc?summary.faShare:null,'rate'],
       ['FA單數',tc!==null?summary.fa:null,'count'],['實際工時',summary.actualHours,'decimal'],['等餐登記',tc===null?null:delays.length,'count'],
       ['等餐／TC',tc?scoredDelays(data,scoreDates).length/tc:null,'rate'],['0800',tc===null?null:count('0800'),'count'],
-      ['0800／千單',tc&&complaintsComplete?centerComplaints/tc*1000:null,'decimal'],['4128',tc===null?null:count('4128'),'count']
+      ['0800／千單',complaintTc?centerComplaints/complaintTc*1000:null,'decimal'],['4128',tc===null?null:count('4128'),'count']
     ]};
   }
   function statMap(stats){return new Map(stats.values.map(x=>[x[0],x]));}
