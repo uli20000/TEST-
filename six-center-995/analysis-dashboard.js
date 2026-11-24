@@ -560,7 +560,7 @@
           const py=y(value);
           if(prev)parts+='<line x1="'+prev.x+'" y1="'+prev.y+'" x2="'+x+'" y2="'+py+'" stroke="'+colors[j]+'" stroke-width="2.5"/>';
           parts+='<circle cx="'+x+'" cy="'+py+'" r="4" fill="'+colors[j]+'"/>'+
-            '<text x="'+x+'" y="'+(py-9-(gesChart?0:j*13))+'" text-anchor="middle" fill="#555">'+escape(compareValue(value,null,item[2]))+'</text>';
+            '<text x="'+x+'" y="'+(gesChart?(j?py+17:py-9):py-9-j*13)+'" text-anchor="middle" fill="#555">'+escape(compareValue(value,null,item[2]))+'</text>';
           prev={x,y:py};
         }
         return parts;
