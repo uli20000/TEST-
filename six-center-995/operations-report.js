@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const M=window.OpsMetrics,S=window.OpsSummary,E=id=>document.getElementById(id),escape=opsEscape,labels=new Map(M.AREAS);
-  const state={context:'scores',cache:null,monthCache:new Map(),monthLoads:new Map(),request:0,saveQueue:Promise.resolve(),saveError:null,stores:[],catalog:new Map(),weather:new Map(),weatherLoads:new Map(),weatherError:new Map(),records:{delay:[],line:[]}};
+  const state={context:'scores',cache:null,monthCache:new Map(),dayCache:new Map(),monthLoads:new Map(),request:0,saveQueue:Promise.resolve(),saveError:null,stores:[],catalog:new Map(),weather:new Map(),weatherLoads:new Map(),weatherError:new Map(),records:{delay:[],line:[]}};
   E('opsWeekTabs')?.remove();
   const fmt=(v,d=0)=>v===null||v===undefined?'—':Number(v).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
   const pct=v=>v===null||v===undefined?'—':fmt(v*100,1)+'%';
@@ -35,6 +35,29 @@
       return {rows,batches,powerbiData,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[]};
     })();state.monthLoads.set(month,work);
     try{const data=await work;state.monthCache.set(month,data);return data;}finally{state.monthLoads.delete(month);}
+  }
+  // 總覽選「日」只讀當天；當月已讀過就直接用整月快取
+  async function loadDay(date,force=false){
+    const cached=!window.ScoreReadSource.enabled()&&!force;
+    if(cached&&state.dayCache.has(date))return state.dayCache.get(date);
+    await loadDirectory();const r=S.range(date,'day'),monthStart=S.range(date,'month').start;
+    const revisionSnapshot=await window.ScoreReadSource.load(db,window.OpsForecast.sampleStart(r.start),r.end);
+    const revisionReport=revisionSnapshot?window.ScoreReadSource.within(revisionSnapshot,r.start,r.end):null;
+    const [batchRows,reportResult,reference,powerbiData]=await Promise.all([
+      revisionReport?Promise.resolve(revisionReport.batches):paged('t995_score_import_batches','*',q=>q.eq('report_date',r.start),'report_date'),
+      db.from('t995_operations_daily_reports').select('*').eq('record_date',r.start).order('record_date'),
+      db.rpc('t995_get_operations_reference',{p_month:monthStart}),
+      window.OpsForecast.load(db,r.start,r.end,revisionSnapshot?{scoreBatches:revisionSnapshot.batches}:{})
+    ]);
+    if(reportResult.error)throw reportResult.error;if(reference.error)throw reference.error;
+    const batches=M.latestBatches(batchRows),ids=batches.map(b=>b.id),rows=revisionReport?revisionReport.rows:ids.length?await paged('t995_score_import_rows','batch_id,row_number,store_code,restaurant_name,order_number,payload',q=>q.in('batch_id',ids),'batch_id'):[];
+    const data={rows,batches,powerbiData,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[]};
+    state.dayCache.set(date,data);while(state.dayCache.size>7)state.dayCache.delete(state.dayCache.keys().next().value);
+    return data;
+  }
+  function scopeParts(parts){
+    const data={};
+    for(const key of ['rows','batches','reports','history','mapping'])data[key]=parts.flatMap(p=>p[key]);data.powerbiData={history:parts.flatMap(p=>p.powerbiData.history),batches:parts.flatMap(p=>p.powerbiData.batches),reports:parts.flatMap(p=>p.powerbiData.reports||[])};return M.scopeData(data);
   }
   async function loadRange(r,force=false){
     const parts=await Promise.all(S.months(r.start,r.end).map(d=>loadMonth(d,force))),data={};
@@ -204,7 +227,7 @@
   function queueSave(args){
     notify('儲存中…','scores');state.saveQueue=state.saveQueue.catch(()=>{}).then(async()=>{
       const r=await db.rpc('t995_save_operations_report',args);if(r.error)throw r.error;state.saveError=null;const row=r.data;
-      for(const cache of [state.cache,state.monthCache.get(row.record_date.slice(0,7))]){if(!cache)continue;const i=cache.reports.findIndex(x=>x.record_date===row.record_date);if(i>=0)cache.reports[i]=row;else cache.reports.push(row);}
+      for(const cache of [state.cache,state.monthCache.get(row.record_date.slice(0,7)),state.dayCache.get(row.record_date)]){if(!cache)continue;const i=cache.reports.findIndex(x=>x.record_date===row.record_date);if(i>=0)cache.reports[i]=row;else cache.reports.push(row);}
       notify('已儲存','scores');const focused=document.activeElement,key=focused?.dataset.area,id=focused?.id,value=focused?.value;render();const next=key?E('opsAnalysisTable').querySelector('[data-area="'+key+'"]'):(['opsTransferOut','opsTransferIn'].includes(id)?E(id):null);if(next&&state.context==='scores'){next.value=value;next.focus();}
     }).catch(e=>{state.saveError=e;notify('儲存失敗：'+e.message,'scores');});return state.saveQueue;
   }
@@ -286,7 +309,8 @@
   // 總覽頁用：與匯總資料同一套計算，只回傳資料不渲染（UI 改版第 2 步）
   async function overview(date,p='day'){
     if(!state.catalog.size)await loadDirectory();
-    const r=S.range(date,p),[data,records]=await Promise.all([loadRange(r),loadRecords(r)]);
+    const r=S.range(date,p),useDay=p==='day'&&(window.ScoreReadSource.enabled()||!state.monthCache.has(date.slice(0,7)));
+    const [data,records]=await Promise.all([useDay?loadDay(date).then(x=>scopeParts([x])):loadRange(r),loadRecords(r)]);
     await loadWeatherRange(r).catch(()=>{});
     const v=M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});
     const acStoreCodes=new Set(M.acAssignmentsForDate(r.start).flatMap(ac=>ac.stores).filter(code=>!M.NON_DELIVERY_STORES.has(code)));

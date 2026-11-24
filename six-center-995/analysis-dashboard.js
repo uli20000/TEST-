@@ -44,7 +44,7 @@
     return batches.flatMap(b=>rowCache.get(keyOf(b))||[]);
   }
   async function loadRange(r,force=false,{orderOnly=false}={}){
-    const key=state.period+'|'+r.start+'|'+r.end+(orderOnly?'|order':'');if(!window.ScoreReadSource.enabled()&&!force&&state.cache.has(key))return state.cache.get(key);await loadDirectory();
+    const period=state.period,key=period+'|'+r.start+'|'+r.end+(orderOnly?'|order':'');if(!window.ScoreReadSource.enabled()&&!force&&state.cache.has(key))return state.cache.get(key);await loadDirectory();
     const monthRange=M.range(r.start,'month'),months=S.months(r.start,r.end);
     const firstWeek=fullWeek(r.start).start,lastWeek=fullWeek(r.end).start;
     const revisionSnapshot=await window.ScoreReadSource.load(db,window.OpsForecast.sampleStart(r.start),r.end);
@@ -57,7 +57,7 @@
       paged('t995_delay_orders','record_date,store_code,restaurant_name,order_number,status,reason,responded_at,created_at',q=>q.gte('record_date',r.start).lte('record_date',r.end),'record_date'),
       db.from('t995_operations_coupon_campaigns').select('*').lte('active_from',r.end).gte('active_to',r.start).order('active_from'),
       paged('t995_feedback_import_rows','*',q=>q.in('source_type',['0800','4128']).gte('record_date',r.start).lte('record_date',r.end),'record_date'),
-      ['week','month'].includes(state.period)?paged('t995_feedback_import_rows','*',q=>q.eq('source_type','GES').lte('period_start',r.end).gte('period_end',r.start),'restaurant_name'):Promise.resolve([]),
+      ['week','month'].includes(period)?paged('t995_feedback_import_rows','*',q=>q.eq('source_type','GES').lte('period_start',r.end).gte('period_end',r.start),'restaurant_name'):Promise.resolve([]),
       db.from('t995_weekly_metric_action_notes').select('*').gte('week_start',M.addDays(firstWeek,-7)).lte('week_start',lastWeek).order('week_start').order('metric_key'),
       window.OpsForecast.load(db,r.start,r.end,revisionSnapshot?{scoreBatches:revisionSnapshot.batches}:{})
     ]);
@@ -559,7 +559,7 @@
   }
   function trackingComparison(){if(state.period==='day')return '';const timeline=state.timeline||[],computed=timeline.map(x=>({...x,stats:x.data?trackingStats(x.data,x.range):null})),names=trackingKeys(state.metric);
     const rows=names.map(name=>[name,...computed.map(x=>{const v=x.stats&&statMap(x.stats).get(name);return x.stats?compareValue(v?.[1],null,v?.[2]):'—';})]);
-    rows.push(['資料狀態',...computed.map(x=>x.error?'載入失敗':!x.data?'尚未發生':!x.stats.scoreDates.length?'無單量資料':x.stats.scoreDates.length+' 個成績日／截止 '+x.stats.scoreDates.at(-1)+(x.stats.provisionalDays.length?'（'+x.stats.provisionalDays.length+' 天 DMS 暫估）':''))]);
+    rows.push(['資料狀態',...computed.map(x=>x.error?'載入失敗':x.pending?'讀取中…':!x.data?'尚未發生':!x.stats.scoreDates.length?'無單量資料':x.stats.scoreDates.length+' 個成績日／截止 '+x.stats.scoreDates.at(-1)+(x.stats.provisionalDays.length?'（'+x.stats.provisionalDays.length+' 天 DMS 暫估）':''))]);
     const deltas=names.map(name=>[name,...computed.map((x,i)=>{
       const current=x.stats&&statMap(x.stats).get(name),old=computed[i-1]?.stats&&statMap(computed[i-1].stats).get(name);
       if(!current||!old)return '—';
@@ -612,7 +612,7 @@
     XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(scores),'五大成績');
     const rows=(state.timeline||[]).flatMap(x=>{
       const {start,end}=x.range;
-      if(!x.data)return [{開始:start,結束:end,狀態:x.error||'尚未發生'}];
+      if(!x.data)return [{開始:start,結束:end,狀態:x.error||(x.pending?'讀取中':'尚未發生')}];
       const stats=trackingStats(x.data,x.range),provisional=provisionalIn(stats,x.range).join('、');
       return stats.values.filter(([name])=>trackingKeys(state.metric).includes(name)).map(([name,value])=>({
         開始:start,結束:end,指標:name,數值:value,暫估日期:TC_DEPENDENT.has(name)?provisional:''
@@ -1527,28 +1527,42 @@
     try{
       const data=await loadRange(r,force);
       if(id!==state.request)return;
-      const pr=previousRange(r,data);
-      const timeline=state.period==='day'?[]:await Promise.all([-2,-1,0,1,2].map(async offset=>{
-        const span=state.period==='week'?fullWeek(M.addDays(r.start,offset*7)):M.range(addMonths(r.start,offset),'month');
-        if(span.start>today())return {range:span,offset,data:null};
-        try{return {range:span,offset,data:offset===0?data:await loadRange(span,force)};}
-        catch(error){return {range:span,offset,data:null,error:error.message};}
-      }));
-      if(id!==state.request)return;
-      if(state.period==='week'){
-        try{await readWeeklySales(timeline);}
+      const pr=previousRange(r,data),period=state.period;
+      // 先顯示本期；前後各兩期、週營業額、天氣改在背景補，補完再重畫一次
+      const spans=period==='day'?[]:[-2,-1,0,1,2].map(offset=>({offset,range:period==='week'?fullWeek(M.addDays(r.start,offset*7)):M.range(addMonths(r.start,offset),'month')}));
+      const timeline=spans.map(({offset,range:span})=>offset===0?{range:span,offset,data}:span.start>today()?{range:span,offset,data:null}:{range:span,offset,data:null,pending:true});
+      if(period==='week'){
+        try{await readWeeklySales(timeline.filter(x=>x.offset===0));}
         catch(e){if(id===state.request)$('biStatus').textContent='週 SSSG 讀取失敗：'+e.message;}
         if(id!==state.request)return;
       }
-      state.data=data;state.timeline=timeline;state.comparisonRange=pr;state.previous=timeline.find(x=>x.offset===-1)?.data||null;
-      try{await weatherForRange(r);}catch(e){}
-      if(id!==state.request)return;
-      status('');$('report').classList.remove('hidden');
+      state.data=data;state.timeline=timeline;state.comparisonRange=pr;state.previous=null;
+      status(timeline.some(x=>x.pending)?'比較期讀取中…':'');$('report').classList.remove('hidden');
       renderMetric(data,state.previous,r);
       state.fullExport=()=>renderTrackingExport(data,r);
       $('export').onclick=()=>openExportMenu();$('export').textContent='匯出 ▾';$('export').setAttribute('aria-haspopup','dialog');
+      $('refresh').disabled=false;
+      loadReportExtras(id,r,data,timeline,force);
     }catch(e){if(id===state.request)status('載入失敗：'+e.message,true);}
     finally{if(id===state.request)$('refresh').disabled=false;}
+  }
+  async function loadReportExtras(id,r,data,timeline,force){
+    const full=await Promise.all(timeline.map(async x=>{
+      if(!x.pending)return x;
+      try{return {range:x.range,offset:x.offset,data:await loadRange(x.range,force)};}
+      catch(error){return {range:x.range,offset:x.offset,data:null,error:error.message};}
+    }));
+    if(id!==state.request)return;
+    if(state.period==='week'){
+      try{await readWeeklySales(full.filter(x=>x.offset!==0));}
+      catch(e){if(id===state.request)$('biStatus').textContent='週 SSSG 讀取失敗：'+e.message;}
+    }
+    try{await weatherForRange(r);}catch(e){}
+    if(id!==state.request)return;
+    state.timeline=full;state.previous=full.find(x=>x.offset===-1)?.data||null;
+    status('');
+    // 洞察分頁自己讀資料，且可能有編輯中的表單，不重畫
+    if(!INSIGHT_TABS.has(resolveMetric(state.metric)||'sstg'))renderMetric(data,state.previous,r);
   }
   document.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{state.period=b.dataset.period;state.month=state.date.slice(0,7);renderChoices();loadReport();});$('periodDate').onchange=()=>{state.date=$('periodDate').value||today();state.month=state.date.slice(0,7);renderChoices();loadReport();};$('periodDate').onclick=e=>{try{e.target.showPicker?.();}catch(_){}};$('periodPrev').onclick=()=>changePeriod(-1);$('periodNext').onclick=()=>changePeriod(1);$('periodToday').onclick=()=>{state.date=today();state.month=state.date.slice(0,7);renderChoices();loadReport();};$('refresh').onclick=()=>loadReport(true);
   (async()=>{
