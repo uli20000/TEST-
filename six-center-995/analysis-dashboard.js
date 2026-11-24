@@ -43,8 +43,9 @@
     while(rowCache.size>ROW_CACHE_MAX)rowCache.delete(rowCache.keys().next().value);
     return batches.flatMap(b=>rowCache.get(keyOf(b))||[]);
   }
+  // 較晚開始的讀取已寫入快取時，較早開始、較晚回來的舊結果不再覆寫
   async function loadRange(r,force=false,{orderOnly=false}={}){
-    const period=state.period,key=period+'|'+r.start+'|'+r.end+(orderOnly?'|order':'');if(!window.ScoreReadSource.enabled()&&!force&&state.cache.has(key))return state.cache.get(key);await loadDirectory();
+    const period=state.period,key=period+'|'+r.start+'|'+r.end+(orderOnly?'|order':''),stamp=state.cacheSeq=(state.cacheSeq||0)+1;if(!window.ScoreReadSource.enabled()&&!force&&state.cache.has(key))return state.cache.get(key);await loadDirectory();
     const monthRange=M.range(r.start,'month'),months=S.months(r.start,r.end);
     const firstWeek=fullWeek(r.start).start,lastWeek=fullWeek(r.end).start;
     const revisionSnapshot=await window.ScoreReadSource.load(db,window.OpsForecast.sampleStart(r.start),r.end);
@@ -65,7 +66,7 @@
     if(reports.error)throw reports.error;if(monthReports.error)throw monthReports.error;if(campaigns.error)throw campaigns.error;if(weeklyNotesResult.error)throw weeklyNotesResult.error;for(const x of references)if(x.error)throw x.error;
     const batches=M.latestBatches(rawBatches),rows=revisionReport?revisionReport.rows:batches.length?await fetchRows(orderOnly?batches.filter(b=>b.report_type==='ByOrder'):batches):[],refs=references.map(x=>x.data||{});
     const mapping=[...new Map(refs.flatMap(x=>x.mapping||[]).map(x=>[M.clean(x.restaurant_name),x])).values()],history=refs.flatMap(x=>x.history||[]);
-    const data=M.scopeData({rows,batches,powerbiData,reports:reports.data||[],monthReports:monthReports.data||[],history,mapping,delays:delays||[],campaigns:campaigns.data||[],feedback:[...(feedbackDaily||[]),...(feedbackPeriod||[])],weeklyNotes:weeklyNotesResult.data||[]});state.cache.set(key,data);return data;
+    const data=M.scopeData({rows,batches,powerbiData,reports:reports.data||[],monthReports:monthReports.data||[],history,mapping,delays:delays||[],campaigns:campaigns.data||[],feedback:[...(feedbackDaily||[]),...(feedbackPeriod||[])],weeklyNotes:weeklyNotesResult.data||[]});const stamps=state.cacheStamps||(state.cacheStamps=new Map());if((stamps.get(key)||0)<stamp){stamps.set(key,stamp);state.cache.set(key,data);}return data;
   }
   // 0800 A 項的餐廳回覆（配餐人員／根源／行動）；回覆表還沒建立的中心就略過，不影響其他資料
   async function attachAReplies(rows){
@@ -79,6 +80,7 @@
   function model(data,r){return M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});}
   function previousRange(r,data=state.data){if(state.period==='day'){const report=(data?.reports||[]).find(x=>x.record_date===r.start),special=!!report&&(report.score_excluded||/特殊節日|國定假日|連假|停班課|颱風/.test(String(report.special_notes||'')));const dow=new Date(r.start+'T12:00:00Z').getUTCDay(),d=special?M.addDays(r.start,(6-dow+7)%7):M.addDays(r.start,-7);return {start:d,end:d,special};}if(state.period==='week')return fullWeek(M.addDays(r.start,-7));const d=addMonths(r.start,-1);return M.range(d,'month');}
   async function loadWeather(month){const key=String(month).slice(0,7),normalized=key+'-01';if(state.weather.has(key))return;const result=await db.functions.invoke('t995-operations-weather',{body:{month:normalized}});if(result.error||result.data?.error)throw new Error(result.data?.error||'天氣資料無法讀取');state.weather.set(key,result.data);}
+  const noWeather=()=>state.weatherLoading?'天氣讀取中…':'無天氣資料';
   async function weatherForRange(r){await Promise.all(S.months(r.start,r.end).map(loadWeather));}
   function weatherRow(date,city){return state.weather.get(date.slice(0,7))?.rows?.find(x=>x.date===date&&x.city===city)||null;}
   function cityForArea(code){return M.BUSINESS.weatherCityByArea[code]||null;}
@@ -160,14 +162,14 @@
     const weatherGroups=new Map(),current=model(data,r);
     for(const x of dailyStoreAnalytics(data,r)){
       const wx=weatherRow(x.date,cityForStore(x.storeCode,x.area));
-      const condition=!wx?'無天氣資料':Number(wx.precipitation)>0||wx.trace?'有降雨':'未測得降雨';
+      const condition=!wx?noWeather():Number(wx.precipitation)>0||wx.trace?'有降雨':'未測得降雨';
       const g=weatherGroups.get(x.area)||{conditions:new Set(),storeDays:0};
       g.conditions.add(condition);g.storeDays++;weatherGroups.set(x.area,g);
     }
     const areas=M.areasForDate(r.start).map(([code,name])=>{
       const x=current.areas.get(code),w=weatherGroups.get(code);
       return {name,tc:x?.tc??null,prior:x?.prior??null,sstg:x?.sstg??null,
-        stores:rows.filter(s=>s.area===code).length,weather:w?[...w.conditions].sort().join('、'):'無天氣資料',storeDays:w?.storeDays||0};
+        stores:rows.filter(s=>s.area===code).length,weather:w?[...w.conditions].sort().join('、'):noWeather(),storeDays:w?.storeDays||0};
     }).filter(x=>x.stores>0).sort((a,b)=>(b.sstg??-Infinity)-(a.sstg??-Infinity));
     const rankRows=rankedStores(rows,'sstg').map((x,i)=>[i<3?'前三':'後五',x.code,storeLabel(x),regionName(x.area),pct(x.sstg)]);
     const areaRows=areas.map(x=>[x.name,x.weather,fmt(x.stores),fmt(x.storeDays),fmt(x.tc),fmt(x.prior),pct(x.sstg)]);
@@ -280,7 +282,7 @@
   function feedbackPage(data,previous,r){
     const all=data.feedback||[],prior=previous?.feedback||[],c0800=all.filter(x=>x.source_type==='0800'),c4128=all.filter(x=>x.source_type==='4128'),ges=['week','month'].includes(state.period)?gesForRange(all,r):[],prev0800=prior.filter(x=>x.source_type==='0800');
     const topics=complaintCodeCounts(c0800),prevTopics=new Map(complaintCodeCounts(prev0800).map(x=>[x.name,x.count])),stores0800=feedbackGroups(data,'0800').filter(x=>!/外送中心/.test(x.name)&&!x.rows.some(row=>/外送中心/.test(String(row.area_name||'')))),stores4128=feedbackGroups(data,'4128'),rankGes=ges.filter(x=>x.osat_survey!==null&&x.osat_survey!==undefined).sort((a,b)=>Number(a.osat_survey)-Number(b.osat_survey)||Number(b.response_count||0)-Number(a.response_count||0));
-    const complete=p=>!!p&&p.start>='2026-10-01'&&p.end<='2026-10-31',priorRange=state.comparisonRange,topicRows=[...new Set([...topics.map(x=>x.name),...prevTopics.keys()])].map(name=>{const cur=topics.find(x=>x.name===name)?.count||0,prev=prevTopics.get(name)||0;return [name,cur?fmt(cur):complete(r)?'0':'—',prev?fmt(prev):complete(priorRange)?'0':'—',complete(r)&&complete(priorRange)?fmt(cur-prev):'—'];});
+    const complete=p=>!!p&&p.start>='2026-10-01'&&p.end<='2026-10-31',priorRange=state.comparisonRange,topicRows=[...new Set([...topics.map(x=>x.name),...prevTopics.keys()])].map(name=>{const cur=topics.find(x=>x.name===name)?.count||0,prev=prevTopics.get(name)||0,known=!!previous;return [name,cur?fmt(cur):complete(r)?'0':'—',!known?(state.comparePending?'讀取中…':'—'):prev?fmt(prev):complete(priorRange)?'0':'—',known&&complete(r)&&complete(priorRange)?fmt(cur-prev):'—'];});
     const by0800Code=new Map(stores0800.filter(x=>x.code).map(x=>[String(x.code),x])),by0800Name=new Map(stores0800.map(x=>[M.clean(x.name),x]));
     const topTies=(list,n)=>{const cutoff=list[Math.min(n,list.length)-1]?.count;return cutoff===undefined?[]:list.filter(x=>x.count>=cutoff);};const matchedGes=rankGes.map(x=>{const complaint=(x.store_code&&by0800Code.get(String(x.store_code)))||by0800Name.get(M.clean(x.restaurant_name));return complaint?{ges:x,complaint}:null;}).filter(Boolean).sort((a,b)=>b.complaint.count-a.complaint.count||Number(a.ges.osat_survey)-Number(b.ges.osat_survey));
     const gesRows=rankGes.map((x,i)=>[i+1,x.store_code||'—',x.restaurant_name,fmt(x.response_count),pct(x.osat_survey),pct(x.score_1sat),pct(x.osat_delivery),pct(x.score_accuracy),pct(x.score_service),pct(x.score_speed),pct(x.score_food)]);
@@ -698,11 +700,12 @@
     });
   }
 
-  async function readWeeklySales(spans) {
+  async function readWeeklySales(spans,stillCurrent=()=>true) {
     const starts=spans.filter(({data,range})=>data&&!dailySalesFor(data,range).hasDailySales).map(x=>x.range.start);
     if(!starts.length)return;
     const {data,error}=await db.from(weeklySalesTable).select('*').in('week_start',starts);
     if(error)throw error;
+    if(!stillCurrent())return;
     weeklySales=weeklySales.filter(x=>!starts.includes(x.start));
     for(const row of data)rememberWeeklySales(row);
   }
@@ -1523,6 +1526,7 @@
     const id=++state.request,r=range();
     renderChoices();
     $('report').classList.add('hidden');$('metricTabs').classList.add('hidden');$('refresh').disabled=true;
+    state.fullExport=null;$('export').disabled=true;state.comparePending=false;
     status('讀取成績中…');
     try{
       const data=await loadRange(r,force);
@@ -1532,34 +1536,35 @@
       const spans=period==='day'?[]:[-2,-1,0,1,2].map(offset=>({offset,range:period==='week'?fullWeek(M.addDays(r.start,offset*7)):M.range(addMonths(r.start,offset),'month')}));
       const timeline=spans.map(({offset,range:span})=>offset===0?{range:span,offset,data}:span.start>today()?{range:span,offset,data:null}:{range:span,offset,data:null,pending:true});
       if(period==='week'){
-        try{await readWeeklySales(timeline.filter(x=>x.offset===0));}
+        try{await readWeeklySales(timeline.filter(x=>x.offset===0),()=>id===state.request);}
         catch(e){if(id===state.request)$('biStatus').textContent='週 SSSG 讀取失敗：'+e.message;}
         if(id!==state.request)return;
       }
-      state.data=data;state.timeline=timeline;state.comparisonRange=pr;state.previous=null;
+      state.data=data;state.timeline=timeline;state.comparisonRange=pr;state.previous=null;state.comparePending=timeline.some(x=>x.pending);state.weatherLoading=true;
       status(timeline.some(x=>x.pending)?'比較期讀取中…':'');$('report').classList.remove('hidden');
       renderMetric(data,state.previous,r);
       state.fullExport=()=>renderTrackingExport(data,r);
-      $('export').onclick=()=>openExportMenu();$('export').textContent='匯出 ▾';$('export').setAttribute('aria-haspopup','dialog');
+      $('export').onclick=()=>openExportMenu();$('export').textContent='匯出 ▾';$('export').setAttribute('aria-haspopup','dialog');$('export').disabled=false;
       $('refresh').disabled=false;
       loadReportExtras(id,r,data,timeline,force);
     }catch(e){if(id===state.request)status('載入失敗：'+e.message,true);}
     finally{if(id===state.request)$('refresh').disabled=false;}
   }
   async function loadReportExtras(id,r,data,timeline,force){
+    const current=()=>id===state.request,weather=weatherForRange(r).catch(()=>{});
     const full=await Promise.all(timeline.map(async x=>{
       if(!x.pending)return x;
       try{return {range:x.range,offset:x.offset,data:await loadRange(x.range,force)};}
       catch(error){return {range:x.range,offset:x.offset,data:null,error:error.message};}
     }));
-    if(id!==state.request)return;
+    if(!current())return;
     if(state.period==='week'){
-      try{await readWeeklySales(full.filter(x=>x.offset!==0));}
-      catch(e){if(id===state.request)$('biStatus').textContent='週 SSSG 讀取失敗：'+e.message;}
+      try{await readWeeklySales(full.filter(x=>x.offset!==0),current);}
+      catch(e){if(current())$('biStatus').textContent='週 SSSG 讀取失敗：'+e.message;}
     }
-    try{await weatherForRange(r);}catch(e){}
-    if(id!==state.request)return;
-    state.timeline=full;state.previous=full.find(x=>x.offset===-1)?.data||null;
+    await weather;
+    if(!current())return;
+    state.timeline=full;state.previous=full.find(x=>x.offset===-1)?.data||null;state.comparePending=false;state.weatherLoading=false;
     status('');
     // 洞察分頁自己讀資料，且可能有編輯中的表單，不重畫
     if(!INSIGHT_TABS.has(resolveMetric(state.metric)||'sstg'))renderMetric(data,state.previous,r);

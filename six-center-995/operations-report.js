@@ -305,7 +305,9 @@
   window.opsFindRestaurant=findRestaurant;
   for(const id of ['opsDelayStore','opsLineStore'])E(id).oninput=async()=>{if(id==='opsLineStore'){opsSetToggle('opsLineMark',false);opsSetToggle('opsSignMark',false);}try{const store=await findRestaurant(id);if(store&&id==='opsLineStore')await fillLineState(store.store_code);}catch(e){E(id+'Name').textContent=e.message;}};
   E('opsExportSelected').onclick=()=>exportCombined(period());
-  window.opsLoadDailyAnalytics=()=>{state.context='scores';return refresh(true);};
+  window.opsLoadDailyAnalytics=()=>{state.context='scores';state.dayCache.clear();return refresh(true);};
+  // 成績或 TC 匯入後清掉總覽的月／日快取，回總覽時重讀
+  function invalidate(){state.monthCache.clear();state.dayCache.clear();}
   // 總覽頁用：與匯總資料同一套計算，只回傳資料不渲染（UI 改版第 2 步）
   async function overview(date,p='day'){
     if(!state.catalog.size)await loadDirectory();
@@ -325,6 +327,6 @@
       lineRegistered:records.line.filter(x=>acStoreCodes.has(String(x.store_code))).length,lineExpected:acStoreCodes.size,
       weather:M.BUSINESS.weatherCities.map(city=>{const row=weatherRow(date,city);return {city,text:weatherText(row),value:weatherValue(row)};})};
   }
-  window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,overview,open:(context,force=true)=>{state.context=context;return refresh(force);}};
+  window.OpsReport={readRows:paged,directory:loadDirectory,fillLineState,overview,invalidate,open:(context,force=true)=>{state.context=context;return refresh(force);}};
 })();
 
