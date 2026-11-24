@@ -57,10 +57,11 @@
   // 否定句（沒遲到、未漏給…）先拿掉，不算命中
   // 命中前緊接否定詞（沒遲到、沒有灑漏、沒有少一包）或後面緊接正面評語（態度很好、口感不錯、封口完整）就不算；整句有「才怪」表示反語，否定不成立
   const NEG_BEFORE=/(並沒有?|沒有?|並未|未|無|不是|不會|不算)$/;
-  const PRAISE_AFTER=/^(都|也|還|算)?(很|非常|十分|超|蠻|挺|相當)?(好(?=$|[\s，。！!,.、~～]|啦|喔|呢|的)|好用|好吃|佳|不錯|良好|完整|親切|棒|讚|滿意)/;
+  // 「好」後面只接語助詞、表情、標點、結尾或好用／好吃等才算稱讚；好差、好乾、好嚴重、好幾次都不算
+  const PRAISE_AFTER=/^(真的|真|都|也|還|算|一直|一樣)*(很|非常|十分|超級?|蠻|滿|挺|相當|特別)?(好(?=$|[^\u4e00-\u9fff]|[啊呀啦喔呢的耶欸哦唷用吃喝看聽棒到])|佳|不錯|良好|完整|親切|棒|讚|滿意|優|貼心|熱情)/;
   // 正面評語只用在描述性的類別（態度、口感、包裝、APP）；遲到、漏給、錯餐等事件類不看後面
   const PRAISE_OK=new Set(['quality','package','attitude','system']);
-  function counts(c,s,ironic){const re=new RegExp(c.re.source,'g');let m;while((m=re.exec(s))){const before=s.slice(Math.max(0,m.index-4),m.index),after=s.slice(m.index+m[0].length,m.index+m[0].length+6);
+  function counts(c,s,ironic){const re=new RegExp(c.re.source,'g');let m;while((m=re.exec(s))){const before=s.slice(Math.max(0,m.index-4),m.index),after=s.slice(m.index+m[0].length,m.index+m[0].length+10).replace(/\s+/g,'');
     if(!ironic&&NEG_BEFORE.test(before))continue;if(PRAISE_OK.has(c.key)&&PRAISE_AFTER.test(after))continue;return true;}return false;}
   function classify(text){const s=clean(text),ironic=/才怪/.test(s);const hits=CATEGORIES.filter(c=>counts(c,s,ironic)).map(c=>c.label);return hits.length?hits:[OTHER.label];}
   // 依分類計數（一則多類時每類各算一次）；順序固定
