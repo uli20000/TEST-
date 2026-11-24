@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- T995 V8: multi-week opening + Taipei-week rollover refresh; confirmed UI unchanged. -->
 <html lang="zh-Hant">
-<head><script src="center-config.js"></script><script src="center-runtime.js"></script><script src="score-pair-adapter.js"></script><script src="source-archive-adapter.js"></script><script src="score-revision-upload.js"></script><script src="rider-rules.js?v=20261119-dd20"></script><link rel="stylesheet" href="shared-shell.css">
+<head><script src="center-config.js"></script><script src="center-runtime.js"></script><script src="score-pair-adapter.js"></script><script src="source-archive-adapter.js"></script><script src="score-revision-upload.js"></script><script src="rider-rules.js?v=20261119-dd21"></script><link rel="stylesheet" href="shared-shell.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="normal">
@@ -5483,6 +5483,22 @@ function t995MinMaxDates(rows){const ds=rows.map(x=>x.record_date).filter(Boolea
 async function t995LoadAreaMap(){
   const r=await db.from("tc_restaurant_area_map").select("restaurant_name,area_code").eq("is_active",true);if(r.error)throw r.error;t995AreaMap=new Map((r.data||[]).map(x=>[String(x.restaurant_name).trim(),x.area_code]));t995AreaMapLoaded=true;
 }
+function t995SalesFields(row,period,where){
+  const fields={};
+  if(period!=='full_day')return fields;
+  const columns={'外送sales(不含fa)':'sales','外送sales_py(不含fa)':'prior_year_sales'};
+  for(const [header,value] of Object.entries(row)){
+    const key=header.normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+    if(!Object.hasOwn(columns,key))continue;
+    const field=columns[key];
+    const raw=String(value??'').trim();
+    const amount=raw===''?null:Number(raw.replace(/,/g,''));
+    if(amount!==null&&!Number.isFinite(amount))throw new Error(where+' 的 '+header+' 無效。');
+    if(Object.hasOwn(fields,field)&&fields[field]!==amount)throw new Error(where+' 的 '+header+' 欄位資料不一致。');
+    fields[field]=amount;
+  }
+  return fields;
+}
 function t995RowsFromSheet(workbook,sheetName,period,counter,unmapped){
   const sheet=workbook.Sheets[sheetName];const rawRows=XLSX.utils.sheet_to_json(sheet,{defval:null,raw:true});const out=[];
   rawRows.forEach((row,index)=>{
@@ -5492,7 +5508,10 @@ function t995RowsFromSheet(workbook,sheetName,period,counter,unmapped){
     const priorDate=t995ExcelDateToISO(row['DATE PY']??row['去年日期']);
     const actualTc=Object.prototype.hasOwnProperty.call(row,'實際外送TC')?row['實際外送TC']:(row['今年TC']??row['TC(System)']);
     if(actualTc===null||actualTc===undefined||String(actualTc).trim()===''||!Number.isFinite(Number(String(actualTc).replace(/,/g,'')))||Number(String(actualTc).replace(/,/g,''))<0)throw new Error(sheetName+' 第 '+(index+2)+' 列實際外送TC空白或無效，未將缺值當作0。');
-    out.push({restaurant_name:store,area_code:area,record_date:date,prior_year_date:priorDate,period_code:period,prior_year_tc:t995NumericZero(row['去年單數']??row['去年TC'],counter),total_tc:t995NumericZero(actualTc,counter),tc_ex_third_party:t995NumericZero(row['扣除第三方TC'],counter),source_sheet:sheetName,source_row:index+2});
+    out.push({restaurant_name:store,area_code:area,record_date:date,prior_year_date:priorDate,period_code:period,
+      prior_year_tc:t995NumericZero(row['去年單數']??row['去年TC'],counter),total_tc:t995NumericZero(actualTc,counter),
+      tc_ex_third_party:t995NumericZero(row['扣除第三方TC'],counter),source_sheet:sheetName,source_row:index+2,
+      ...t995SalesFields(row,period,sheetName+' 第 '+(index+2)+' 列')});
   });return out;
 }
 async function t995CreateImportBatch(fileName,rows,note){
@@ -5500,7 +5519,21 @@ async function t995CreateImportBatch(fileName,rows,note){
   const r=await db.from("staffing_import_batches").insert({file_name:fileName,period_start:dates.start,period_end:dates.end,imported_by:email,note}).select("id").single();if(r.error)throw r.error;return r.data.id;
 }
 async function t995UpsertChunks(table,rows,onConflict,messageNode){
-  const size=250;for(let i=0;i<rows.length;i+=size){const r=await db.from(table).upsert(rows.slice(i,i+size),{onConflict});if(r.error)throw r.error;if(messageNode)messageNode.textContent=`匯入中… ${Math.min(i+size,rows.length)} / ${rows.length}`;}
+  // PostgREST uses a request-wide column list. Keep omitted sales out of legacy requests.
+  const groups=new Map();
+  for(const row of rows){
+    const key=table==='staffing_tc_history'?[Object.hasOwn(row,'sales'),Object.hasOwn(row,'prior_year_sales')].join('|'):'';
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(row);
+  }
+  const size=250;
+  let sent=0;
+  for(const group of groups.values())for(let i=0;i<group.length;i+=size){
+    const chunk=group.slice(i,i+size),r=await db.from(table).upsert(chunk,{onConflict});
+    if(r.error)throw r.error;
+    sent+=chunk.length;
+    if(messageNode)messageNode.textContent=`匯入中… ${sent} / ${rows.length}`;
+  }
 }
 async function t995ImportTcWorkbook(){
   const file=t995TcFile.files?.[0];if(!file){t995TcImportMessage.textContent="請先選擇 TC 活頁簿。";return;}
@@ -5775,13 +5808,16 @@ async function t995ImportCompleteWorkbookV4(){
               const item={restaurant_name:name,area_code:area,record_date:date,period_code:period,
                 source_sheet:sheetName,source_row:sourceRow,prior_year_tc:priorTc,total_tc:totalTc,
                 tc_ex_third_party:thirdParty===null?null:totalTc-thirdParty,third_party_tc_import:thirdParty,
-                prior_year_date:t995ExcelDateToISO(priorDate.value)};
+                prior_year_date:t995ExcelDateToISO(priorDate.value),...t995SalesFields(row,period,where)};
               const key=`${name}|${date}|${period}`,old=tcMap.get(key);
               if(!old)tcMap.set(key,item);
-              else for(const fieldName of ["prior_year_tc","total_tc","tc_ex_third_party","prior_year_date","third_party_tc_import"]){
-                if(item[fieldName]===null)continue;
-                if(old[fieldName]!==null&&old[fieldName]!==item[fieldName])throw new Error(`${name} ${date} 在不同工作表的 TC 資料不一致`);
-                old[fieldName]=item[fieldName];
+              else {
+                for(const fieldName of ["prior_year_tc","total_tc","tc_ex_third_party","prior_year_date","third_party_tc_import","sales","prior_year_sales"]){
+                  if(!Object.hasOwn(item,fieldName))continue;
+                  if(item[fieldName]===null&&Object.hasOwn(old,fieldName))continue;
+                  if(old[fieldName]!=null&&old[fieldName]!==item[fieldName])throw new Error(`${name} ${date} 在不同工作表的 ${fieldName} 資料不一致`);
+                  old[fieldName]=item[fieldName];
+                }
               }
             }
           }
@@ -6345,8 +6381,8 @@ async function opsArchiveScoreSourceFiles(pair){
 <script src="config/995-business.js?v=20261114-v2w"></script>
 <script src="score-revision-reader.js"></script>
 <script src="score-read-source.js"></script>
-<script src="operations-forecast.js?v=20261114-v2w"></script>
-<script src="operations-metrics.js?v=20261117-v3u"></script>
+<script src="operations-forecast.js?v=20261124-s1"></script>
+<script src="operations-metrics.js?v=20261124-s4"></script>
 <script src="operations-summary.js?v=20261113-v2q"></script>
 <script src="operations-report.js?v=20261118-c1"></script>
 <script src="ops-a-reply.js?v=20261118-b6"></script><script src="operations-entry.js?v=20261117-a1"></script>
