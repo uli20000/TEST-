@@ -79,7 +79,7 @@
   }
   function model(data,r){return M.build({...data,mapping:new Map(data.mapping.map(x=>[M.clean(x.restaurant_name),x.area_code])),catalog:state.catalog,...r});}
   function previousRange(r,data=state.data){if(state.period==='day'){const report=(data?.reports||[]).find(x=>x.record_date===r.start),special=!!report&&(report.score_excluded||/特殊節日|國定假日|連假|停班課|颱風/.test(String(report.special_notes||'')));const dow=new Date(r.start+'T12:00:00Z').getUTCDay(),d=special?M.addDays(r.start,(6-dow+7)%7):M.addDays(r.start,-7);return {start:d,end:d,special};}if(state.period==='week')return fullWeek(M.addDays(r.start,-7));const d=addMonths(r.start,-1);return M.range(d,'month');}
-  async function loadWeather(month){const key=String(month).slice(0,7),normalized=key+'-01';if(state.weather.has(key))return;const result=await db.functions.invoke('t995-operations-weather',{body:{month:normalized}});if(result.error||result.data?.error)throw new Error(result.data?.error||'天氣資料無法讀取');state.weather.set(key,result.data);}
+  async function loadWeather(month){const key=String(month).slice(0,7),normalized=key+'-01';if(state.weather.has(key))return;const loads=state.weatherLoads||(state.weatherLoads=new Map());if(loads.has(key))return loads.get(key);const work=(async()=>{const result=await db.functions.invoke('t995-operations-weather',{body:{month:normalized}});if(result.error||result.data?.error)throw new Error(result.data?.error||'天氣資料無法讀取');state.weather.set(key,result.data);})();loads.set(key,work);try{return await work;}finally{if(loads.get(key)===work)loads.delete(key);}}
   const noWeather=()=>state.weatherLoading?'天氣讀取中…':'無天氣資料';
   async function weatherForRange(r){await Promise.all(S.months(r.start,r.end).map(loadWeather));}
   function weatherRow(date,city){return state.weather.get(date.slice(0,7))?.rows?.find(x=>x.date===date&&x.city===city)||null;}
@@ -1468,6 +1468,7 @@
       document.body.appendChild(sheet);
       sheet.addEventListener('click',async e=>{
         if(e.target===sheet){closeExportMenu();return;}
+        if($('export').disabled){closeExportMenu();return;}
         const b=e.target.closest('[data-ex]');if(!b)return;const k=b.dataset.ex,msg=sheet.querySelector('.ex-status');
         try{
           if(k==='close'){closeExportMenu();return;}
@@ -1500,7 +1501,7 @@
     try{
       const ctx=await insightContext(r);
       if(metric==='weekly'){
-        try{await readWeeklySales(ctx.weeks.map(w=>({range:w,data:ctx.data})));}catch(e){}
+        try{await readWeeklySales(ctx.weeks.map(w=>({range:w,data:ctx.data})),()=>id===state.request&&metric===state.metric);}catch(e){}
         try{ctx.weeklyActions=await paged('t995_action_items','*',q=>q.eq('week_start',r.start)
           .eq('owner','週報').eq('archived',false),'id');}
         catch(e){ctx.weeklyActions=null;ctx.weeklyActionsError=true;}
@@ -1526,7 +1527,7 @@
     const id=++state.request,r=range();
     renderChoices();
     $('report').classList.add('hidden');$('metricTabs').classList.add('hidden');$('refresh').disabled=true;
-    state.fullExport=null;$('export').disabled=true;state.comparePending=false;
+    state.fullExport=null;$('export').disabled=true;state.comparePending=false;state.weatherLoading=false;$('exportSheet')?.classList.add('hidden');
     status('讀取成績中…');
     try{
       const data=await loadRange(r,force);
@@ -1551,7 +1552,7 @@
     finally{if(id===state.request)$('refresh').disabled=false;}
   }
   async function loadReportExtras(id,r,data,timeline,force){
-    const current=()=>id===state.request,weather=weatherForRange(r).catch(()=>{});
+    const current=()=>id===state.request,weather=Promise.allSettled(S.months(r.start,r.end).map(loadWeather));
     const full=await Promise.all(timeline.map(async x=>{
       if(!x.pending)return x;
       try{return {range:x.range,offset:x.offset,data:await loadRange(x.range,force)};}

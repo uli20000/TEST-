@@ -34,13 +34,13 @@
       const batches=M.latestBatches(batchRows),ids=batches.map(b=>b.id),rows=revisionReport?revisionReport.rows:ids.length?await paged('t995_score_import_rows','batch_id,row_number,store_code,restaurant_name,order_number,payload',q=>q.in('batch_id',ids),'batch_id'):[];
       return {rows,batches,powerbiData,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[]};
     })();state.monthLoads.set(month,work);
-    try{const data=await work;state.monthCache.set(month,data);return data;}finally{state.monthLoads.delete(month);}
+    const gen=state.gen||0;try{const data=await work;if((state.gen||0)===gen)state.monthCache.set(month,data);return data;}finally{if(state.monthLoads.get(month)===work)state.monthLoads.delete(month);}
   }
   // 總覽選「日」只讀當天；當月已讀過就直接用整月快取
   async function loadDay(date,force=false){
     const cached=!window.ScoreReadSource.enabled()&&!force;
     if(cached&&state.dayCache.has(date))return state.dayCache.get(date);
-    await loadDirectory();const r=S.range(date,'day'),monthStart=S.range(date,'month').start;
+    const gen=state.gen||0;await loadDirectory();const r=S.range(date,'day'),monthStart=S.range(date,'month').start;
     const revisionSnapshot=await window.ScoreReadSource.load(db,window.OpsForecast.sampleStart(r.start),r.end);
     const revisionReport=revisionSnapshot?window.ScoreReadSource.within(revisionSnapshot,r.start,r.end):null;
     const [batchRows,reportResult,reference,powerbiData]=await Promise.all([
@@ -52,6 +52,7 @@
     if(reportResult.error)throw reportResult.error;if(reference.error)throw reference.error;
     const batches=M.latestBatches(batchRows),ids=batches.map(b=>b.id),rows=revisionReport?revisionReport.rows:ids.length?await paged('t995_score_import_rows','batch_id,row_number,store_code,restaurant_name,order_number,payload',q=>q.in('batch_id',ids),'batch_id'):[];
     const data={rows,batches,powerbiData,reports:reportResult.data||[],history:reference.data?.history||[],mapping:reference.data?.mapping||[]};
+    if((state.gen||0)!==gen)return data;
     state.dayCache.set(date,data);while(state.dayCache.size>7)state.dayCache.delete(state.dayCache.keys().next().value);
     return data;
   }
@@ -305,9 +306,9 @@
   window.opsFindRestaurant=findRestaurant;
   for(const id of ['opsDelayStore','opsLineStore'])E(id).oninput=async()=>{if(id==='opsLineStore'){opsSetToggle('opsLineMark',false);opsSetToggle('opsSignMark',false);}try{const store=await findRestaurant(id);if(store&&id==='opsLineStore')await fillLineState(store.store_code);}catch(e){E(id+'Name').textContent=e.message;}};
   E('opsExportSelected').onclick=()=>exportCombined(period());
-  window.opsLoadDailyAnalytics=()=>{state.context='scores';state.dayCache.clear();return refresh(true);};
+  window.opsLoadDailyAnalytics=()=>{state.context='scores';invalidate();return refresh(true);};
   // 成績或 TC 匯入後清掉總覽的月／日快取，回總覽時重讀
-  function invalidate(){state.monthCache.clear();state.dayCache.clear();}
+  function invalidate(){state.gen=(state.gen||0)+1;state.monthCache.clear();state.dayCache.clear();state.monthLoads.clear();}
   // 總覽頁用：與匯總資料同一套計算，只回傳資料不渲染（UI 改版第 2 步）
   async function overview(date,p='day'){
     if(!state.catalog.size)await loadDirectory();
