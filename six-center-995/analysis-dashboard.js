@@ -283,10 +283,12 @@
   function gesCommentPanels(all){
     const G=window.GesComments,rows=all.filter(x=>x.source_type==='GES_COMMENT').sort((a,b)=>String(b.raw_fields?.時間||b.record_date).localeCompare(String(a.raw_fields?.時間||a.record_date)));
     if(!G)return '';
-    const tags=x=>G.classify(x.content).join('、'),counts=G.summarize(rows).filter(x=>x.count);
-    const countTable=rows.length?table(['分類','則數'],[...counts.map(x=>[x.label,fmt(x.count)]),['意見總數',fmt(rows.length)]]):'<div class="empty">此期間沒有 GES 意見</div>';
+    const tags=x=>G.classify(x.content).join('、');
+    // 分類固定 11 類＋總數＝12 格，格子大小一致（桌面 6×2、平板 4×3、手機 2×6）；有意見時 0 則就是 0
+    const tile=(label,value)=>'<div class="kpi"><div class="kpi-label">'+escape(label)+'</div><div class="kpi-value">'+value+'</div></div>';
+    const countTiles=rows.length?'<div class="kpis ges-kpis">'+G.summarize(rows).map(x=>tile(x.label,fmt(x.count))).join('')+tile('意見總數',fmt(rows.length))+'</div>':'<div class="empty">此期間沒有 GES 意見</div>';
     const detail=table(['日期','餐廳','評級','分類','意見'],rows.map(x=>[x.record_date.slice(5).replace('-','/'),x.restaurant_name||'—',x.feedback_kind||'—',tags(x),String(x.content||'').replace(/\s+/g,' ')]));
-    return '<div class="analysis-grid feedback-pair ges-comments"><section class="analysis-panel"><h3>GES 意見分類</h3>'+countTable+'</section><section class="analysis-panel"><h3>GES 意見</h3>'+detail+'</section></div>';
+    return '<div class="analysis-grid ges-comments"><section class="analysis-panel"><h3>GES 意見分類</h3>'+countTiles+'</section><section class="analysis-panel"><h3>GES 意見</h3>'+detail+'</section></div>';
   }
   function feedbackPage(data,previous,r){
     const all=data.feedback||[],prior=previous?.feedback||[],c0800=all.filter(x=>x.source_type==='0800'),c4128=all.filter(x=>x.source_type==='4128'),ges=['week','month'].includes(state.period)?gesForRange(all,r):[],prev0800=prior.filter(x=>x.source_type==='0800');
