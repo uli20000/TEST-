@@ -545,7 +545,8 @@
         const status=names.includes('SSSG')?'—':'資料不足，暫無趨勢圖。';
         return '<p class="tracking-note">'+names.join('／')+'：'+status+'</p>';
       }
-      const lo=Math.min(0,...numbers),hi=Math.max(...numbers),span=hi-lo||1,y=v=>155-(v-lo)/span*110,colors=['#bd1622','#287bb9','#d99a00'];
+      // GES 都是 0～100% 的高分，Y 軸改依資料範圍（上下各留 5%），三條線才分得開
+      const gesChart=names===GES_TREND,lo=gesChart?Math.max(0,Math.floor((Math.min(...numbers)-0.05)*20)/20):Math.min(0,...numbers),hi=gesChart?Math.min(1,Math.ceil((Math.max(...numbers)+0.05)*20)/20):Math.max(...numbers),span=hi-lo||1,y=v=>155-(v-lo)/span*110,colors=['#bd1622','#287bb9','#d99a00'];
       const grid=[0,1,2,3,4].map(i=>{
         const at=45+i*27.5,value=compareValue(hi-i*span/4,null,series[0].values.find(Boolean)?.[2]);
         return '<line x1="75" y1="'+at+'" x2="875" y2="'+at+'" stroke="#dedede"/>'+
@@ -559,7 +560,7 @@
           const py=y(value);
           if(prev)parts+='<line x1="'+prev.x+'" y1="'+prev.y+'" x2="'+x+'" y2="'+py+'" stroke="'+colors[j]+'" stroke-width="2.5"/>';
           parts+='<circle cx="'+x+'" cy="'+py+'" r="4" fill="'+colors[j]+'"/>'+
-            '<text x="'+x+'" y="'+(py-9-j*13)+'" text-anchor="middle" fill="#555">'+escape(compareValue(value,null,item[2]))+'</text>';
+            '<text x="'+x+'" y="'+(py-9-(gesChart?0:j*13))+'" text-anchor="middle" fill="#555">'+escape(compareValue(value,null,item[2]))+'</text>';
           prev={x,y:py};
         }
         return parts;
